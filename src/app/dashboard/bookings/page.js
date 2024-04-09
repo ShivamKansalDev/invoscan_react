@@ -48,6 +48,10 @@ export default function Bookings() {
     
     const [actionButtonType, setActionButtonType] = useState('update');
 
+    useEffect(() => {
+
+    }, [])
+
     let columns = [
         {
             name: 'Vendor Name',
@@ -64,7 +68,7 @@ export default function Bookings() {
         {
             name: 'Sub Total',
             cell: row => (
-                <div className="text-light-green">£{parseFloat(row.SubTotal.replace(/[^0-9\.]+/g, "")).toFixed(2)}</div>
+                <div className="text-light-green">£{parseFloat(row?.SubTotal?.replace(/[^0-9\.]+/g, ""))?.toFixed(2)}</div>
             )
         },
         {
@@ -132,7 +136,7 @@ export default function Bookings() {
                         {
                             row.lock !== true ?
                                 <button
-                                    onClick={(e) => { showInvoiceData(row, index); setActionButtonType('update') }}
+                                    onClick={(e) => { console.log("#@@#@#@ EYE: ", index, row); showInvoiceData(row, index); setActionButtonType('update') }}
                                 >
                                     <i className='bx bx-show menu-icon'></i>
                                 </button>
@@ -143,7 +147,7 @@ export default function Bookings() {
                         {
                             row.lock !== true ?
                                 <button
-                                    onClick={(e) => { setspDeleteId({row, index}); setDeleteSpOpen(true); }}
+                                    onClick={(e) => { console.log("#@@#@#@ E: ", index, row); setspDeleteId({row, index}); setDeleteSpOpen(true); }}
                                 >
                                     <i className='bx bx-trash menu-icon menu-icon-red'></i>
                                 </button>
@@ -199,7 +203,17 @@ export default function Bookings() {
         //     link.click();
         //     document.body.removeChild(link);
         // }
-        setInvoiceItems(row)
+        let rowData = Object.assign({}, row);
+        const items = rowData?.Items;
+        if(Array.isArray(items)){
+            const addIndex = items.map((item, index) => ({
+                ...item,
+                index
+            }));
+            rowData = Object.assign({}, rowData, {Items: addIndex})
+            setInvoiceItems(rowData);
+            // console.log("#@@#@# ROW DATA: ", JSON.stringify(rowData, null, 4));
+        }
         setOpen(true);
     }
 
@@ -224,8 +238,9 @@ export default function Bookings() {
 
     const saveNewInvoiceItems = () => {
         invoiceData.lock = false;
-        invoiceItems.Items.push(invoiceData)
-        let invoiceItemsClone = { ...invoiceItems }
+        const length = invoiceItems.Items.length;
+        invoiceItems.Items.push(Object.assign({}, invoiceData, {index: length}))
+        let invoiceItemsClone = Object.assign({}, invoiceItems); 
         setInvoiceItems({
             Items: []
         })
@@ -247,14 +262,10 @@ export default function Bookings() {
 
     const deleteInvoiceData = () => {
         let {row, index} = deleteSPId;
-        invoiceItems.Items.splice(index, 1);
-        let invoiceItemsClone = { ...invoiceItems };
-        setInvoiceItems({
-            ...invoiceItems,
-            Items: []
-        })
+        // console.log("@#@@# INDEX: ", row);
+        const updateInvoiceItems = invoiceItems.Items.filter((item, itemIndex) => itemIndex !== row?.index);
+        setInvoiceItems({Items: updateInvoiceItems});
         setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
             setDeleteSpOpen(false)
         }, 10);
     }
@@ -671,7 +682,7 @@ export default function Bookings() {
                 <div className="mb-4">
                     <div className="card-body mt-3">
                         <h2 className="card-header">Wait!</h2>
-                        <small>Are You Sure, You want to delete ?</small>
+                        <small>Are You Sure, You want to delete this item ?</small>
                         <div className="d-flex">
                             <button type="button" onClick={(e) => { onClosespDeleteModal(); setspDeleteId({}) }} className={`btn btn-green-borded col-md-6`}>Cancel</button>&nbsp;
                             <button type="button" onClick={(e) => { deleteInvoiceData(); }} className={`btn btn-green col-md-6`}>Delete</button>
