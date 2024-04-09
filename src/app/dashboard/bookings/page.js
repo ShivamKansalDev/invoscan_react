@@ -222,6 +222,7 @@ export default function Bookings() {
         setInvoiceData(rowData)
         setInvoiceItemIndex(key)
         setSecondOpen(true);
+        
     }
  
     const saveInvoiceItems = () => {
