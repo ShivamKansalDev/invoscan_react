@@ -21,7 +21,7 @@ export default function Bookings() {
     const [supplierOpen, setSupplierOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [supplierList, setSupplierList] = useState([]);
-    const [selectedSupplier, setSupplier] = useState({});
+    const [selectedSupplier, setSupplier] = useState(null);
     const [secondOpen, setSecondOpen] = useState(false);
     const [fileName, setFileName] = useState('');
     const [invoiceItems, setInvoiceItems] = useState({
@@ -105,7 +105,7 @@ export default function Bookings() {
             )
         },
         {
-            name: 'Inv. packs',
+            name: 'Quantity',
             cell: row => (
                 <div>
                     <input type="text" className="form-control" value={row.Quantity} readOnly />
@@ -344,7 +344,9 @@ export default function Bookings() {
 
     const onCloseModal = () => setOpen(false);
     const onCloseSecondModal = () => setSecondOpen(false);
-    const onCloseSupplierModal = () => { setConfirmOpen(true) };
+    const onCloseSupplierModal = () => { 
+        setConfirmOpen(true);
+    };
     const onCloseConfirmModal = () => setConfirmOpen(false);
     const onCloseDeleteModal = () => setDeleteOpen(false);
     const onClosespDeleteModal = () => setDeleteSpOpen(false);
@@ -467,7 +469,7 @@ export default function Bookings() {
                                                 </div>
                                                 <div className="mb-3 col-md-6">
                                                     <label htmlFor="SubTotal" className="form-label">Net Total ex VAT</label>
-                                                    <input type="text" readOnly className="form-control" id="SubTotal" name="SubTotal" value={"£" + (invoiceItems.SubTotal?invoiceItems.SubTotal.replace(/[^0-9\.]+/g, ""):'0.00')} />
+                                                    <input type="text" readOnly className="form-control" id="SubTotal" name="SubTotal" value={"£" + (invoiceItems?.SubTotal?invoiceItems.SubTotal.replace(/[^0-9\.]+/g, ""):'0.00')} />
                                                 </div>
                                             </div>
                                             <div className="pull-right" style={{ float: 'right' }}>
@@ -512,7 +514,7 @@ export default function Bookings() {
                         <div className="row">
 
                             <div className="mb-3 col-md-6">
-                                <label htmlFor="Quantity" className="form-label">Inv. packs</label>
+                                <label htmlFor="Quantity" className="form-label">Quantity</label>
                                 <input className="form-control" type="text" id="Quantity" name="Quantity" onChange={(e) => { setInvoiceData({ ...invoiceData, Quantity: e.target.value, Amount: (parseInt(e.target.value) * parseFloat(invoiceData.UnitPrice)) }); }} value={invoiceData.Quantity} />
                             </div>
                             <div className="mb-3 col-md-6">
@@ -568,14 +570,26 @@ export default function Bookings() {
                             <div className="card-body mt-3">
                                 <div className=" card-body-group">
                                     {
-                                        supplierList && supplierList.map((supplier, index) => {
+                                        supplierList && supplierList.map((item, index) => {
+                                            if(selectedSupplier?.id === item?.id){
+                                                return (
+                                                    <div>
+                                                        <div id={(selectedSupplier?.id === item?.id) ? "bgColor" : "" } className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                                            <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            }
                                             return (
-                                                <div className="form-check form-radio-check mb-2 py-2" key={index}>
-                                                    <input className="form-check-input" onChange={() => {
-                                                        setSupplier(supplier)
-                                                    }} name='companyId' type="radio" id={`flexSwitchCheckChecked-${index}`} />
-                                                    <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{supplier.name}</label>
-                                                </div>
+                                               <div>
+                                                     <div  onClick={() => setSupplier(item)} className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
+                                                        <div>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>
+                                                        </div>
+                                                        <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
+                                                    </div>
+                                               </div>
                                             )
                                         })
                                     }
@@ -587,10 +601,28 @@ export default function Bookings() {
                         </div>
                         :
                         <div className=" mb-4">
-                            {
+                           {/* <div className="card-body mt-3 py-5">
+                                        <div className="mb-3 col-md-12 file-upload-wrapper">
+                                            <div className="wrapper-uploader">
+                                                <div {...getRootProps({className: 'dropzone'})}>
+                                                    <input {...getInputProps()} />
+                                                    <FeatherIcon icon="upload-cloud" className='menu-icon' />
+                                                    <p>Browse File to Upload</p>
+                                                    {
+                                                        fileName ?
+                                                            <a>{fileName}</a>
+                                                            : null
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>sddsggds</div>
+                                    {fileName} */}
+                        {
                                 actionType == 'invoice' ?
                                     <>
-                                        <div className=" mt-3 pt-2" style={{ background: '#0bc9931a', textAlign: 'center' }}><h4 style={{ color: '#0bc993' }}>Supplier: {selectedSupplier.name} </h4></div>
+                                        <div className=" mt-3 pt-2" style={{ background: '#0bc9931a', textAlign: 'center' }}><h4 style={{ color: '#0bc993' }}>Supplier: {selectedSupplier?.name} </h4></div>
                                         <h2 className="card-header">Additional pages</h2>
                                         <small>Add one file to as pdf for invoice.</small></>
                                     : null
@@ -600,14 +632,14 @@ export default function Bookings() {
                                     <><h2 className="card-header">Add Multiple PDF for same supplier</h2>
                                         <small>If your invoice is split across multiple pages, add them here.<br />
                                             In the future, this screen will let you process multiple invoice from the same supplier, but for now please only add pages from the same invoice before proceeding.</small>
-                                        <div className=" mt-3"><h6 className="card-header" style={{ color: '#0bc993' }}>Supplier: {selectedSupplier.name} </h6></div></>
+                                        <div className=" mt-3"><h6 className="card-header" style={{ color: '#0bc993' }}>Supplier: {selectedSupplier?.name} </h6></div></>
                                     : null
                             }
                             {
                                 actionType == 'statement' ?
                                     <><h2 className="card-header">Add Statement</h2>
                                         <small>Upload Statement PDF File.</small>
-                                        <div className="mt-3"><h6 className="card-header" style={{ color: '#0bc993' }}>Supplier: {selectedSupplier.name} </h6></div></>
+                                        <div className="mt-3"><h6 className="card-header" style={{ color: '#0bc993' }}>Supplier: {selectedSupplier?.name} </h6></div></>
                                     : null
                             }
 
@@ -660,7 +692,7 @@ export default function Bookings() {
                         <small>If you leave now, your book in will be uncomplete? Do you want to continue later or discard it entirely ?</small>
                         <div className="d-flex">
                             <button type="button" onClick={(e) => { onCloseConfirmModal() }} className={`btn btn-green-borded col-md-6`}>Cancel</button>&nbsp;
-                            <button type="button" onClick={(e) => { setConfirmOpen(false); setSupplierOpen(false); }} className={`btn btn-green col-md-6`}>Continue Later</button>
+                            <button type="button" onClick={(e) => { setConfirmOpen(false); setSupplierOpen(false);  setSupplier(null);}} className={`btn btn-green col-md-6`}>Continue Later</button>
                         </div>
                     </div>
                 </div>

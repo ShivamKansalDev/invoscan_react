@@ -326,7 +326,7 @@ button.list-group-item-primary.active {
 
 .form-control:focus,
 .form-select:focus {
-  border-color: #696cff !important;
+  border-color: #16e9ad !important;
 }
 
 .input-group:focus-within .form-control,

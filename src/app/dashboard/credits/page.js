@@ -207,8 +207,21 @@ export default function Credits() {
                                 <input className="form-control" type="text" name="comment" id="comment" onChange={(e) => { setStockNote(e.target.value); }} value={note} />
                             </div>
                             <div className="mt-2">
-                                <button type="button" onClick={onCloseModal} className="btn btn-green-borded me-2">Cancel</button>
-                                <button type="button" onClick={saveStockItem} className="btn btn-green me-2 width-86">Resolved</button>
+                                {currentTab === 'Pending'  ?
+                                   <>
+                                        <button type="button" onClick={onCloseModal} className="btn btn-green-borded me-2">Cancel</button>
+                                        <button type="button" onClick={saveStockItem} className="btn btn-green me-2 width-86">Resolve</button> 
+                                   </>:
+                                ""
+                                }
+                                 {currentTab === 'Completed' ?
+                                   <>
+                                    <button type="button" onClick={onCloseModal} className="btn btn-green-borded me-2">Cancel</button>
+                                    <button type="button" onClick={saveStockItem} className="btn btn-green me-2 width-86">Update</button> 
+                                   </>:
+                                   ""
+                                }
+                               
                             </div>
                         </div>
                     </div>
