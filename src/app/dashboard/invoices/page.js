@@ -55,7 +55,7 @@ export default function Invoices() {
         {
             name: 'Sub Total',
             cell: row => (
-                <div className="text-light-green">£{parseFloat(row.SubTotal.replace(/[^0-9\.]+/g, "")).toFixed(2)}</div>
+                <div className="text-light-green">£{parseFloat(row?.SubTotal?.replace(/[^0-9\.]+/g, ""))?.toFixed(2)}</div>
             )
         },
         {

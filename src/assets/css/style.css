@@ -1,0 +1,33 @@
+#bgColor{
+    background-color: #0bc9931a;
+    color: #000;
+    cursor: pointer;
+}
+
+.profile-input {
+    padding: 5px 10px;
+    background: #fff;
+    position: relative;
+    color: rgba(44, 56, 74, 0.95);
+    border-radius: 2px;
+    text-align: center;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    margin: 10px auto;
+    cursor: copy;
+  }
+  .hide_file {
+    position: absolute;
+    z-index: 1000;
+    opacity: 0;
+    cursor: pointer;
+    right: -16px;
+    top: -92px;
+    height: 238px;
+    font-size: 24px;
+    width: 523px;
+    cursor: pointer;
+  }
+  
+  
