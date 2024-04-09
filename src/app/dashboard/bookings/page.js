@@ -223,7 +223,7 @@ export default function Bookings() {
         setInvoiceItemIndex(key)
         setSecondOpen(true);
     }
-
+ 
     const saveInvoiceItems = () => {
         invoiceItems.Items[invoiceItemIndex] = invoiceData
         let invoiceItemsClone = { ...invoiceItems }
