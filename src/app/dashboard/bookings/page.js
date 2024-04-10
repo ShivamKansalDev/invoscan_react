@@ -282,7 +282,15 @@ export default function Bookings() {
     }
 
     const markCompleteCurrentInvoice = async () => {
-        const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, { Items: invoiceItems.Items });
+        //const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, { Items: invoiceItems.Items });
+        const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, {
+            "CustomerId": invoiceItems.CustomerId,
+            "InvoiceDate": invoiceItems.InvoiceDate,
+            "InvoiceId": invoiceItems.InvoiceId,
+            "Items": invoiceItems.Items,
+            "SubTotal": invoiceItems.SubTotal,
+            "isDelivered": true
+        });
         if (response) {
             setInvoiceItems({
                 Items: []
