@@ -17,6 +17,7 @@ export default function RootLayout({ children }) {
   const [company, setCompany] = useState({});
   const [companyList, setCompanyList] = useState([]);
   const [currentUser, setCurrentUser] = useState({});
+  const [selectedSupplier, setSupplier] = useState(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -159,16 +160,48 @@ export default function RootLayout({ children }) {
           <small>You must select a company before you create delivery.</small>
           <div className="card-body mt-4">
             {
-              companyList && companyList.map((selCompany, index) => {
-                return (
-                  <div className="form-check form-radio-check mb-2" key={index}>
-                    <input className="form-check-input" onChange={() => {
-                      setCompany(selCompany)
-                      localStorage.setItem('company', JSON.stringify(selCompany))
-                    }} name='companyId' type="radio" id={`flexSwitchCheckChecked-${index}`} checked={company.id == selCompany.id} />
-                    <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{selCompany.name}</label>
-                  </div>
-                )
+              companyList && companyList.map((item, index) => {
+                if(selectedSupplier?.id === item?.id || company?.id === item?.id){
+                  return (
+                      <div>
+                          <div 
+                          id={company?.id === item?.id ? "bgColor": ""}
+                          onClick={() => {
+                            setCompany(item)
+                            localStorage.setItem('company', JSON.stringify(item))
+                          }}
+                          className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                              <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
+                          </div>
+                      </div>
+                  )
+              }
+              return (
+                 <div>
+                       <div  
+                       id={company?.id === item?.id ? "bgColor": ""}
+                       onClick={() => {
+                        setSupplier(item)
+                        setCompany(item)
+                        localStorage.setItem('company', JSON.stringify(item))
+                        }} className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
+                          <div>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>
+                          </div>
+                          <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
+                      </div>
+                 </div>
+              )
+                // return (
+                //   <div className="form-check form-radio-check mb-2" key={index}>
+                //     <input className="form-check-input" onChange={() => {
+                //       setCompany(selCompany)
+                //       localStorage.setItem('company', JSON.stringify(selCompany))
+                //     }} name='companyId' type="radio" id={`flexSwitchCheckChecked-${index}`} checked={company.id == selCompany.id} />
+                //     <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{selCompany.name}</label>
+                //   </div>
+                // )
               })
             }
             <div className="mt-2">
@@ -180,3 +213,4 @@ export default function RootLayout({ children }) {
     </div>
   );
 }
+

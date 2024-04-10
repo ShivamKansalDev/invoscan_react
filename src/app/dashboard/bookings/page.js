@@ -98,9 +98,9 @@ export default function Bookings() {
             name: '',
             width: "47%",
             cell: row => (
-                <div className="grid-flex">
+                <div className="grid-flex items-center">
                     <div style={{ width: '100px', textAlign: 'center' }} className="form-control">{row.PackSize}</div>
-                    <b style={{ paddingLeft: '5px' }}>{row.Description}</b>
+                    <b className="delivery-text" style={{ paddingLeft: '20px' }}>{row.Description}</b>
                 </div>
             )
         },
@@ -358,15 +358,12 @@ export default function Bookings() {
     };
     const onCloseSupplierModal = () => { 
         setConfirmOpen(true);
-
     };
     const onCloseConfirmModal = () => {
         setConfirmOpen(false);
-
     };
     const onCloseDeleteModal = () => {
         setDeleteOpen(false);
-
     };
     const onClosespDeleteModal = () => {
         setDeleteSpOpen(false)
@@ -526,7 +523,10 @@ export default function Bookings() {
                                                 </div>
                                                 <div className="mb-3 col-md-6">
                                                     <label htmlFor="SubTotal" className="form-label">Net Total ex VAT</label>
-                                                    <input type="text" readOnly className="form-control" id="SubTotal" name="SubTotal" value={"£" + (invoiceItems?.SubTotal?invoiceItems.SubTotal.replace(/[^0-9\.]+/g, ""):'0.00')} />
+                                                    <input type="text" readOnly className="form-control" id="SubTotal" name="SubTotal"
+                                                    //  value={"£" + (invoiceItems?.SubTotal?invoiceItems.SubTotal.replace(/[^0-9\.]+/g, ""):'0.00')}
+                                                     value={invoiceItems.SubTotal?.includes("£") ? (invoiceItems?.SubTotal) : `£${invoiceItems?.SubTotal}`}
+                                                    />
                                                 </div>
                                             </div>
                                             <div className="pull-right" style={{ float: 'right' }}>
@@ -632,7 +632,7 @@ export default function Bookings() {
                                                 return (
                                                     <div>
                                                         <div id={(selectedSupplier?.id === item?.id) ? "bgColor" : "" } className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" className="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                                                             <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
                                                         </div>
                                                     </div>
@@ -642,7 +642,7 @@ export default function Bookings() {
                                                <div>
                                                      <div  onClick={() => setSupplier(item)} className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
                                                         <div>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" className="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>
                                                         </div>
                                                         <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
                                                     </div>
