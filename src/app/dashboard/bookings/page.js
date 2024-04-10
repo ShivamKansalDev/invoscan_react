@@ -342,8 +342,13 @@ export default function Bookings() {
 
     const [currentUser, setUser] = useState({});
 
-    const onCloseModal = () => setOpen(false);
-    const onCloseSecondModal = () => setSecondOpen(false);
+    const onCloseModal = () => {
+        setOpen(false);
+        // setSupplier(null);
+    };
+    const onCloseSecondModal = () => {
+        setSecondOpen(false)
+    };
     const onCloseSupplierModal = () => { 
         setConfirmOpen(true);
     };
@@ -366,6 +371,42 @@ export default function Bookings() {
 
     let lockedItems = invoiceItems && invoiceItems.Items.filter((Item) => Item.lock === true)
 
+
+
+    // upload
+        
+        
+
+    const [thumbnail, setThumbnail] = useState('');
+
+    const handleInputChange = (e) => {
+        if (e.target.files.length) {
+            const file = e.target.files[0];
+            setThumbnail(URL.createObjectURL(file));
+            setFileName(file ? file.name: "");
+            setFiles(e.target.files);
+        }
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        console.log('handleDragOver');
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        console.log('handleDragOver');
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            setThumbnail(URL.createObjectURL(file));
+            setFileName(file.name);
+            setFiles([file]);
+        }
+    };
     return (
         <>
             <div className="card mb-4">
@@ -595,31 +636,30 @@ export default function Bookings() {
                                     }
                                 </div>
                                 <div className="mt-2">
-                                    <button type="button" onClick={() => { setNextAction(true) }} className="btn btn-green me-2 width-100">Confirm Supplier</button>
+                                    <button type="button" onClick={() => { setNextAction(true); }} className="btn btn-green me-2 width-100">Confirm Supplier</button>
                                 </div>
                             </div>
                         </div>
                         :
                         <div className=" mb-4">
-                           {/* <div className="card-body mt-3 py-5">
-                                        <div className="mb-3 col-md-12 file-upload-wrapper">
-                                            <div className="wrapper-uploader">
-                                                <div {...getRootProps({className: 'dropzone'})}>
-                                                    <input {...getInputProps()} />
-                                                    <FeatherIcon icon="upload-cloud" className='menu-icon' />
-                                                    <p>Browse File to Upload</p>
-                                                    {
-                                                        fileName ?
-                                                            <a>{fileName}</a>
-                                                            : null
-                                                    }
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div>sddsggds</div>
-                                    {fileName} */}
-                        {
+                            {/* <div className="m-3 drop-zone"
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}>
+                        {thumbnail ? (
+                            <div className="drop-zone__thumb"
+                                style={{ backgroundImage: `url('${thumbnail}')` }}
+                                data-label={thumbnail.name}>
+                            </div>
+                        ) : (
+                            <>
+                                <FeatherIcon icon="upload-cloud" className='menu-icon' />
+                                <span className="drop-zone__prompt">Browse File to Upload</span>
+                            </>
+                        )}
+            <input type="file" name="file" className="drop-zone__input" onChange={handleInputChange} />
+        </div> */}
+                            {
                                 actionType == 'invoice' ?
                                     <>
                                         <div className=" mt-3 pt-2" style={{ background: '#0bc9931a', textAlign: 'center' }}><h4 style={{ color: '#0bc993' }}>Supplier: {selectedSupplier?.name} </h4></div>
@@ -645,25 +685,59 @@ export default function Bookings() {
 
                             {
                                 actionType == 'bulk' ?
+                                    // <div className="card-body mt-3 py-5">
+                                    //     <div className="mb-3 col-md-12 file-upload-wrapper">
+                                    //         <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
+                                    //             <input className="form-control" type="file" id="files" name="files[]" onChange={(e) => { setFiles(e.target.files); setFileName(e.target.files[0]?e.target.files[0].name:'') }} multiple hidden />
+                                    //             <FeatherIcon icon="upload-cloud" className='menu-icon' />
+                                    //             <p>Browse File to Upload</p>
+                                    //             {
+                                    //                 fileName ?
+                                    //                     <a>{fileName}</a>
+                                    //                     : null
+                                    //             }
+                                    //         </div>
+                                    //     </div>
+                                    // </div>
                                     <div className="card-body mt-3 py-5">
-                                        <div className="mb-3 col-md-12 file-upload-wrapper">
-                                            <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
-                                                <input className="form-control" type="file" id="files" name="files[]" onChange={(e) => { setFiles(e.target.files); setFileName(e.target.files[0]?e.target.files[0].name:'') }} multiple hidden />
-                                                <FeatherIcon icon="upload-cloud" className='menu-icon' />
-                                                <p>Browse File to Upload</p>
-                                                {
-                                                    fileName ?
-                                                        <a>{fileName}</a>
-                                                        : null
-                                                }
-                                            </div>
+                                    <div className="mb-3 col-md-12 file-upload-wrapper"
+                                        onDragOver={handleDragOver}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={handleDrop}>
+                                        <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
+                                            <input className="form-control" type="file" id="files" name="files[]" onChange={handleInputChange} hidden />
+                                            <FeatherIcon icon="upload-cloud" className='menu-icon' />
+                                            <p>Browse File to Upload</p>
+                                            {
+                                                fileName ?
+                                                    <a>{fileName}</a>
+                                                    : null
+                                            }
                                         </div>
                                     </div>
+                                </div>
                                     :
-                                    <div className="card-body mt-3 py-5">
-                                        <div className="mb-3 col-md-12 file-upload-wrapper">
+                                    // <div className="card-body mt-3 py-5">
+                                    //     <div className="mb-3 col-md-12 file-upload-wrapper">
+                                    //         <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
+                                    //             <input className="form-control" type="file" id="files" name="files[]" onChange={(e) => { setFiles(e.target.files); setFileName(e.target.files[0]?e.target.files[0].name:'') }} hidden />
+                                    //             <FeatherIcon icon="upload-cloud" className='menu-icon' />
+                                    //             <p>Browse File to Upload</p>
+                                    //             {
+                                    //                 fileName ?
+                                    //                     <a>{fileName}</a>
+                                    //                     : null
+                                    //             }
+                                    //         </div>
+                                    //     </div>
+                                    // </div>
+                                      <div className="card-body mt-3 py-5">
+                                        <div className="mb-3 col-md-12 file-upload-wrapper"
+                                            onDragOver={handleDragOver}
+                                            onDragLeave={handleDragLeave}
+                                            onDrop={handleDrop}>
                                             <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
-                                                <input className="form-control" type="file" id="files" name="files[]" onChange={(e) => { setFiles(e.target.files); setFileName(e.target.files[0]?e.target.files[0].name:'') }} hidden />
+                                                <input className="form-control" type="file" id="files" name="files[]" onChange={handleInputChange} hidden />
                                                 <FeatherIcon icon="upload-cloud" className='menu-icon' />
                                                 <p>Browse File to Upload</p>
                                                 {
@@ -692,7 +766,7 @@ export default function Bookings() {
                         <small>If you leave now, your book in will be uncomplete? Do you want to continue later or discard it entirely ?</small>
                         <div className="d-flex">
                             <button type="button" onClick={(e) => { onCloseConfirmModal() }} className={`btn btn-green-borded col-md-6`}>Cancel</button>&nbsp;
-                            <button type="button" onClick={(e) => { setConfirmOpen(false); setSupplierOpen(false);  setSupplier(null);}} className={`btn btn-green col-md-6`}>Continue Later</button>
+                            <button type="button" onClick={(e) => { setConfirmOpen(false); setSupplierOpen(false);  setSupplier(null); setFileName(null)}} className={`btn btn-green col-md-6`}>Continue Later</button>
                         </div>
                     </div>
                 </div>
