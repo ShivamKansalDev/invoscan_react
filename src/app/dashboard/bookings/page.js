@@ -344,7 +344,7 @@ export default function Bookings() {
 
     const onCloseModal = () => {
         setOpen(false);
-        // setSupplier(null);
+        setSupplier(null);
     };
     const onCloseSecondModal = () => {
         setSecondOpen(false)
