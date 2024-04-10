@@ -178,7 +178,7 @@ export default function Statements() {
     const [totalItemRows, setTotalItemRows] = useState(0)
     const [supplierOpen, setSupplierOpen] = useState(false);
     const [supplierList, setSupplierList] = useState([]);
-    const [selectedSupplier, setSupplier] = useState({});
+    const [selectedSupplier, setSupplier] = useState(null);
     const [invoiceItemIndex, setInvoiceItemIndex] = useState();
     const [invoiceData, setInvoiceData] = useState({});
     const [actionType, setActionType] = useState('statement');
@@ -448,15 +448,35 @@ export default function Statements() {
                             <div className="card-body mt-4">
                                 <div className=" card-body-group">
                                     {
-                                        supplierList && supplierList.map((supplier, index) => {
+                                        supplierList && supplierList.map((item, index) => {
+                                            if(selectedSupplier?.id === item?.id){
+                                                return (
+                                                    <div>
+                                                        <div id={(selectedSupplier?.id === item?.id) ? "bgColor" : "" } className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" className="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                                            <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            }
                                             return (
-                                                <div className="form-check form-radio-check mb-2 py-2" key={index}>
-                                                    <input className="form-check-input" onChange={() => {
-                                                        setSupplier(supplier)
-                                                    }} name='companyId' type="radio" id={`flexSwitchCheckChecked-${index}`} />
-                                                    <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{supplier.name}</label>
-                                                </div>
+                                               <div>
+                                                     <div  onClick={() => setSupplier(item)} className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
+                                                        <div>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" className="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>
+                                                        </div>
+                                                        <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
+                                                    </div>
+                                               </div>
                                             )
+                                            // return (
+                                            //     <div className="form-check form-radio-check mb-2 py-2" key={index}>
+                                            //         <input className="form-check-input" onChange={() => {
+                                            //             setSupplier(supplier)
+                                            //         }} name='companyId' type="radio" id={`flexSwitchCheckChecked-${index}`} />
+                                            //         <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{supplier.name}</label>
+                                            //     </div>
+                                            // )
                                         })
                                     }
                                 </div>
