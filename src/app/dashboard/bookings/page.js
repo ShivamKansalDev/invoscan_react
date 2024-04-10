@@ -351,18 +351,26 @@ export default function Bookings() {
     const [currentUser, setUser] = useState({});
 
     const onCloseModal = () => {
-        setOpen(false);
-        setSupplier(null);
+        setConfirmOpen(true);
     };
     const onCloseSecondModal = () => {
-        setSecondOpen(false)
+        setSecondOpen(false);
     };
     const onCloseSupplierModal = () => { 
         setConfirmOpen(true);
+
     };
-    const onCloseConfirmModal = () => setConfirmOpen(false);
-    const onCloseDeleteModal = () => setDeleteOpen(false);
-    const onClosespDeleteModal = () => setDeleteSpOpen(false);
+    const onCloseConfirmModal = () => {
+        setConfirmOpen(false);
+
+    };
+    const onCloseDeleteModal = () => {
+        setDeleteOpen(false);
+
+    };
+    const onClosespDeleteModal = () => {
+        setDeleteSpOpen(false)
+    };
     
     const [files, setFiles] = useState([]);
 
@@ -770,11 +778,11 @@ export default function Bookings() {
             <Modal open={confirmOpen} onClose={onCloseConfirmModal} classNames={{ modal: 'company-select-modal' }} center>
                 <div className="mb-4">
                     <div className="card-body mt-3">
-                        <h2 className="card-header">Wait!</h2>
-                        <small>If you leave now, your book in will be uncomplete? Do you want to continue later or discard it entirely ?</small>
-                        <div className="d-flex">
+                        <h2 className="card-header mb-2">Wait!</h2>
+                        <small>If you leave now, your book in will be incomplete? Do you want to continue later or discard it entirely ?</small>
+                        <div className="d-flex mt-2">
                             <button type="button" onClick={(e) => { onCloseConfirmModal() }} className={`btn btn-green-borded col-md-6`}>Cancel</button>&nbsp;
-                            <button type="button" onClick={(e) => { setConfirmOpen(false); setSupplierOpen(false);  setSupplier(null); setFileName(null)}} className={`btn btn-green col-md-6`}>Continue Later</button>
+                            <button type="button" onClick={(e) => { setConfirmOpen(false); setSupplierOpen(false);  setSupplier(null); setFileName(null); setOpen(false);}} className={`btn btn-green col-md-6`}>Continue Later</button>
                         </div>
                     </div>
                 </div>
