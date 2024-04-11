@@ -198,7 +198,17 @@ export default function Invoices() {
         //     link.click();
         //     document.body.removeChild(link);
         // }
-        setInvoiceItems(row)
+        let rowData = Object.assign({}, row);
+        const items = rowData?.Items;
+        if(Array.isArray(items)){
+            const addIndex = items.map((item, index) => ({
+                ...item,
+                index
+            }));
+            rowData = Object.assign({}, rowData, {Items: addIndex})
+            setInvoiceItems(rowData);
+            // console.log("#@@#@# ROW DATA: ", JSON.stringify(rowData, null, 4));
+        }
         setOpen(true);
     }
 
@@ -223,13 +233,22 @@ export default function Invoices() {
 
     const saveNewInvoiceItems = () => {
         invoiceData.lock = false;
-        invoiceItems.Items.push(invoiceData)
-        let invoiceItemsClone = { ...invoiceItems }
-        setInvoiceItems({
-            Items: []
+        let oldItems = invoiceItems.Items.map((item) => item);
+        console.log("before", oldItems);
+        oldItems.unshift(invoiceData);
+        console.log("after unshift", oldItems);
+        oldItems = oldItems.map((item, index) => {
+            return {
+                ...item,
+                index
+            }
         })
+        console.log("finally", oldItems); 
         setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
+            setInvoiceItems({
+                ...invoiceItems,
+                Items: oldItems
+            });
         }, 500);
         setSecondOpen(false)
     }
@@ -243,14 +262,12 @@ export default function Invoices() {
 
     const deleteInvoiceData = () => {
         let {row, index} = deleteSPId;
-        invoiceItems.Items.splice(index, 1);
-        let invoiceItemsClone = { ...invoiceItems };
+        const updateInvoiceItems = invoiceItems.Items.filter((item) => (item?.index !== row?.index));
         setInvoiceItems({
             ...invoiceItems,
-            Items: []
-        })
+            Items: updateInvoiceItems
+        });
         setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
             setDeleteSpOpen(false)
         }, 10);
     }
@@ -276,22 +293,24 @@ export default function Invoices() {
     }
 
     const markCompleteCurrentInvoice = async () => {
-        // console.log("@#@#@# MARK COMPLETE: ", invoiceItems);
-        const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, {
-            "CustomerId": invoiceItems.CustomerId,
-            "InvoiceDate": invoiceItems.InvoiceDate,
-            "InvoiceId": invoiceItems.InvoiceId,
-            "Items": invoiceItems.Items,
-            "SubTotal": invoiceItems.SubTotal,
-            "isDelivered": true
-        });
-        if (response) {
-            console.log()
+        try{
+            const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, {
+                "CustomerId": invoiceItems.CustomerId,
+                "InvoiceDate": invoiceItems.InvoiceDate,
+                "InvoiceId": invoiceItems.InvoiceId,
+                "Items": invoiceItems.Items,
+                "SubTotal": invoiceItems.SubTotal,
+                "isDelivered": true
+            });
+            console.log(response.data,'response');
             setInvoiceItems({
                 Items: []
             })
-            fetchData(currentTab);
+            fetchData(1);
             setOpen(false)
+            setSupplierOpen(false)
+        }catch(error){
+            console.log("!!!! CMPLT API ERROR: ", error)
         }
     }
 

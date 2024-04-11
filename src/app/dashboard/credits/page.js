@@ -127,7 +127,10 @@ export default function Credits() {
         }
         formData.append('comment', note)
         console.log(currentTab)
-        const response = await Request.patch(`/stock-report/resolve/${stockItem.id}?isResolved=${currentTab == 'Completed' ? 'false' : 'true'}`, formData);
+
+        //const response = await Request.patch(`/stock-report/resolve/${stockItem.id}?isResolved=${currentTab == 'Completed' ? 'false' : 'true'}`, formData);
+        const response = await Request.patch(`/stock-report/resolve/${stockItem.id}?isResolved=${'true'}`, formData);
+
         if (response) {
             setStockItems({})
             setStockNote('');
