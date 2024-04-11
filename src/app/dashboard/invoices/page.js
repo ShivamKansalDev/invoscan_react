@@ -87,7 +87,7 @@ export default function Invoices() {
             cell: row => (
                 <div className="grid-flex">
                     <div style={{ width: '100px', textAlign: 'center' }} className="form-control">{row.PackSize}</div>
-                    <b style={{ paddingLeft: '5px' }}>{row.Description}</b>
+                    <b style={{ paddingLeft: '20px' }} className="delivery-text">{row.Description}</b>
                 </div>
             )
         },

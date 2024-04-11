@@ -234,12 +234,16 @@ export default function Statements() {
         if (response.data && response.data.length > 0) {
             setData(response.data)
             setTotalRows(response.data.length)
+        }else if (response.data && response.data.length === 0){
+            setData(response.data)
+            setTotalRows(response.data.length)
         }
     }
 
     const deleteCurrentInvoice = async () => {
         const response = await Request.delete(`/statement/delete/${deleteId}`);
         if (response) {
+            console.log("@#@#@ DELETE: ", response.data);
             fetchData(1);
             onCloseDeleteModal();
         }
@@ -255,6 +259,8 @@ export default function Statements() {
         if (response && !response.error) {
             // setUploadedInvoiceItems(response.data)
             // setInvoiceOpen(true);
+            setSupplier(null);
+            setFileName("");
             fetchData(1);
             setSupplierOpen(false)
         }
@@ -263,6 +269,7 @@ export default function Statements() {
     const markCompleteCurrentInvoice = async () => {
         const response = await Request.patch(`/stock/update-stock/${uploadedInvoiceItems.id}`, { Items: uploadedInvoiceItems.Items });
         if (response) {
+            console.log("@@@ CMPLT STATMENT: ", response.data);
             setUploadedInvoiceItems({})
             fetchData(1);
             setInvoiceOpen(false)
@@ -285,7 +292,10 @@ export default function Statements() {
     }
 
     const [currentUser, setUser] = useState({});
-    const onCloseSupplierModal = () => setSupplierOpen(false);
+    const onCloseSupplierModal = () => {
+        setSupplierOpen(false)
+        setSupplier(null)
+    };
     const onCloseSecondModal = () => setSecondOpen(false);
     const [files, setFiles] = useState([]);
 
@@ -489,7 +499,7 @@ export default function Statements() {
                         <div className=" mb-4">
                             <h2 className="card-header">Add Statement</h2>
                             <small>Upload Statement PDF File.</small>
-                            <div className="mt-3"><h6 className="card-header" style={{ color: '#0bc993' }}>Supplier: {selectedSupplier.name} </h6></div>
+                            <div className="mt-3"><h6 className="card-header" style={{ color: '#0bc993' }}>Supplier: {selectedSupplier?.name} </h6></div>
                             <div className="card-body mt-3 py-5">
                                 <div className="mb-3 col-md-12 file-upload-wrapper">
                                     <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
@@ -518,10 +528,10 @@ export default function Statements() {
                 <div className="card mb-4">
                     <div className="card-body mt-3">
                         <h5>Wait!</h5>
-                        <small>Are You Sure, You want to delete ?</small>
+                        <small>Are You Sure, You want to delete this statement ?</small>
                         <div className="row">
                             <button type="button" onClick={(e) => { onCloseDeleteModal(); setDeleteId(null) }} className={`btn btn-green-borded col-md-6`}>Cancel</button>
-                            <button type="button" onClick={(e) => { deleteCurrentInvoice(); }} className={`btn btn-green col-md-6`}>Delete</button>
+                            <button type="button" onClick={(e) => { deleteCurrentInvoice();}} className={`btn btn-green col-md-6`}>Delete</button>
                         </div>
                     </div>
                 </div>
