@@ -301,6 +301,8 @@ export default function Bookings() {
                 "isDelivered": true
             });
             console.log(response.data,'response');
+            setSupplier(null);
+            setFileName('');
             setInvoiceItems({
                 Items: []
             })
