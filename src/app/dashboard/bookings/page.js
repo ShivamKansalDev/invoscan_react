@@ -49,8 +49,8 @@ export default function Bookings() {
     const [actionButtonType, setActionButtonType] = useState('update');
 
     useEffect(() => {
-
-    }, [])
+        // console.log("@#@#@ INV ITEMS: ", invoiceItems)
+    }, [invoiceItems])
 
     let columns = [
         {
@@ -136,7 +136,7 @@ export default function Bookings() {
                         {
                             row.lock !== true ?
                                 <button
-                                    onClick={(e) => { console.log("#@@#@#@ EYE: ", index, row); showInvoiceData(row, index); setActionButtonType('update') }}
+                                    onClick={(e) => { showInvoiceData(row, index); setActionButtonType('update') }}
                                 >
                                     <i className='bx bx-show menu-icon'></i>
                                 </button>
@@ -147,7 +147,7 @@ export default function Bookings() {
                         {
                             row.lock !== true ?
                                 <button
-                                    onClick={(e) => { console.log("#@@#@#@ E: ", index, row); setspDeleteId({row, index}); setDeleteSpOpen(true); }}
+                                    onClick={(e) => { setspDeleteId({row, index}); setDeleteSpOpen(true); }}
                                 >
                                     <i className='bx bx-trash menu-icon menu-icon-red'></i>
                                 </button>
@@ -239,14 +239,19 @@ export default function Bookings() {
 
     const saveNewInvoiceItems = () => {
         invoiceData.lock = false;
-        const length = invoiceItems.Items.length;
-        invoiceItems.Items.push(Object.assign({}, invoiceData, {index: length}))
-        let invoiceItemsClone = Object.assign({}, invoiceItems); 
-        setInvoiceItems({
-            Items: []
-        })
+        let oldItems = invoiceItems.Items.map((item) => item);
+        oldItems.unshift(invoiceData);
+        oldItems = oldItems.map((item, index) => {
+            return {
+                ...item,
+                index
+            }
+        }) 
         setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
+            setInvoiceItems({
+                ...invoiceItems,
+                Items: oldItems
+            });
         }, 500);
         setSecondOpen(false)
     }
@@ -263,9 +268,11 @@ export default function Bookings() {
 
     const deleteInvoiceData = () => {
         let {row, index} = deleteSPId;
-        // console.log("@#@@# INDEX: ", row);
-        const updateInvoiceItems = invoiceItems.Items.filter((item, itemIndex) => itemIndex !== row?.index);
-        setInvoiceItems({Items: updateInvoiceItems});
+        const updateInvoiceItems = invoiceItems.Items.filter((item) => (item?.index !== row?.index));
+        setInvoiceItems({
+            ...invoiceItems,
+            Items: updateInvoiceItems
+        });
         setTimeout(() => {
             setDeleteSpOpen(false)
         }, 10);
@@ -282,22 +289,26 @@ export default function Bookings() {
     }
 
     const markCompleteCurrentInvoice = async () => {
+        console.log("@@@@ API: ", invoiceItems);
         //const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, { Items: invoiceItems.Items });
-        const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, {
-            "CustomerId": invoiceItems.CustomerId,
-            "InvoiceDate": invoiceItems.InvoiceDate,
-            "InvoiceId": invoiceItems.InvoiceId,
-            "Items": invoiceItems.Items,
-            "SubTotal": invoiceItems.SubTotal,
-            "isDelivered": true
-        });
-        if (response) {
+        try{
+            const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, {
+                "CustomerId": invoiceItems.CustomerId,
+                "InvoiceDate": invoiceItems.InvoiceDate,
+                "InvoiceId": invoiceItems.InvoiceId,
+                "Items": invoiceItems.Items,
+                "SubTotal": invoiceItems.SubTotal,
+                "isDelivered": true
+            });
+            console.log(response.data,'response');
             setInvoiceItems({
                 Items: []
             })
             fetchData(1);
             setOpen(false)
             setSupplierOpen(false)
+        }catch(error){
+            console.log("!!!! CMPLT API ERROR: ", error)
         }
     }
 
