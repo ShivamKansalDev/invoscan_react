@@ -36,4 +36,14 @@
   width: 250px;
   margin: 0 auto;
 }
-  
+.pdf-section .react-pdf__Page__canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+.pdf-section .react-pdf__Page{
+    min-width: unset !important;
+}
+.pdf-section .react-pdf__Page__annotations {
+  width: unset !important;
+  height: unset !important;
+}

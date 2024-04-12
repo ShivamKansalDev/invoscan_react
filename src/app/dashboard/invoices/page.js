@@ -1,6 +1,6 @@
 'use client';
 import DataTable from "react-data-table-component";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect } from "react";
 import Request from "@/Request";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
@@ -10,7 +10,10 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
 import FeatherIcon from 'feather-icons-react';
-
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/TextLayer.css';
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+ 
 export default function Invoices() {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
@@ -39,6 +42,12 @@ export default function Invoices() {
     const [invoiceItemIndex, setInvoiceItemIndex] = useState()
     const [currentTab, setCurrentTab] = useState('Pending');
     const [actionButtonType, setActionButtonType] = useState('update');
+
+    // useEffect(() => {
+    //     // pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
+    //     pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+    // }, []);
+
     let columns = [
         {
             name: 'Vendor Name',
@@ -417,7 +426,18 @@ export default function Invoices() {
                 <div className="container-fluid">
                     <div className="row">
                         <div className="col-md-4">
-                            <Carousel
+                            {
+                                invoiceItems.invoiceUrl && invoiceItems.invoiceUrl.map((invoice, key) => {
+                                    console.log(invoice.url)
+                                    return(
+                                        <Document file={invoice.url} className="pdf-section">
+                                            <Page  pageNumber={1}/>
+                                        </Document>
+                                    )
+                                })
+                            }
+                        {/* <Document file="https://pdfobject.com/pdf/sample.pdf"> */}
+                            {/* <Carousel
                                 showArrows={true}
                                 showIndicators={true}
                                 infiniteLoop={true}
@@ -433,7 +453,7 @@ export default function Invoices() {
                                         </div>
                                         : null
                                 ))}
-                            </Carousel>
+                            </Carousel> */}
                         </div>
                         <div className="col-md-8">
                             {
