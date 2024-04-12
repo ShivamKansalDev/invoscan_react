@@ -1,6 +1,6 @@
 'use client';
 import DataTable from "react-data-table-component";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect } from "react";
 import Request from "@/Request";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
@@ -10,6 +10,9 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
 import FeatherIcon from 'feather-icons-react';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/TextLayer.css';
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 export default function Bookings() {
     const [data, setData] = useState([])
@@ -496,23 +499,16 @@ export default function Bookings() {
                 <div className="container-fluid">
                     <div className="row">
                         <div className="col-md-4">
-                            <Carousel
-                                showArrows={true}
-                                showIndicators={true}
-                                infiniteLoop={true}
-                                dynamicHeight={false}
-                                showThumbs={false}
-                            >
-                                {invoiceItems.invoiceUrl && invoiceItems.invoiceUrl.map((invoiceUrl, key) => (
-                                    invoiceUrl.type !== 'pdf' ?
-                                        <div key={key}>
-                                            <div>
-                                                <img src={invoiceUrl.url} alt="slides" />
-                                            </div>
-                                        </div>
-                                        : null
-                                ))}
-                            </Carousel>
+                            {
+                                invoiceItems.invoiceUrl && invoiceItems.invoiceUrl.map((invoice, key) => {
+                                    console.log(invoice.url)
+                                    return(
+                                        <Document file={invoice.url} className="pdf-section">
+                                            <Page  pageNumber={1}/>
+                                        </Document>
+                                    )
+                                })
+                            }
                         </div>
                         <div className="col-md-8">
                             {
