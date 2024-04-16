@@ -89,6 +89,9 @@ export default function Credits() {
     const [fileName, setFileName] = useState('');
     const [records, setAllRecords] = useState([]);
 
+    const [currentPage,setCurrentPage] = useState(1);
+    //const perPage = 10;
+    const [perPage, setPerPage] = useState(10);
     const fetchData = async (page) => {
         setPage(page)
         setLoading(true)
@@ -110,6 +113,7 @@ export default function Credits() {
         let creditItems = records.filter(function (data) {
             return data.isResolved === filter;
         });
+        console.log('creditItems', creditItems);
         setData(creditItems)
         setTotalRows(creditItems.length)
     }
@@ -149,6 +153,18 @@ export default function Credits() {
         fetchData(1);
     }, []);
 
+    const handlePageChange = page => {
+        setCurrentPage(page);
+    }
+
+    const handlePerPageChange = perPage => {
+        setPerPage(perPage);
+    }
+
+    const si = (currentPage-1) * perPage + 1;
+    const ei = Math.min(currentPage*perPage, totalRows);
+
+
     return (
         <div className="card mb-4">
             <div className="card-body">
@@ -156,6 +172,7 @@ export default function Credits() {
                     <button type="button" onClick={() => { creditActiveTab('Pending', records); }} className={`btn ${currentTab === 'Pending' ? 'btn-green' : 'btn-green-borded'} me-2`}>Unresolved</button>
                     <button type="button" onClick={() => { creditActiveTab('Completed', records); }} className={`btn ${currentTab === 'Completed' ? 'btn-green' : 'btn-green-borded'} me-2`}>Resolved</button>
                 </div>
+                <p className="mt-2 leading-3">Showing entries {si} - {ei} of page {currentPage}</p>
                 <DataTable
                     title={`${currentTab} Credits`}
                     columns={columns}
@@ -167,11 +184,14 @@ export default function Credits() {
                     customStyles={customStyles}
                     highlightOnHover
                     pointerOnHover
+                    onChangePage={handlePageChange}
+                    paginationPerPage={perPage}
+                    onChangeRowsPerPage={handlePerPageChange}
                 />
             </div>
             <Modal open={open} onClose={onCloseModal} center>
                 <div className=" mb-4">
-                    <h2 className="card-header">Completed Credit </h2>
+                    <h2 className="card-header">{currentTab} Credit </h2>
                     <small>Are you interested in update the credit?</small>
                     <div className="card- mt-4">
                         <table className="table table-bordered table-striped">
@@ -209,18 +229,18 @@ export default function Credits() {
                                 <label htmlFor="comment" className="form-label">Notes</label>
                                 <input className="form-control" type="text" name="comment" id="comment" onChange={(e) => { setStockNote(e.target.value); }} value={note} />
                             </div>
-                            <div className="mt-2">
+                            <div className="mt-2 flex flex-row">
                                 {currentTab === 'Pending'  ?
                                    <>
-                                        <button type="button" onClick={onCloseModal} className="btn btn-green-borded me-2">Cancel</button>
-                                        <button type="button" onClick={saveStockItem} className="btn btn-green me-2 width-86">Resolve</button> 
+                                        <div><button type="button" onClick={onCloseModal} className="btn btn-green-borded me-2">Cancel</button></div>
+                                        <div className="w-full"><button type="button" onClick={saveStockItem} className="btn btn-green me-2 w-full">Resolve</button> </div>
                                    </>:
                                 ""
                                 }
                                  {currentTab === 'Completed' ?
                                    <>
-                                    <button type="button" onClick={onCloseModal} className="btn btn-green-borded me-2">Cancel</button>
-                                    <button type="button" onClick={saveStockItem} className="btn btn-green me-2 width-86">Update</button> 
+                                        <div><button type="button" onClick={onCloseModal} className="btn btn-green-borded me-2">Cancel</button></div>
+                                        <div className="w-full"><button type="button" onClick={saveStockItem} className="btn btn-green me-2 w-full">Update</button> </div>
                                    </>:
                                    ""
                                 }

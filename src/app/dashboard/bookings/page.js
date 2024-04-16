@@ -12,6 +12,7 @@ import moment from "moment";
 import FeatherIcon from 'feather-icons-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/TextLayer.css';
+import { SelectCompany } from "@/components/SelectCompany";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 export default function Bookings() {
@@ -46,14 +47,25 @@ export default function Bookings() {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleteSPOpen, setDeleteSpOpen] = useState(false);
     
-    const [deleteId, setDeleteId] = useState(null)
-    const [deleteSPId, setspDeleteId] = useState({})
+    const [deleteId, setDeleteId] = useState(null);
+    const [deleteSPId, setspDeleteId] = useState({});
+    const [showCompanyModal, setShowCompanyModal] = useState(false);
+    const [selectedCompany, setSelectedCompany] = useState(null);
+    const [company, setCompany] = useState({});
+    const [companyList, setCompanyList] = useState([]);
     
     const [actionButtonType, setActionButtonType] = useState('update');
 
     useEffect(() => {
-        // console.log("@#@#@ INV ITEMS: ", invoiceItems)
-    }, [invoiceItems])
+        if(showCompanyModal){
+          let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : null;
+          if(companyDetails){
+            setSelectedCompany(companyDetails)
+          }
+        }else{
+          setSelectedCompany(null);
+        }
+      }, [showCompanyModal]);
 
     let columns = [
         {
@@ -82,7 +94,7 @@ export default function Bookings() {
                         <button
                             onClick={(e) => showRowData(row)}
                         >
-                            <i className='bx bx-show menu-icon'></i>
+                            <FeatherIcon icon="eye" className='menu-icon' />
                         </button>
                     </div>
                     <div>
@@ -141,7 +153,7 @@ export default function Bookings() {
                                 <button
                                     onClick={(e) => { showInvoiceData(row, index); setActionButtonType('update') }}
                                 >
-                                    <i className='bx bx-show menu-icon'></i>
+                                    <FeatherIcon icon="eye" className='menu-icon' />
                                 </button>
                                 : null
                         }
@@ -328,11 +340,11 @@ export default function Bookings() {
     const fetchData = async page => {
         setPage(page)
         setLoading(true)
-        let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
-        if(!company.id) {
+        let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        if(!companyDetails.id) {
             return;
         }
-        const response = await Request.get(`/stock/pending/${company.id}?from=${moment(startDate).format('YYYY-MM-DD')}&to=${moment(endDate).format('YYYY-MM-DD')}${supplierId ? '&supplier=' + supplierId : ''}`);
+        const response = await Request.get(`/stock/pending/${companyDetails.id}?from=${moment(startDate).format('YYYY-MM-DD')}&to=${moment(endDate).format('YYYY-MM-DD')}${supplierId ? '&supplier=' + supplierId : ''}`);
         setLoading(false)
         if (response.data && response.data.data && response.data.count > 0) {
             setData(response.data.data)
@@ -355,8 +367,8 @@ export default function Bookings() {
         for (let index = 0; index < files.length; index++) {
             formData.append('files[]', files[index])
         }
-        let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
-        const response = await Request.postUpload(`/form/analyze/${company.id}?supplierId=${selectedSupplier.id}&type=${actionType == 'bulk' ? 'invoice' : actionType}`, formData);
+        let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        const response = await Request.postUpload(`/form/analyze/${companyDetails.id}?supplierId=${selectedSupplier.id}&type=${actionType == 'bulk' ? 'invoice' : actionType}`, formData);
         if (response && !response.error) {
             showRowData(response.data);
             setSupplierOpen(false);
@@ -436,15 +448,44 @@ export default function Bookings() {
             setFiles([file]);
         }
     };
+
+    const onCloseCompanyModal = () => {
+        setShowCompanyModal(false);
+        setSelectedCompany(null);
+    };
+
+    function checkSelectedCompany(type = ""){
+        console.log("$$$$$$$$$$ COMPANY: ", company, type);
+        let storedCompany = localStorage.getItem("company");
+        if(storedCompany && type){
+            setNextAction(false); 
+            setSupplierOpen(true); 
+            setActionType(type);
+        }else{
+            const companies = localStorage.getItem("companyList");
+            if(storedCompany){
+                storedCompany = JSON.parse(storedCompany);
+                setSelectedCompany(storedCompany);
+            }
+            if(companies){
+                const parsedData = JSON.parse(companies);
+                if(Array.isArray(parsedData)){
+                    setCompanyList(parsedData)
+                    setShowCompanyModal(true);
+                }
+            }
+        }
+    }
+
     return (
         <>
             <div className="card mb-4">
                 <div className="card-body mt-3" style={{ background: '#0bc9931a' }}>
-                    <h5>Book in a new delivery</h5>
+                    <h5>Book in a brand new delivery</h5>
                     <div className="mt-2">
-                        <button type="button" onClick={(e) => { setNextAction(false); setSupplierOpen(true); setActionType('invoice') }} className={`btn btn-green me-2`}>Add Invoice</button>
-                        <button type="button" onClick={(e) => { setNextAction(false); setSupplierOpen(true); setActionType('bulk') }} className={`btn btn-green me-2`}>Bulk Invoices</button>
-                        <button type="button" onClick={(e) => { setNextAction(false); setSupplierOpen(true); setActionType('statement') }} className={`btn btn-green me-2`}>Add Statement</button>
+                        <button type="button" onClick={() => checkSelectedCompany("invoice")} className={`btn btn-green me-2`}>Add Invoice</button>
+                        <button type="button" onClick={() => checkSelectedCompany("bulk")} className={`btn btn-green me-2`}>Bulk Invoices</button>
+                        <button type="button" onClick={() => checkSelectedCompany("statement")} className={`btn btn-green me-2`}>Add Statement</button>
                     </div>
                 </div>
 
@@ -552,7 +593,7 @@ export default function Bookings() {
                                                 customStyles={customStyles}
                                             />
                                         </div>
-                                        <div className="mt-2">
+                                        <div className="my-2">
                                             <button style={{ float: 'right' }} type="submit" disabled={lockedItems.length !== invoiceItems.Items.length} onClick={markCompleteCurrentInvoice} className="btn btn-green me-2">Mark as complete</button>
                                         </div>
                                     </div>
@@ -563,8 +604,8 @@ export default function Bookings() {
                 </div>
             </Modal>
             <Modal open={secondOpen} onClose={onCloseSecondModal} center>
-                <div className="card mb-4">
-                    <small style={{ paddingLeft: '20px' }}>Pack Size:- {invoiceData.PackSize}</small>
+                <div className="mb-4">
+                    <small>Pack Size:- {invoiceData.PackSize}</small>
                     <h5 className="card-header">{invoiceData.Description}</h5>
                     <div className="card-body">
                         <div className="row">
@@ -615,7 +656,7 @@ export default function Bookings() {
                                     </div>
                                     : null
                             }
-                            <div className="mt-2">
+                            <div className="mt-2 mb-0">
                                 <button type="button" onClick={onCloseSecondModal} className="btn btn-default me-2">Cancel</button>
                                 {
                                     actionButtonType === 'new' ?
@@ -763,13 +804,24 @@ export default function Bookings() {
                                             onDrop={handleDrop}>
                                             <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
                                                 <input className="form-control" type="file" id="files" name="files[]" onChange={handleInputChange} hidden />
-                                                <FeatherIcon icon="upload-cloud" className='menu-icon' />
-                                                <p>Browse File to Upload</p>
-                                                {
-                                                    fileName ?
-                                                        <a>{fileName}</a>
-                                                        : null
-                                                }
+                                                <div className="d-flex flex-col justify-center space-y-0">
+                                                    <div className="d-flex justify-center">
+                                                        <FeatherIcon icon="upload-cloud" className='menu-icon' />
+                                                    </div>
+                                                    
+                                                    {
+                                                        fileName ?
+                                                            <a className="text-center">{fileName}</a>
+                                                            : 
+                                                            (
+                                                                <>
+                                                                    <p className="text-center">Browse File</p>
+                                                                    <p className="text-center leading-3">or</p>
+                                                                    <p className="text-center">Drag and Drop to Upload</p>
+                                                                </>
+                                                            )
+                                                    }
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -801,10 +853,10 @@ export default function Bookings() {
                 <div className="mb-4">
                     <div className="card-body mt-3">
                         <h2 className="card-header">Wait!</h2>
-                        <small>Are You Sure, You want to delete ?</small>
+                        <small>Are You Sure, You want to delete this invoice ?</small>
                         <div className="d-flex">
-                            <button type="button" onClick={(e) => { onCloseDeleteModal(); setDeleteId(null) }} className={`btn btn-green-borded col-md-6`}>Cancel</button>&nbsp;
-                            <button type="button" onClick={(e) => { deleteCurrentInvoice(); }} className={`btn btn-green col-md-6`}>Delete</button>
+                            <button type="button" onClick={(e) => { onCloseDeleteModal(); setDeleteId(null) }} className={`btn btn-green-borded w-[80%] me-1`}>Cancel</button>&nbsp;
+                            <button type="button" onClick={(e) => { deleteCurrentInvoice(); }} className={`btn btn-green w-[80%] ms-1`}>Delete</button>
                         </div>
                     </div>
                 </div>
@@ -822,6 +874,14 @@ export default function Bookings() {
                     </div>
                 </div>
             </Modal>
+            <SelectCompany 
+                open={showCompanyModal}
+                onCloseModal={onCloseCompanyModal}
+                companyList={companyList}
+                selectedCompany={selectedCompany}
+                setSelectedCompany={(item) => setSelectedCompany(item)}
+                setCompany={(item) => setCompany(item)}
+            />
         </>
     )
 }

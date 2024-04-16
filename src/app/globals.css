@@ -77,6 +77,12 @@ body {
   border-radius: 10px;
 }
 
+.text-light-red {
+  color: #e62a2a;
+  /* padding: 5px 10px; */
+  border-radius: 10px;
+}
+
 .erkbiK div:first-child {
   white-space: normal !important;
 }
