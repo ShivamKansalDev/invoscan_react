@@ -10,10 +10,12 @@ import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
 
 import "../../assets/vendor/css/pages/page-account-settings.css";
+import { SelectCompany } from '@/components/SelectCompany';
 
 export default function RootLayout({ children }) {
   const router = useRouter();
 
+  const [selectedCompany, setSelectedCompany] = useState(null);
   const [company, setCompany] = useState({});
   const [companyList, setCompanyList] = useState([]);
   const [currentUser, setCurrentUser] = useState({});
@@ -28,25 +30,37 @@ export default function RootLayout({ children }) {
       router.push('/');
     }
     setCurrentUser(user)
-    let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : null;
-    if (company === null) {
-      fetchCurrentCompaies(user.id);
+    let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : null;
+    if (companyDetails === null) {
+      fetchCurrentCompanies(user.id);
       setOpen(true);
       setCompany({ id: '' });
     } else {
-      setCompany(company);
+      setCompany(companyDetails);
     }
   }, [])
 
+  useEffect(() => {
+    if(open){
+      let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : null;
+      if(companyDetails){
+        setSelectedCompany(companyDetails)
+      }
+    }else{
+      setSelectedCompany(null);
+    }
+  }, [open]);
+
   const openModalPopup = () => {
-    fetchCurrentCompaies(currentUser.id);
+    fetchCurrentCompanies(currentUser.id);
     setOpen(true);
   }
 
-  const fetchCurrentCompaies = async (userId) => {
+  const fetchCurrentCompanies = async (userId) => {
     let response = await Request.get(`company/user/${userId}`);
     if (response.data) {
-      setCompanyList(response.data)
+      setCompanyList(response.data);
+      localStorage.setItem("companyList", JSON.stringify(response.data));
     }
   }
   const logoutUser = () => {
@@ -55,7 +69,10 @@ export default function RootLayout({ children }) {
     toast.error('Logout successfully.');
     router.push('/');
   }
-  const onCloseModal = () => setOpen(false);
+  const onCloseModal = () => {
+    setOpen(false);
+    setSelectedCompany(null);
+  };
   const pathname = usePathname()
 
   return (
@@ -131,7 +148,7 @@ export default function RootLayout({ children }) {
             <li className="menu-item">
               <button onClick={(e) => { openModalPopup() }} className="menu-link">
                 <FeatherIcon icon="briefcase" className='menu-icon' />
-                <div data-i18n="Dashboards">{company.name}</div>
+                <div data-i18n="Dashboards">{company?.name}</div>
               </button>
             </li>
 
@@ -154,22 +171,19 @@ export default function RootLayout({ children }) {
       </div>
 
       <div className="layout-overlay layout-menu-toggle"></div>
-      <Modal open={open} onClose={onCloseModal} classNames={{ modal: 'company-select-modal' }} center>
+      {/* <Modal open={open} onClose={onCloseModal} classNames={{ modal: 'company-select-modal' }} center>
         <div className=" mb-4">
           <h2 className="card-header">Select company</h2>
           <small>You must select a company before you create delivery.</small>
           <div className="card-body mt-4">
             {
               companyList && companyList.map((item, index) => {
-                if(selectedSupplier?.id === item?.id || company?.id === item?.id){
+                if(selectedCompany?.id === item?.id){
                   return (
                       <div>
                           <div 
-                          id={company?.id === item?.id ? "bgColor": ""}
-                          onClick={() => {
-                            setCompany(item)
-                            localStorage.setItem('company', JSON.stringify(item))
-                          }}
+                          id={selectedCompany?.id === item?.id ? "bgColor": ""}
+                          onClick={() => {}}
                           className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
                               <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                               <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
@@ -180,11 +194,9 @@ export default function RootLayout({ children }) {
               return (
                  <div>
                        <div  
-                       id={company?.id === item?.id ? "bgColor": ""}
+                       id={selectedCompany?.id === item?.id ? "bgColor": ""}
                        onClick={() => {
-                        setSupplier(item)
-                        setCompany(item)
-                        localStorage.setItem('company', JSON.stringify(item))
+                        setSelectedCompany(item)
                         }} className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
                           <div>
                               <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>
@@ -193,23 +205,32 @@ export default function RootLayout({ children }) {
                       </div>
                  </div>
               )
-                // return (
-                //   <div className="form-check form-radio-check mb-2" key={index}>
-                //     <input className="form-check-input" onChange={() => {
-                //       setCompany(selCompany)
-                //       localStorage.setItem('company', JSON.stringify(selCompany))
-                //     }} name='companyId' type="radio" id={`flexSwitchCheckChecked-${index}`} checked={company.id == selCompany.id} />
-                //     <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{selCompany.name}</label>
-                //   </div>
-                // )
               })
             }
             <div className="mt-2">
-              <button type="button" disabled={!company.id} onClick={() => { window.location.reload() }} className="btn btn-green me-2 width-100">Save</button>
+              <button 
+                type="button" 
+                disabled={!selectedCompany?.id} 
+                onClick={() => { 
+                  window.location.reload();
+                  setCompany(selectedCompany); 
+                  localStorage.setItem('company', JSON.stringify(selectedCompany))
+                }} 
+                className="btn btn-green me-2 width-100">
+                  Save
+                </button>
             </div>
           </div>
         </div>
-      </Modal>
+      </Modal> */}
+      <SelectCompany 
+        open={open}
+        onCloseModal={onCloseModal}
+        companyList={companyList}
+        selectedCompany={selectedCompany}
+        setSelectedCompany={(item) => setSelectedCompany(item)}
+        setCompany={() => setCompany(selectedCompany)}
+      />
     </div>
   );
 }

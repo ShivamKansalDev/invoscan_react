@@ -12,6 +12,7 @@ import moment from "moment";
 import FeatherIcon from 'feather-icons-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/TextLayer.css';
+import { SelectCompany } from "@/components/SelectCompany";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
  
 export default function Invoices() {
@@ -42,6 +43,15 @@ export default function Invoices() {
     const [invoiceItemIndex, setInvoiceItemIndex] = useState()
     const [currentTab, setCurrentTab] = useState('Pending');
     const [actionButtonType, setActionButtonType] = useState('update');
+    const [showCompanyModal, setShowCompanyModal] = useState(false);
+    const [selectedCompany, setSelectedCompany] = useState(null);
+    const [company, setCompany] = useState({});
+    const [companyList, setCompanyList] = useState([]);
+
+    const [currentUser, setUser] = useState({});
+    const [startDate, setStartDate] = useState(moment().startOf('year').toDate());
+    const [endDate, setEndDate] = useState(moment().endOf('year').toDate());
+    const [supplierId, setSupplierId] = useState('');
 
     // useEffect(() => {
     //     // pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
@@ -75,7 +85,7 @@ export default function Invoices() {
                         <button
                             onClick={(e) => showRowData(row)}
                         >
-                            <i className='bx bx-show menu-icon'></i>
+                            <FeatherIcon icon="eye" className='menu-icon' />
                         </button>
                     </div>
                     <div>
@@ -135,7 +145,8 @@ export default function Invoices() {
                                     <button
                                         onClick={(e) => { showInvoiceData(row, index); setActionButtonType('update') }}
                                     >
-                                        <i className='bx bx-show menu-icon'></i>
+                                        {/* <FeatherIcon icon="eye" className='menu-icon' /> */}
+                                        <FeatherIcon icon="eye" className='menu-icon' />
                                     </button>
                                     : null
                             }
@@ -317,7 +328,6 @@ export default function Invoices() {
             })
             fetchData(1);
             setOpen(false)
-            setSupplierOpen(false)
         }catch(error){
             console.log("!!!! CMPLT API ERROR: ", error)
         }
@@ -333,23 +343,23 @@ export default function Invoices() {
 
     const fetchData = async (currentTab) => {
         setLoading(true)
-        let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
-        let url = currentTab === 'Pending' ? `/stock/pending/${company.id}` : `/stock/delivered/${company.id}`
-        const response = await Request.get(`${url}?from=${moment(startDate).format('YYYY-MM-DD')}&to=${moment(endDate).format('YYYY-MM-DD')}${supplierId ? '&supplier=' + supplierId : ''}`);
-        setLoading(false)
-        if (response.data && response.data.data) {
-            setData(response.data.data)
-            setTotalRows(response.data.count)
-        } else {
-            setData([])
-            setTotalRows(0)
+        let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        console.log("@@@@ INVOICES: ", companyDetails);
+        if(companyDetails?.id){
+            let url = currentTab === 'Pending' ? `/stock/pending/${companyDetails?.id}` : `/stock/delivered/${companyDetails?.id}`
+            const response = await Request.get(`${url}?from=${moment(startDate).format('YYYY-MM-DD')}&to=${moment(endDate).format('YYYY-MM-DD')}${supplierId ? '&supplier=' + supplierId : ''}`);
+            setLoading(false)
+            if (response.data && response.data.data) {
+                setData(response.data.data)
+                setTotalRows(response.data.count)
+            } else {
+                setData([])
+                setTotalRows(0)
+            }
+        }else{
+            setShowCompanyModal(true);
         }
     }
-
-    const [currentUser, setUser] = useState({});
-    const [startDate, setStartDate] = useState(moment().startOf('year').toDate());
-    const [endDate, setEndDate] = useState(moment().endOf('year').toDate());
-    const [supplierId, setSupplierId] = useState('');
 
     const onCloseModal = () => setOpen(false);
     const onCloseSecondModal = () => setSecondOpen(false);
@@ -357,13 +367,22 @@ export default function Invoices() {
     const onClosespDeleteModal = () => setDeleteSpOpen(false);
 
     useEffect(() => {
+        const companies = localStorage.getItem("companyList");
         let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
+        if(companies){
+            setCompanyList(JSON.parse(companies));
+        }
         setUser(user);
         fetchData('Pending');
         fetchCurrentSupplier()
     }, []);
 
     let lockedItems = invoiceItems && invoiceItems.Items.filter((Item) => Item.lock === true)
+
+    const onCloseCompanyModal = () => {
+        setShowCompanyModal(false);
+        setSelectedCompany(null);
+    };
 
     return (
         <>
@@ -583,10 +602,10 @@ export default function Invoices() {
                 <div className=" mb-4">
                     <div className="card-body mt-3">
                         <h2 className="card-header">Wait!</h2>
-                        <small>Are You Sure, You want to delete ?</small>
+                        <small>Are You Sure, You want to delete this invoice?</small>
                         <div className="d-flex">
-                            <button type="button" onClick={(e) => { onCloseDeleteModal(); setDeleteId(null) }} className={`btn btn-green-borded col-md-6`}>Cancel</button>&nbsp;
-                            <button type="button" onClick={(e) => { deleteCurrentInvoice(); }} className={`btn btn-green col-md-6`}>Delete</button>
+                            <button type="button" onClick={(e) => { onCloseDeleteModal(); setDeleteId(null) }} className={`btn btn-green-borded w-[100%] me-1`}>Cancel</button>&nbsp;
+                            <button type="button" onClick={(e) => { deleteCurrentInvoice(); }} className={`btn btn-green w-[100%] ms-1`}>Delete</button>
                         </div>
                     </div>
                 </div>
@@ -604,6 +623,14 @@ export default function Invoices() {
                     </div>
                 </div>
             </Modal>
+            <SelectCompany 
+                open={showCompanyModal}
+                onCloseModal={onCloseCompanyModal}
+                companyList={companyList}
+                selectedCompany={selectedCompany}
+                setSelectedCompany={(item) => setSelectedCompany(item)}
+                setCompany={(item) => setCompany(item)}
+            />
         </>
     )
 }

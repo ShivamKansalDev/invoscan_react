@@ -40,7 +40,7 @@ export default function Statements() {
                     <button
                         onClick={(e) => showRowData(row)}
                     >
-                        <i className='bx bx-show menu-icon'></i>
+                        <FeatherIcon icon="eye" className='menu-icon' />
                     </button>
                     <button
                         onClick={(e) => { setDeleteId(row.id); setDeleteOpen(true); }}
@@ -130,7 +130,7 @@ export default function Statements() {
                         className="btn rounded-pill btn-default"
                         onClick={(e) => showInvoiceData(row, index)}
                     >
-                        <i className='bx bx-show menu-icon'></i>
+                        <FeatherIcon icon="eye" className='menu-icon' />
                     </button>
                 </div>
             )
@@ -525,26 +525,26 @@ export default function Statements() {
             </Modal>
 
             <Modal open={deleteOpen} onClose={onCloseDeleteModal} classNames={{ modal: 'company-select-modal' }} center>
-                <div className="card mb-4">
+                <div className="mb-4">
                     <div className="card-body mt-3">
                         <h5>Wait!</h5>
                         <small>Are You Sure, You want to delete this statement ?</small>
-                        <div className="row">
-                            <button type="button" onClick={(e) => { onCloseDeleteModal(); setDeleteId(null) }} className={`btn btn-green-borded col-md-6`}>Cancel</button>
-                            <button type="button" onClick={(e) => { deleteCurrentInvoice();}} className={`btn btn-green col-md-6`}>Delete</button>
+                        <div className="flex justify-center mt-2 mb-0">
+                            <button type="button" onClick={(e) => { onCloseDeleteModal(); setDeleteId(null) }} className="btn btn-green-borded w-[49%] me-1">Cancel</button>
+                            <button type="button" onClick={(e) => { deleteCurrentInvoice();}} className="btn btn-green w-[49%] ms-1">Delete</button>
                         </div>
                     </div>
                 </div>
             </Modal>
 
             <Modal open={deleteInnerOpen} onClose={onCloseInnerDeleteModal} classNames={{ modal: 'supplier-modal' }} center>
-                <div className="card mb-4">
+                <div className="mb-4">
                     <div className="card-body mt-3">
                         <h5>Wait!</h5>
-                        <small>Are You Sure, You want to delete ?</small>
-                        <div className="row">
-                            <button type="button" onClick={(e) => { onCloseInnerDeleteModal(); setInnerDeleteId(null) }} className={`btn btn-green-borded col-md-6`}>Cancel</button>
-                            <button type="button" onClick={(e) => { deleteCurrentInnerInvoice(); }} className={`btn btn-green col-md-6`}>Delete</button>
+                        <small>Are You Sure, You want to delete this invoice?</small>
+                        <div className="flex justify-center mt-2 mb-0">
+                            <button type="button" onClick={(e) => { onCloseInnerDeleteModal(); setInnerDeleteId(null) }} className="btn btn-green-borded w-[100%] me-1">Cancel</button>
+                            <button type="button" onClick={(e) => { deleteCurrentInnerInvoice(); }} className="btn btn-green w-[100%] ms-1">Delete</button>
                         </div>
                     </div>
                 </div>

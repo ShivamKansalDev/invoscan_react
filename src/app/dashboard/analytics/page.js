@@ -6,6 +6,9 @@ import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import FeatherIcon from 'feather-icons-react';
+
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -14,15 +17,20 @@ import {
     Title,
     Tooltip,
     Legend,
+    LineElement,
+    PointElement
 } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Line } from 'react-chartjs-2';
 ChartJS.register(
     CategoryScale,
     LinearScale,
     BarElement,
+    LineElement,
+    PointElement,
     Title,
     Tooltip,
-    Legend
+    Legend,
+    ChartDataLabels
 );
 
 export default function Analytics() {
@@ -71,12 +79,13 @@ export default function Analytics() {
         },
         {
             name: 'DT Price',
-            selector: row => row.csvDtPrice,
+            selector: row => row.csvDtPrice ? Number(row?.csvDtPrice).toFixed(2) : '0' ,
         },
         {
             name: 'Profit / Loss',
             cell: row => (
-                <div></div>
+                <div className={`${row.csvDtPrice > row.averageCostPrice ? 'text-light-green' : 'text-light-red'
+                  }`}>{`${(((row.csvDtPrice-row.averageCostPrice)/row.csvDtPrice)*100).toFixed(2)}%`}</div>
             )
         },
         {
@@ -87,7 +96,7 @@ export default function Analytics() {
                         className="btn rounded-pill btn-default"
                         onClick={(e) => showRowData(row)}
                     >
-                        <i className='bx bx-show menu-icon'></i>
+                        <FeatherIcon icon="eye" className='menu-icon' />
                     </button>
                 </div>
             )
@@ -123,7 +132,7 @@ export default function Analytics() {
                     <button
                         onClick={(e) => showInnerRowData(row)}
                     >
-                        <i className='bx bx-show menu-icon'></i>
+                        <FeatherIcon icon="eye" className='menu-icon' />
                     </button>
                     <button
                         onClick={(e) => deleteCurrentInvoice(row.id)}
@@ -137,15 +146,16 @@ export default function Analytics() {
     let uploadedInvoiceItemsColumns = [
         {
             name: '',
+            width: "47%",
             cell: row => (
-                <div>
-                    <input type="text" className="form-control" value={row.PackSize} readOnly />
-                    <b>{row.Description}</b>
+                <div className="grid-flex items-center">
+                    <div style={{ width: '100px', textAlign: 'center' }} className="form-control">{row.PackSize}</div>
+                    <b className="delivery-text" style={{ paddingLeft: '20px' }}>{row.Description}</b>
                 </div>
             )
         },
         {
-            name: 'Inv. packs',
+            name: 'Quantity',
             cell: row => (
                 <div>
                     <input type="text" className="form-control" value={row.Quantity} readOnly />
@@ -156,7 +166,7 @@ export default function Analytics() {
             name: 'Credit packs',
             cell: row => (
                 <div>
-                    <input type="text" className="form-control" value={row.csvDtPrice} readOnly />
+                    <input type="text" className="form-control" value={row.QuantityForReport} readOnly />
                 </div>
             )
         },
@@ -164,10 +174,10 @@ export default function Analytics() {
             name: 'Price/unit',
             cell: row => (
                 <div>
-                    <input type="text" className="form-control" value={row.Amount} readOnly />
+                    <input type="text" className="form-control" value={"£" + row.Amount} readOnly />
                 </div>
             )
-        }
+        },
     ];
     let customStyles = {
         headRow: {
@@ -224,6 +234,7 @@ export default function Analytics() {
         let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
         const response = await Request.get(`/stock/stock-by-company/${company.id}`);
         setLoading(false)
+        console.log('response',response.data);
         if (response.data && response.data.length > 0) {
             setData(response.data)
             setTotalRows(response.data.length)
@@ -257,12 +268,12 @@ export default function Analytics() {
                 setChartQuantDataSets([{
                     label: '',
                     data: datasetsQntArray,
-                    backgroundColor: '#B0BA35',
+                    backgroundColor: 'rgb(11, 201, 147,0.3)',
                 }]);
                 setChartUnitDataSets([{
                     label: '',
                     data: datasetsUnitArray,
-                    backgroundColor: '#DA3A0F',
+                    backgroundColor: 'rgb(11, 201, 147,0.3)',
                 }]);
             }            
             
@@ -386,7 +397,7 @@ export default function Analytics() {
                                                 display: true,
                                                 text: 'Total Quantities',
                                             },
-                                        },
+                                        }
                                     }}
                                     data={{
                                         labels: chartQuantLabels,
@@ -407,6 +418,9 @@ export default function Analytics() {
                                                 text: 'Unit Prices',
                                             },
                                         },
+                                        datasets: {
+                                            
+                                        }
                                     }}
                                     data={{
                                         labels: chartUnitLabels,
@@ -428,6 +442,7 @@ export default function Analytics() {
                     {
                         currentTab === 'Pricing' ?
                             <div className="card-body">
+                                check
                                 <Bar
                                     options={{
                                         responsive: true,
@@ -439,13 +454,63 @@ export default function Analytics() {
                                                 display: true,
                                                 text: (invoiceItems.row ? invoiceItems.row.product : ''),
                                             },
+                                            datalabels: {
+                                                display: true,
+                                                color: "black",
+                                                formatter:(value) => value || '0',
+                                                anchor: "end",
+                                                // offset: -20,
+                                                align: "left",
+                                                // backgroundColor: 'red'
+                                            }
                                         },
+                                        datasets: {
+                                            bar: {
+                                                barThickness: 4,
+                                                grouped: false,
+                                            }
+                                        }
                                     }}
                                     data={{
                                         labels: chartLabels,
                                         datasets: chartDataSets,
                                     }}
                                 />
+                                {/* <Line
+                                    data={{
+                                        labels: chartLabels,
+                                        datasets: chartDataSets,
+                                    }}
+                                    options={{
+                                        elements: {
+                                            bar: {
+                                                backgroundColor: 'red',
+
+                                            }
+                                        },
+                                        responsive: true,
+                                        layout: {
+                                            padding: {
+                                                left: 50,
+                                                right: 50,
+                                                // top: 0,
+                                                // bottom: 0
+                                            }
+                                        },
+                                        scales: {
+                                            
+                                        },
+                                        plugins: {
+                                            legend: {
+                                                position: 'bottom',
+                                            },
+                                            title: {
+                                                display: true,
+                                                text: (invoiceItems.row ? invoiceItems.row.product : ''),
+                                            },
+                                        },
+                                    }}
+                                /> */}
                             </div>
                             : null
                     }
