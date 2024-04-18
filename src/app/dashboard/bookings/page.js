@@ -367,6 +367,7 @@ export default function Bookings() {
         for (let index = 0; index < files.length; index++) {
             formData.append('files[]', files[index])
         }
+        console.log("@#@ ADD ATTACHMENT: ", files);
         let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
         const response = await Request.postUpload(`/form/analyze/${companyDetails.id}?supplierId=${selectedSupplier.id}&type=${actionType == 'bulk' ? 'invoice' : actionType}`, formData);
         if (response && !response.error) {
