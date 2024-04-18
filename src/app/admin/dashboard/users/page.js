@@ -1,6 +1,7 @@
 'use client';
 import { useState } from "react";
 import DataTable from "react-data-table-component";
+import FeatherIcon from "feather-icons-react";
 
 const Users = ()=>{
     const [loading, setLoading] = useState(false);
