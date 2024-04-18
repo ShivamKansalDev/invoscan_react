@@ -16,7 +16,12 @@ export default function Home() {
     if(response) {
       localStorage.setItem('token', response.data.accessToken);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      router.push('/dashboard/bookings')
+      if(response.data.user.role==="ADMIN"){
+        router.push('/admin/dashboard/users')
+      }
+      else{
+        router.push('/dashboard/bookings')
+      }
     }
   }
   return (
