@@ -51,6 +51,9 @@ body {
 .react-responsive-modal-modal.booking-modal {
   max-width: 97% !important;
 }
+.react-responsive-modal-modal.users-modal {
+  max-width: 97% !important;
+}
 
 .menu-icon-red {
   color: red !important;

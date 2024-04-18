@@ -47,3 +47,11 @@
   width: unset !important;
   height: unset !important;
 }
+
+.react-responsive-modal-modal .rdt_TableCol {
+  color: rgba(0, 0, 0, 1) !important;
+  background-color: rgba(237, 237, 237, 1) !important;
+}
+.cTWGPQ:hover{
+  border-radius:0px !important;
+}
