@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
-const baseUrl = 'http://18.130.0.242:4000/api/';
+export const baseUrl = 'http://18.130.0.242:4000/api/';
 
 export const API = axios.create({
     baseURL: baseUrl

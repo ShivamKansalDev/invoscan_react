@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from 'next/navigation'
 import Link from "next/link";
 import Request from "@/Request";
+import { login } from "@/api/auth";
 
 export default function Home() {
   const router = useRouter();
@@ -12,16 +13,20 @@ export default function Home() {
 
   const doLogin = async (e) => {
     e.preventDefault();
-    let response = await Request.post('auth/login', {email, password});
-    if(response) {
-      localStorage.setItem('token', response.data.accessToken);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      if(response.data.user.role==="ADMIN"){
+    try{
+      const response = await login({email, password});
+      const data = response.data?.data;
+      localStorage.setItem('token', data.accessToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      if(data.user.role==="ADMIN"){
         router.push('/admin/dashboard/users')
       }
       else{
         router.push('/dashboard/bookings')
       }
+      return data;
+    }catch(error){
+      console.log("@#@#@ LOGIN ERROR: ", error);
     }
   }
   return (
