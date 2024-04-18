@@ -6,6 +6,7 @@ export const login = (data) => API.request({
     data
 });
 
+<<<<<<< Updated upstream
 export const usersList = (data) => {
     const token = localStorage.getItem('token');
     return API.request({
@@ -39,3 +40,26 @@ export const CompaniesDelete = (id) => {
     })
 };
 
+=======
+export const master_csv = (name) => {
+    const token = localStorage.getItem("token");
+    return API.request({
+        url: `csv?search=${name}`,
+    method: "GET",
+    headers: {
+        'Authorization': 'Bearer ' + token,
+    }
+})}
+
+export const upload_csv = (file) => {
+    const token = localStorage.getItem("token");
+    return API.request({
+        url: 'form/upload-csv',
+        method: "POST",
+        data: file,
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    })
+}
+>>>>>>> Stashed changes
