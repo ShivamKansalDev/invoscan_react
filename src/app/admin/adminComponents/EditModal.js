@@ -57,7 +57,7 @@ export default function EditModal({
                     value={details?.price}
                     setValue={(value) => setDetails((oldDetails) => ({
                         ...oldDetails,
-                        price: value
+                        price: value.replace(/[^0-9.]/g, '')
                     }))}
                 />
                 <CustomInput
@@ -66,7 +66,7 @@ export default function EditModal({
                     value={details?.concessionPrice}
                     setValue={(value) => setDetails((oldDetails) => ({
                         ...oldDetails,
-                        concessionPrice: value
+                        concessionPrice: value.replace(/[^0-9.]/g, '')
                     }))}
                 />
 
