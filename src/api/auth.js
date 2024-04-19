@@ -7,56 +7,44 @@ export const login = (data) => API.request({
 });
 
 export const usersList = (data) => {
-    const token = localStorage.getItem('token');
     return API.request({
         url: 'user/all',
         method: "GET",
-        data,
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
+        data
     })
 };
 
 export const CompaniesList = (id) => {
-    const token = localStorage.getItem('token');
     return API.request({
         url: `company/user/${id}`,
-        method: "GET",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
+        method: "GET"
     })
 };
 export const CompaniesDelete = (id) => {
-    const token = localStorage.getItem('token');
     return API.request({
         url: `company/${id}`,
-        method: "DELETE",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
+        method: "DELETE"
     })
 };
 
 export const master_csv = (name) => {
-    const token = localStorage.getItem("token");
     return API.request({
         url: `csv?search=${name}`,
-    method: "GET",
-    headers: {
-        'Authorization': 'Bearer ' + token,
-    }
+    method: "GET"
 })}
 
-export const upload_csv = (file) => {
-    const token = localStorage.getItem("token");
+export const concessionList = () => {
     return API.request({
-        url: 'form/upload-csv',
+        url: "concession",
+        method: "GET"
+    })
+}
+
+export const upload_csv = (file, type = "masterCSV") => {
+    const masterCSV = "masterCSV";
+    return API.request({
+        url: (type === masterCSV)? 'form/upload-csv' : 'concession/upload',
         method: "POST",
-        data: file,
-        headers: {
-            'Authorization': 'Bearer ' + token
-        }
+        data: file
     })
 }

@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { API } from "@/Request";
 
 API.interceptors.request.use(
@@ -32,3 +33,5 @@ API.interceptors.response.use(
     }
 )
 
+=======
+>>>>>>> Stashed changes
