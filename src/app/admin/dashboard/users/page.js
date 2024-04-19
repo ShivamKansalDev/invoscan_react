@@ -1,8 +1,8 @@
 'use client';
 import { CompaniesDelete, CompaniesList, UserAuth, usersList } from "@/api/auth";
-import FeatherIcon from "feather-icons-react";
 import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
+import FeatherIcon from "feather-icons-react";
 import Modal from "react-responsive-modal";
 
 const Users = ()=>{

@@ -1,10 +1,9 @@
-import axios from "axios";
-import { API_URL } from "../Config/config.js";
-import { API } from "@/Request.js";
+import { API } from "@/Request";
 
 API.interceptors.request.use(
     async(config) => {
         const accessToken = localStorage.getItem("token");
+        console.log("@#@#@ RQST INRCPTR: ", accessToken);
         if(accessToken){
             config.headers.Authorization = `Bearer ${accessToken}`;
         }

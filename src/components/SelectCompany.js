@@ -21,7 +21,7 @@ function SelectCompany({
               companyList && companyList.map((item, index) => {
                 if(selectedCompany?.id === item?.id){
                   return (
-                      <div>
+                      <div key={index}>
                           <div 
                           id={selectedCompany?.id === item?.id ? "bgColor": ""}
                           onClick={() => {}}
@@ -33,7 +33,7 @@ function SelectCompany({
                   )
               }
               return (
-                 <div>
+                  <div key={index}>
                        <div  
                        id={selectedCompany?.id === item?.id ? "bgColor": ""}
                        onClick={() => {

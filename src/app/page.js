@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from "next/link";
 import Request from "@/Request";
 import { login } from "@/api/auth";
+import { toast } from "react-toastify";
 
 export default function Home() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function Home() {
     try{
       const response = await login({email, password});
       const data = response.data?.data;
+      toast.success('Login successful.');
       localStorage.setItem('token', data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
       if(data.user.role==="ADMIN"){
