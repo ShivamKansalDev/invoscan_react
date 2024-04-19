@@ -1,13 +1,15 @@
 "use client"
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import DataTable from "react-data-table-component";
 import FeatherIcon from "feather-icons-react";
 import {debounce} from "lodash";
 import { toast } from 'react-toastify';
 
-import { master_csv, upload_csv } from "../../../../api/auth";
+import { master_csv, master_csvDelete, master_csvEdit, upload_csv } from "../../../../api/auth";
 import useDebounce from "@/hooks/useDebounce";
 import { Search } from "../../adminComponents/Search";
+import ConfirmDeleteModal from "../../adminComponents/ConfirmDeleteModal";
+import EditModal from "../../adminComponents/EditModal";
 
 const MasterCsv = ()=>{
     const [data, setData] = useState([])
@@ -20,9 +22,15 @@ const MasterCsv = ()=>{
     const [fileName, setFileName] = useState('');
     const [files, setFiles] = useState([]);
     const [thumbnail, setThumbnail] = useState('');
-
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     let columns = [
+        {
+            name: 'Pack Size',
+            selector: row => row.pack_size,
+        },
         {
             name: 'Company',
             // selector: row => (row.supplier && row.supplier.name ? row.supplier.name : 'NA'),
@@ -37,28 +45,31 @@ const MasterCsv = ()=>{
         //     selector: row => (row.dtprice ? ),
         // },
         {
-            name: 'Price',
-            selector: row => row.price,
-        },
-        {
             name: 'Concession Price',
             selector: row => (row.concessionPrice ? row.concessionPrice : "NA"),
         },
         {
-            name: 'Pack Size',
-            selector: row => row.pack_size,
+            name: 'Price',
+            selector: row => row.price,
         },
         {
             name: 'Actions',
             cell: row => (
                 <div className="grid-flex">
                     <button
-                        onClick={(e) => {}}
+                        onClick={(e) => {
+                            setSelectedProduct(row);
+                            setShowEditModal(!showEditModal);
+                            console.log("@@@@ ROW: ", row);
+                        }}
                     >
                         <FeatherIcon icon="edit-3" className='menu-icon' />
                     </button>
                     <button
-                        onClick={(e) => {}}
+                        onClick={(e) => {
+                            setSelectedProduct(row);
+                            setShowDeleteModal(!showDeleteModal)
+                        }}
                     >
                         <i className='bx bx-trash menu-icon menu-icon-red'></i>
                     </button>
@@ -95,9 +106,10 @@ const MasterCsv = ()=>{
 
     const debouncedSearch = useDebounce(search, 1000);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            console.log("#$#$# SEARCH: ", debouncedSearch);
+
+    const fetchData = useCallback(async() => {
+        console.log("#$#$# SEARCH: ", debouncedSearch);
+        if(debouncedSearch){
             setLoading(true);
             try {
                 const response = await master_csv(debouncedSearch);
@@ -109,8 +121,11 @@ const MasterCsv = ()=>{
             } finally {
                 setLoading(false);
             }
-        };
+        }
+    }, [debouncedSearch])
 
+
+    useEffect(() => {
         if(debouncedSearch){
             fetchData();
         }
@@ -123,7 +138,7 @@ const MasterCsv = ()=>{
         }
         try{
             const response = await upload_csv(formData);
-            toast("CSV File uploaded successfully");
+            toast.success("CSV File uploaded successfully");
         }catch(error){
             console.log("!!! CSV Upload error: ", error);
         }
@@ -159,65 +174,107 @@ const MasterCsv = ()=>{
         }
     };
 
+    async function deleteProduct(id){
+        try{
+            const response = await master_csvDelete(id);
+            const updateData = data.filter((item) => item?.id !== id);
+            setData(updateData);
+            toast.success('Deleted successfully.');
+            setShowDeleteModal(!showDeleteModal);
+            setSelectedProduct(null);
+        }catch(error){
+            console.log("!!!!!! ERROR: ", error);
+        }
+    }
+
+    async function editProduct(id, newData) {
+        try {
+            const response = await master_csvEdit(id, newData);
+            console.log("@#@#@ EDIT SUCCESS: ", response.data);
+            setShowEditModal(!showEditModal);
+            toast.success("CSV file edited successfully");
+            fetchData();
+        } catch (error) {
+            console.log("master csv edit error", error);
+        }
+    }
+
  
  
     return(
         <>
-         <div className="card mb-4">
-            MasterCsv
-            
-            <div className="card-body my-0">
-                <div className="mb-3 col-md-12 file-upload-wrapper"
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}>
-                    <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
-                        <input className="form-control" type="file" id="files" name="files[]" onChange={handleInputChange} hidden />
-                        <div className="d-flex flex-col justify-center space-y-0">
-                            <div className="d-flex justify-center mt-0">
-                                <FeatherIcon icon="upload-cloud" className='menu-icon' />
+            <div className="card mb-4">
+                MasterCSV
+                
+                <div className="card-body my-0">
+                    <div className="mb-3 col-md-12 file-upload-wrapper"
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}>
+                        <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
+                            <input className="form-control" type="file" id="files" name="files[]" onChange={handleInputChange} hidden />
+                            <div className="d-flex flex-col justify-center space-y-0">
+                                <div className="d-flex justify-center mt-0">
+                                    <FeatherIcon icon="upload-cloud" className='menu-icon' />
+                                </div>
+                                
+                                {
+                                    fileName ?
+                                        <a className="text-center">{fileName}</a>
+                                        : 
+                                        (
+                                            <>
+                                                <p className="text-center">Browse File</p>
+                                                <p className="text-center leading-3">or</p>
+                                                <p className="text-center">Drag and Drop to Upload</p>
+                                            </>
+                                        )
+                                }
                             </div>
-                            
-                            {
-                                fileName ?
-                                    <a className="text-center">{fileName}</a>
-                                    : 
-                                    (
-                                        <>
-                                            <p className="text-center">Browse File</p>
-                                            <p className="text-center leading-3">or</p>
-                                            <p className="text-center">Drag and Drop to Upload</p>
-                                        </>
-                                    )
-                            }
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="card-body d-flex justify-center mt-[-30px]">
-                <button type="button" onClick={() => { saveUploadedItem(); }} className="btn btn-green">Confirm</button>
-            </div>
+                <div className="card-body d-flex justify-center mt-[-30px]">
+                    <button disabled={files.length==0} type="button" onClick={() => { saveUploadedItem(); }} className="btn btn-green">Confirm</button>
+                </div>
 
-            <Search 
-                search={search}
-                setSearch={setSearch}
-            />
-            <div className="card-body">
-                <DataTable
-                    title="Master CSV List"
-                    columns={columns}
-                    data={debouncedSearch? data : []}
-                    progressPending={loading}
-                    fixedHeader
-                    pagination
-                    paginationTotalRows={totalRows}
-                    customStyles={customStyles}
-                    highlightOnHover
-                    pointerOnHover
+                <Search 
+                    search={search}
+                    setSearch={setSearch}
                 />
+                <div className="card-body">
+                    <DataTable
+                        title="Master CSV List"
+                        columns={columns}
+                        data={debouncedSearch? data : []}
+                        progressPending={loading}
+                        fixedHeader
+                        pagination
+                        paginationTotalRows={totalRows}
+                        customStyles={customStyles}
+                        highlightOnHover
+                        pointerOnHover
+                    />
+                </div>
             </div>
-         </div>
+            <ConfirmDeleteModal
+                open={showDeleteModal}
+                onCloseModal={() => { 
+                    setShowDeleteModal(!showDeleteModal);
+                    setSelectedProduct(null);
+                }}
+                deleteProduct={() => deleteProduct(selectedProduct?.id)}
+            />
+            <EditModal
+                open = {showEditModal}
+                onCloseModal={()=>{
+                    setShowEditModal(!showEditModal);
+                    setSelectedProduct(null);
+                }}
+                editProduct={(newData) => editProduct(selectedProduct?.id, newData)}
+                data={selectedProduct}
+            />
         </>
     )
 }

@@ -13,6 +13,8 @@ const Concession = ()=>{
     const [search, setSearch] = useState("");
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [files, setFiles] = useState([]);
+    const [thumbnail, setThumbnail] = useState('');
 
     let columns = [
         {
@@ -106,10 +108,6 @@ const Concession = ()=>{
         }
     }
 
-    const [files, setFiles] = useState([]);
-
-    const [thumbnail, setThumbnail] = useState('');
-
     const handleInputChange = (e) => {
         if (e.target.files.length) {
             const file = e.target.files[0];
@@ -173,7 +171,14 @@ const Concession = ()=>{
                 </div>
 
                 <div className="card-body d-flex justify-center mt-[-30px]">
-                    <button type="button" onClick={() => { saveUploadedItem(); }} className="btn btn-green">Confirm</button>
+                    <button 
+                        type="button" 
+                        onClick={() => { saveUploadedItem(); }} 
+                        className="btn btn-green"
+                        disabled={files.length==0}
+                    >
+                        Confirm
+                    </button>
                 </div>
 
                 {/* <Search 
