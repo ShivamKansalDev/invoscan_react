@@ -179,7 +179,7 @@ const MasterCsv = ()=>{
             const response = await master_csvDelete(id);
             const updateData = data.filter((item) => item?.id !== id);
             setData(updateData);
-            toast.success('Deleted successfully.');
+            toast.success('Product Deleted successfully.');
             setShowDeleteModal(!showDeleteModal);
             setSelectedProduct(null);
         }catch(error){
