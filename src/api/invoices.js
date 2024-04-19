@@ -13,3 +13,11 @@ export const deleteInvoice = (invoiceId) => {
         method: "DELETE"
     })
 };
+
+export const markCompleteInvoice = (invoiceId, data) => {
+    return API.request({
+        url: `/stock/update-stock${invoiceId}`,
+        method: "PATCH",
+        data: data
+    })
+};

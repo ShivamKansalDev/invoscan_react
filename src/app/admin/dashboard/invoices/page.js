@@ -86,9 +86,9 @@ const Invoices = ()=>{
     };
 
     useEffect(() => {
-        if(selectedInvoice && (typeof selectedInvoice === "number")){
+        if(selectedInvoice && (typeof selectedInvoice === "string")){
             setShowDeleteModal(!showDeleteModal);
-        }else if(selectedInvoice && (typeof selectedInvoice !== "number")){
+        }else if(selectedInvoice && (typeof selectedInvoice !== "string")){
             setShowBookingModal(!showBookingModal)
         }
     }, [selectedInvoice]);
@@ -163,6 +163,7 @@ const Invoices = ()=>{
                             setShowBookingModal(!showBookingModal)
                             setSelectedInvoice(null);
                         }}
+                        fetchData={fetchData}
                     />
                 )}
             </div>
