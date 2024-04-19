@@ -14,13 +14,30 @@ export const usersList = (data) => {
     })
 };
 
+export const AddUsers = (data) =>{
+    return API.request({
+        url:"user/create",
+        method:"POST",
+        data
+    })
+} 
+
+export const addCompany = (data) =>{
+    return API.request({
+        url:"company/create",
+        method:"POST",
+        data
+    })
+} 
+
+
 export const CompaniesList = (id) => {
     return API.request({
         url: `company/user/${id}`,
         method: "GET"
     })
 };
-export const CompaniesDelete = (id) => {
+export const deleteCompany = (id) => {
     return API.request({
         url: `company/${id}`,
         method: "DELETE"

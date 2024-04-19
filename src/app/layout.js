@@ -28,7 +28,7 @@ export default function RootLayout({ children }) {
         </head>
       <body className={inter.className}>
         {children}
-        <ToastContainer />
+        <ToastContainer autoClose={2000}/>
         <div id="ajax-loader">
           <img src="/loader.gif" />
         </div>

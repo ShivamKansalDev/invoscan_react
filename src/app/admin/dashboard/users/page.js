@@ -1,9 +1,10 @@
 'use client';
-import { CompaniesDelete, CompaniesList, UserAuth, usersList } from "@/api/auth";
+import { AddComapny, AddUsers, CompaniesDelete, CompaniesList, addCompany, deleteCompany, usersList } from "@/api/auth";
 import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
-import FeatherIcon from "feather-icons-react";
 import Modal from "react-responsive-modal";
+import { toast } from 'react-toastify';
+import ConfirmDeleteModal from "../../adminComponents/ConfirmDeleteModal";
 
 const Users = ()=>{
     const [data,setData] = useState([]);
@@ -12,8 +13,29 @@ const Users = ()=>{
     const [open, setOpen] = useState(false);
     const [openAddUser, setUserOpen] = useState(false);
     const [openAddCompany, setCompanyOpen] = useState(false);
-    const [navigation,setNavigation] = useState();
+    const [userId,setUserId] = useState(null);
     const [companyList, setCompanyList] = useState([]);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedCompany, setSelectedCompany] = useState(null);
+
+    // company
+    const [company,setCompany] = useState({
+        name: "",
+        description: "",
+        address: "",
+        phone: "",
+        email: "",
+        user: "",
+        invoiceMonthlyLimit: ""
+    });
+
+    // users
+    const [value, setValue] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phoneNumber: "",
+    });
 
     let columns = [
         {
@@ -41,7 +63,7 @@ const Users = ()=>{
             cell: row =>{
                    return <button className="bg-[#ededed] text-[#09ba96] px-4 py-2 rounded-lg" onClick={()=>{
                     setOpen(true)
-                    setNavigation(row.id)
+                    setUserId(row.id)
                 }}>Companies</button>
             }
         },
@@ -73,6 +95,12 @@ const Users = ()=>{
         },
     };
 
+    useEffect(() => {
+        if(selectedCompany){
+            setShowDeleteModal(!showDeleteModal);
+        }
+    }, [selectedCompany])
+
     const fetchData = async () => {
         setLoading(true)
         try{
@@ -91,9 +119,9 @@ const Users = ()=>{
             console.log(error);
         }
     }
-    const fetchDataCom = async (userId) => {
-        console.log(userId);
-        try{userId
+
+    const fetchDataCom = async () => {
+        try{
             const response = await CompaniesList(userId);
             setCompanyList(response.data?.data)
         }catch(error){
@@ -106,21 +134,32 @@ const Users = ()=>{
     },[])
 
     useEffect(() => {
-        if(navigation){
-            const userId = navigation
-            fetchDataCom(userId);
+        if(userId){
+            fetchDataCom();
         }
-    }, [navigation]);
+    }, [userId]);
 
-    const onCloseModal = () => setOpen(false);
+    const onCloseModal = () => {
+        setOpen(false);
+        setCompanyList([]);
+        setUserId(null);
+    }
     const onaddUserModal = () => setUserOpen(false);
     const onaddCompanyModal = () => setCompanyOpen(false);
 
-
-    const deleteCurrentUsers = async (userId) => {
-        const response = await CompaniesDelete(userId);
-        if (response) {
-            fetchData();
+    const deleteUserCompany = async () => {
+        try{
+            const response = await deleteCompany(selectedCompany);
+            const updateCompany = companyList.filter((item) => item?.id !== selectedCompany);
+            setCompanyList(updateCompany);
+            setSelectedCompany(null);
+            setShowDeleteModal(!showDeleteModal);
+            if (response.data) {
+                fetchData();
+                setData("");
+            }
+        }catch(error){
+            console.log("!!!! DELETE ERROR: ", error); 
         }
     }
     //  compaones 
@@ -155,11 +194,64 @@ const Users = ()=>{
             name: 'Delete',
             cell: row => (
                 <button>
-                <button className="bg-[#ffecec] text-[#f76666] px-4 py-2 rounded-lg" onClick={(e) => { deleteCurrentUsers(row.id)}}>Delete</button>
+                <button className="bg-[#ffecec] text-[#f76666] px-4 py-2 rounded-lg" onClick={(e) => { setSelectedCompany(row.id)}}>Delete</button>
             </button>
             )
         },
     ];
+
+    const handleChange = (e)=> {
+       setValue({...value,[e.target.name]:e.target.value})
+    }
+
+    const addUsrs = async(e) => {
+        e.preventDefault();
+        try{
+            const response = await AddUsers({
+                firstName: value.firstName,
+                lastName: value.lastName,
+                email: value.email,
+                phoneNumber: value.phoneNumber,
+              });
+              toast.success(response.data.message);
+              fetchData();
+              if(response.data){
+                setValue("");
+                onaddUserModal(false);
+              }
+        }
+        catch(error){
+            toast.error("User already exists")
+
+        }
+    }
+
+    const companyHandle = (e)=>{
+        setCompany({...company,[e.target.name]:e.target.value})
+    }
+    const addCompanySubmit = async(e) => {
+        e.preventDefault();
+        try{
+            const response = await addCompany({
+                name: company.name,
+                description: company.description,
+                address: company.address,
+                phone: company.phone,
+                email: company.email,
+                user: userId,
+                invoiceMonthlyLimit: Number(company.invoiceMonthlyLimit)
+              });
+              toast.success(response.data.message);
+              fetchDataCom(userId);
+              if(response.data){
+                setCompany("");
+                onaddCompanyModal(false);
+              }
+        }
+        catch(error){
+            toast.error("Allow field to be empty")
+        }
+    }
     return(
         <>
          <div className="card mb-4">
@@ -183,7 +275,79 @@ const Users = ()=>{
                 }} onClose={onaddUserModal} center>
                     <div className="container-fluid">
                         <div className="row">
-                           <h2>Add User</h2>
+                           <div className="user-heading">
+                                <h3 className="font-bold mb-1 text-2xl">Add User</h3>
+                                <p>Make sure the information below is correct.</p>
+                           </div>
+                           <div className="form">
+                            <form className="mb-3">
+                                <div className="mb-3">
+                                    <label htmlFor="email" className="form-label">Email</label>
+                                    <input
+                                        type="email"
+                                        className="form-control"
+                                        name="email"
+                                        required
+                                        placeholder="Email"
+                                        onChange={(e)=>handleChange(e)}
+                                        autoFocus />
+                                </div>
+                                <div className="mb-3">
+                                    <label htmlFor="firstName" className="form-label">First Name</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        name="firstName"
+                                        required
+                                        placeholder="First Name"
+                                          onChange={(e)=>handleChange(e)}
+                                        autoFocus />
+                                </div>
+                                <div className="mb-3">
+                                    <label htmlFor="lastName" className="form-label">Last Name</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        name="lastName"
+                                        required
+                                        placeholder="Last Name"
+                                          onChange={(e)=>handleChange(e)}
+                                        autoFocus />
+                                </div>
+                                <div className="mb-3">
+                                    <label htmlFor="phoneNumber" className="form-label">Phone number</label>
+                                    <input
+                                        type="tel"
+                                        className="form-control"
+                                        name="phoneNumber"
+                                        required
+                                        placeholder="Phone number"
+                                          onChange={(e)=>handleChange(e)}
+                                        autoFocus />
+                                </div>
+                                {/* <div className="mb-3">
+                                    <label htmlFor="password" className="form-label">Password</label>
+                                    <input
+                                        type="password"
+                                        className="form-control"
+                                        name="password"
+                                        required
+                                        placeholder="Password"
+                                        onChange={(e)=>handleChange(e)}
+                                        autoFocus />
+                                </div> */}
+                                <div className="mb-3">
+                                    <button 
+                                        disabled={(!value?.firstName || !value?.lastName || !value.email || !value.phoneNumber)}
+                                        className="btn btn-green" 
+                                        type="submit" 
+                                        onClick={addUsrs}
+                                    >
+                                        Save
+                                    </button>
+                                </div>
+                            </form>
+                           </div>
                         </div>
                     </div>
             </Modal>
@@ -216,10 +380,95 @@ const Users = ()=>{
                     }} onClose={onaddCompanyModal} center>
                         <div className="container-fluid">
                             <div className="row">
-                            <h2>Add Company</h2>
+                                <div className="user-heading">
+                                        <h3 className="font-bold mb-1 text-2xl">Add Company</h3>
+                                        <p>Make sure the information below is correct.</p>
+                                </div>
+                                <div className="form">
+                                    <form className="mb-3">
+                                        <div className="mb-3">
+                                            <label htmlFor="name" className="form-label">Company Name</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                required
+                                                name="name"
+                                                placeholder="Company Name"
+                                                onChange={(e)=>companyHandle(e)}
+                                                autoFocus />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label htmlFor="name" className="form-label">Description</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                required
+                                                name="description"
+                                                onChange={(e)=>companyHandle(e)}
+                                                placeholder="Description"
+                                                autoFocus />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label htmlFor="name" className="form-label">Address</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                required
+                                                name="address"
+                                                onChange={(e)=>companyHandle(e)}
+                                                placeholder="Address"
+                                                autoFocus />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label htmlFor="phone" className="form-label">Phone number</label>
+                                            <input
+                                                type="tel"
+                                                className="form-control"
+                                                required
+                                                name="phone"
+                                                onChange={(e)=>companyHandle(e)}
+                                                placeholder="Phone number"
+                                                autoFocus />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label htmlFor="email" className="form-label">Email</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                required
+                                                name="email"
+                                                onChange={(e)=>companyHandle(e)}
+                                                placeholder="Email"
+                                                autoFocus />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label htmlFor="invoiceMonthlyLimit" className="form-label">Monthly Count</label>
+                                            <input
+                                                type="tel"
+                                                className="form-control"
+                                                required
+                                                name="invoiceMonthlyLimit"
+                                                onChange={(e)=>companyHandle(e)}
+                                                placeholder="Monthly Count"
+                                                autoFocus />
+                                        </div>
+                                        <div className="mb-3">
+                                            <button className="btn btn-green" type="submit" onClick={addCompanySubmit}>Save</button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                 </Modal>
+                <ConfirmDeleteModal
+                    subTitle={"Are you sure you want to delete this company ?"}
+                    open={showDeleteModal}
+                    onCloseModal={() => { 
+                        setShowDeleteModal(!showDeleteModal);
+                        setSelectedCompany(null);
+                    }}
+                    deleteProduct={deleteUserCompany}
+                />
             </div>
          </div>
         </>
