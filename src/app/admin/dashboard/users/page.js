@@ -5,6 +5,7 @@ import DataTable from "react-data-table-component";
 import Modal from "react-responsive-modal";
 import { toast } from 'react-toastify';
 import ConfirmDeleteModal from "../../adminComponents/ConfirmDeleteModal";
+import { CustomInput } from "../../adminComponents/CustomInput";
 
 const Users = ()=>{
     const [data,setData] = useState([]);
@@ -17,6 +18,7 @@ const Users = ()=>{
     const [companyList, setCompanyList] = useState([]);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedCompany, setSelectedCompany] = useState(null);
+    const [emailError, setEmailError] = useState(true);
 
     // company
     const [company,setCompany] = useState({
@@ -227,7 +229,27 @@ const Users = ()=>{
     }
 
     const companyHandle = (e)=>{
-        setCompany({...company,[e.target.name]:e.target.value})
+        const name = e.target.name; 
+        let value = e.target.value;
+        console.log("@#@@ VALUE TYPE: ", name);
+        if((name === "phone") || (name === "invoiceMonthlyLimit")){
+            value = value.replace(/[^0-9]/g, '');
+            setCompany((oldData) => ({
+                ...oldData,
+                [name]: value.replace(/[^0-9]/g, '')
+            }))
+        }else if(name === "email"){
+            const check = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            if(check.test(String(value).toLowerCase())){
+                setCompany({...company,[name]: value});
+                setEmailError(false);
+            }else{
+                setCompany({...company,[name]: value});
+                setEmailError(true);
+            }
+        }else{
+            setCompany({...company,[name]: value})
+        }
     }
     const addCompanySubmit = async(e) => {
         e.preventDefault();
@@ -384,79 +406,85 @@ const Users = ()=>{
                                         <h3 className="font-bold mb-1 text-2xl">Add Company</h3>
                                         <p>Make sure the information below is correct.</p>
                                 </div>
-                                <div className="form">
-                                    <form className="mb-3">
-                                        <div className="mb-3">
-                                            <label htmlFor="name" className="form-label">Company Name</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                required
-                                                name="name"
-                                                placeholder="Company Name"
-                                                onChange={(e)=>companyHandle(e)}
-                                                autoFocus />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="name" className="form-label">Description</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                required
-                                                name="description"
-                                                onChange={(e)=>companyHandle(e)}
-                                                placeholder="Description"
-                                                autoFocus />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="name" className="form-label">Address</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                required
-                                                name="address"
-                                                onChange={(e)=>companyHandle(e)}
-                                                placeholder="Address"
-                                                autoFocus />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="phone" className="form-label">Phone number</label>
-                                            <input
-                                                type="tel"
-                                                className="form-control"
-                                                required
-                                                name="phone"
-                                                onChange={(e)=>companyHandle(e)}
-                                                placeholder="Phone number"
-                                                autoFocus />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="email" className="form-label">Email</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                required
-                                                name="email"
-                                                onChange={(e)=>companyHandle(e)}
-                                                placeholder="Email"
-                                                autoFocus />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label htmlFor="invoiceMonthlyLimit" className="form-label">Monthly Count</label>
-                                            <input
-                                                type="tel"
-                                                className="form-control"
-                                                required
-                                                name="invoiceMonthlyLimit"
-                                                onChange={(e)=>companyHandle(e)}
-                                                placeholder="Monthly Count"
-                                                autoFocus />
-                                        </div>
-                                        <div className="mb-3">
-                                            <button className="btn btn-green" type="submit" onClick={addCompanySubmit}>Save</button>
-                                        </div>
-                                    </form>
-                                </div>
+                                    <CustomInput
+                                        title="Company Name"
+                                        placeholder="Company Name"
+                                        value={company?.name}
+                                        setValue={(value) => setCompany((oldDetails) => ({
+                                            ...oldDetails,
+                                            name: value
+                                        }))}
+                                    />
+                                    <CustomInput
+                                        title="Description"
+                                        placeholder="Description"
+                                        value={company?.description}
+                                        setValue={(value) => setCompany((oldDetails) => ({
+                                            ...oldDetails,
+                                            description: value
+                                        }))}
+                                    />
+                                    <CustomInput
+                                        title="Address"
+                                        placeholder="Address"
+                                        value={company?.address}
+                                        setValue={(value) => setCompany((oldDetails) => ({
+                                            ...oldDetails,
+                                            address: value
+                                        }))}
+                                    />
+                                    <CustomInput
+                                        title="Phone"
+                                        placeholder="Phone"
+                                        value={company?.phone}
+                                        setValue={(value) => setCompany((oldDetails) => ({
+                                            ...oldDetails,
+                                            phone: value.replace(/[^0-9.]/g, '')
+                                        }))}
+                                    />
+                                    <CustomInput
+                                        title="Email"
+                                        placeholder="Email"
+                                        value={company?.email}
+                                        setValue={(value) => {
+                                            const check = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                                            if(check.test(String(value).toLowerCase())){
+                                                setCompany((oldData) => ({
+                                                    ...oldData,
+                                                    email: value
+                                                }))
+                                                setEmailError(false);
+                                            }else{
+                                                setCompany((oldData) => ({
+                                                    ...oldData,
+                                                    email: value
+                                                }))
+                                                setEmailError(true);
+                                            }
+                                        }}
+                                    />
+                                    {(!!company?.email && emailError) && (
+                                        <span className="text-danger">Invalid email</span>
+                                    )}
+                                    <CustomInput
+                                        title="Monthly Count"
+                                        placeholder="Monthly Count"
+                                        value={company?.invoiceMonthlyLimit}
+                                        setValue={(value) => setCompany((oldDetails) => ({
+                                            ...oldDetails,
+                                            invoiceMonthlyLimit: value.replace(/[^0-9.]/g, '')
+                                        }))}
+                                    />
+                                    <div className="mb-3">
+                                        <button 
+                                            disabled={(!company?.name || !company?.description || !company?.address || !company.phone || !company.invoiceMonthlyLimit || emailError)}
+                                            className=" mt-3 btn btn-green" 
+                                            type="submit" 
+                                            onClick={addCompanySubmit}
+                                        >
+                                            Save
+                                        </button>
+                                    </div>
                             </div>
                         </div>
                 </Modal>
