@@ -33,6 +33,21 @@ export const master_csv = (name) => {
     method: "GET"
 })}
 
+export const master_csvDelete = (id) => {
+    return API.request({
+        url: `csv/${id}`,
+        method: "DELETE"
+    })
+}
+
+export const master_csvEdit = (id, data) => {
+    return API.request({
+        url: `csv/${id}`,
+        method: "PATCH",
+        data: data
+    })
+}
+
 export const concessionList = () => {
     return API.request({
         url: "concession",

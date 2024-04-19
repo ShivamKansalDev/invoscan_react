@@ -119,14 +119,17 @@ const MissingReport = ()=>{
     };
 
     async function getReport(){
+        setLoading(true);
         try{
             const response = await getMissingReport();
             console.log("^^^^^ REPONSE: ", response.data);
             // const dataArr = response.data;
             setData(response.data.data);
             // console.log(response.data.data);
+            setLoading(false);
         }catch(error){
             console.log("!!!!!! ERROR: ", error);
+            setLoading(false);
         }
     }
 
