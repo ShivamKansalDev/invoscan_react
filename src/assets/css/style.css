@@ -55,3 +55,7 @@
 .cTWGPQ:hover{
   border-radius:0px !important;
 }
+
+.react-responsive-modal-modal.add-users-modal{
+  max-width: 55% !important;
+}

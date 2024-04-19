@@ -4,12 +4,15 @@ export default function ConfirmDeleteModal({
     open = false,
     onCloseModal = () => {},
     deleteProduct = () => {},
+    title = "Delete!",
+    subTitle = "Are you sure you want to delete this product ?",
+    label = "Delete"
 }) {
     return(
         <Modal open={open} onClose={onCloseModal} classNames={{ modal: 'company-select-modal' }} center>
             <div className=" mb-4">
-            <h2 className="card-header">Delete!</h2>
-            <small>Are you sure you want to delete this product ?</small>
+            <h2 className="card-header">{title}</h2>
+            <small>{subTitle}</small>
             <div className="card-body mt-4">
                 <div className="mt-2">
                     <button 
@@ -19,7 +22,7 @@ export default function ConfirmDeleteModal({
                         }} 
                         className="btn btn-green me-2 width-100"
                     >
-                        Delete
+                        {label}
                     </button>
                 </div>
             </div>
