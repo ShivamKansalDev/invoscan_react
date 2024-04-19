@@ -6,7 +6,6 @@ export const login = (data) => API.request({
     data
 });
 
-<<<<<<< Updated upstream
 export const usersList = (data) => {
     const token = localStorage.getItem('token');
     return API.request({
@@ -40,7 +39,6 @@ export const CompaniesDelete = (id) => {
     })
 };
 
-=======
 export const master_csv = (name) => {
     const token = localStorage.getItem("token");
     return API.request({
@@ -62,4 +60,3 @@ export const upload_csv = (file) => {
         }
     })
 }
->>>>>>> Stashed changes

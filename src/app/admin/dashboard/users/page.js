@@ -7,10 +7,11 @@ import Modal from "react-responsive-modal";
 
 const Users = ()=>{
     const [data,setData] = useState([]);
-    const [dataCom,setDataCom] = useState([]);
     const [loading, setLoading] = useState(false);
     const [totalRows, setTotalRows] = useState(0);
     const [open, setOpen] = useState(false);
+    const [openAddUser, setUserOpen] = useState(false);
+    const [openAddCompany, setCompanyOpen] = useState(false);
     const [navigation,setNavigation] = useState();
     const [companyList, setCompanyList] = useState([]);
 
@@ -112,6 +113,9 @@ const Users = ()=>{
     }, [navigation]);
 
     const onCloseModal = () => setOpen(false);
+    const onaddUserModal = () => setUserOpen(false);
+    const onaddCompanyModal = () => setCompanyOpen(false);
+
 
     const deleteCurrentUsers = async (userId) => {
         const response = await CompaniesDelete(userId);
@@ -156,11 +160,12 @@ const Users = ()=>{
             )
         },
     ];
-console.log(companyList,'companyList');
-
     return(
         <>
          <div className="card mb-4">
+            <div className="text-end add-user relative">
+                <button className="bg-[#0bc993] text-[#fff] rounded-lg px-4 py-2 font-semibold absolute top-2 -right-0 z-10" onClick={()=>{setUserOpen(true)}}>Add Users</button>
+           </div>
             <DataTable
                 title="Users"
                 data={data}
@@ -173,27 +178,49 @@ console.log(companyList,'companyList');
                 highlightOnHover
                 pointerOnHover
             />
-
-        <Modal open={open} classNames={{
-                modal: 'users-modal',
-            }} onClose={onCloseModal} center>
-                <div className="container-fluid">
-                    <div className="row">
-                        <DataTable
-                            title="Companies"
-                            data={companyList}
-                            columns={companiesColumn}
-                            progressPending={loading}
-                            fixedHeader
-                            pagination
-                            paginationTotalRows={totalRows}
-                            customStyles={customStyles}
-                            highlightOnHover
-                            pointerOnHover
-                        />
+            <Modal open={openAddUser} classNames={{
+                    modal: 'add-users-modal',
+                }} onClose={onaddUserModal} center>
+                    <div className="container-fluid">
+                        <div className="row">
+                           <h2>Add User</h2>
+                        </div>
                     </div>
-                </div>
             </Modal>
+           <div>
+            <Modal open={open} classNames={{
+                    modal: 'users-modal',
+                }} onClose={onCloseModal} center>
+                    <div className="container-fluid">
+                        <div className="text-end add-user relative">
+                            <button className="bg-[#0bc993] text-[#fff] rounded-lg px-4 py-2 font-semibold absolute top-0 -right-0 z-10" onClick={()=>setCompanyOpen(true)}>Add Company</button>
+                        </div>
+                        <div className="row">
+                            <DataTable
+                                title="Companies"
+                                data={companyList}
+                                columns={companiesColumn}
+                                progressPending={loading}
+                                fixedHeader
+                                pagination
+                                paginationTotalRows={totalRows}
+                                customStyles={customStyles}
+                                highlightOnHover
+                                pointerOnHover
+                            />
+                        </div>
+                    </div>
+                </Modal>
+                <Modal open={openAddCompany} classNames={{
+                    modal: 'add-companies-modal',
+                    }} onClose={onaddCompanyModal} center>
+                        <div className="container-fluid">
+                            <div className="row">
+                            <h2>Add Company</h2>
+                            </div>
+                        </div>
+                </Modal>
+            </div>
          </div>
         </>
     )
