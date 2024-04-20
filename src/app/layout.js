@@ -8,6 +8,7 @@ import "../assets/css/demo.css";
 import "../assets/css/style.css";
 import "../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css";
 import "../assets/vendor/css/pages/page-auth.css"; 
+import StoreProvider from "./StoreProvider";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -27,7 +28,9 @@ export default function RootLayout({ children }) {
           <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'></link>
         </head>
       <body className={inter.className}>
-        {children}
+        <StoreProvider>
+          {children}
+        </StoreProvider>
         <ToastContainer autoClose={2000}/>
         <div id="ajax-loader">
           <img src="/loader.gif" />

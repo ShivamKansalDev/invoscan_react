@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { logout } from './lib/store';
 export const baseUrl = 'http://18.130.0.242:4000/api/';
 
 export const API = axios.create({
@@ -11,6 +12,8 @@ export const fileURL = baseUrl + 'uploads/';
 
 API.interceptors.request.use(
     async(config) => {
+        const { interceptLoading } = require("../src/lib/store");
+        interceptLoading(true);
         const accessToken = localStorage.getItem("token");
         if(accessToken && config?.url !== "auth/login"){
             console.log("@@@@@ INRCPTR: ", accessToken);
@@ -19,15 +22,21 @@ API.interceptors.request.use(
         return config;
     },
     (error) => {
+        const { interceptLoading } = require("../src/lib/store");
+        interceptLoading(false);
         return Promise.reject(error);
     }
 );
 
 API.interceptors.response.use(
     (response) => {
+        const { interceptLoading } = require("../src/lib/store");
+        interceptLoading(false);
         return response;
     },
     async(error) => {
+        const { interceptLoading } = require("../src/lib/store");
+        interceptLoading(false);
         const config = error?.response?.config;
         const status = error?.response?.status;
         if((status === 401) || (status === 451)){
@@ -65,12 +74,10 @@ class Request {
         try {
             if(err.response.status === 451) {
                 toast.warning(err.response.data.message);
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                localStorage.removeItem("companyList");
-                localStorage.removeItem("company");
+                logout();
                 window.location.href="/"                
             } else if (err.response.status === 401) {
+                logout();
                 toast.error(err.response.data.message);
             } else {
                 toast.warning(err.response.data.message);

@@ -2,29 +2,46 @@
 import { login } from "@/api/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+
+import { userLogin } from "@/lib/features/thunk/user";
 
 const CustomForm = ()=>{
     const router = useRouter();
+    const { userDetails } = useSelector((state) => state.user);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        if(userDetails){
+            if(userDetails?.user?.role?.toLowerCase() === "admin"){
+                router.push('/admin/dashboard/users');
+            }else if(userDetails?.user?.role?.toLowerCase() !== "admin"){
+                router.push('/dashboard/bookings');
+            }
+        }
+    }, [userDetails])
+
     const doLogin = async (e) => {
         e.preventDefault();
         try{
-          const response = await login({email, password});
-          const data = response.data?.data;
-          toast.success('Login successful.');
-          console.log("@@@ ROLE: ", data?.user?.role?.toLowerCase());
-          localStorage.setItem('token', data.accessToken);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          if(data?.user?.role?.toLowerCase() === "admin"){
-            router.push('/admin/dashboard/users');
-          }else if(data?.user?.role?.toLowerCase() !== "admin"){
-            router.push('/dashboard/bookings');
-          }
+            dispatch(userLogin({email, password}));
+        //   const response = await login({email, password});
+        //   const data = response.data?.data;
+        //   toast.success('Login successful.');
+        //   console.log("@@@ ROLE: ", data?.user?.role?.toLowerCase());
+        //   localStorage.setItem('token', data.accessToken);
+        //   localStorage.setItem('user', JSON.stringify(data.user));
+        //   if(data?.user?.role?.toLowerCase() === "admin"){
+        //     router.push('/admin/dashboard/users');
+        //   }else if(data?.user?.role?.toLowerCase() !== "admin"){
+        //     router.push('/dashboard/bookings');
+        //   }
         }catch(error){
           console.log("@#@#@ LOGIN ERROR: ", error);
         }

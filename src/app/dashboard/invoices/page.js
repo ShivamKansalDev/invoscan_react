@@ -13,9 +13,13 @@ import FeatherIcon from 'feather-icons-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { SelectCompany } from "@/components/SelectCompany";
+import { useSelector } from "react-redux";
+import { userActions } from "@/lib/features/slice/userSlice";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
  
 export default function Invoices() {
+    const {userDetails, selectedCompany, companyList} = useSelector((state) => state.user);
+    const { setSelectedCompany } =  userActions;
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [totalRows, setTotalRows] = useState(0)
@@ -44,9 +48,7 @@ export default function Invoices() {
     const [currentTab, setCurrentTab] = useState('Pending');
     const [actionButtonType, setActionButtonType] = useState('update');
     const [showCompanyModal, setShowCompanyModal] = useState(false);
-    const [selectedCompany, setSelectedCompany] = useState(null);
     const [company, setCompany] = useState({});
-    const [companyList, setCompanyList] = useState([]);
 
     const [currentUser, setUser] = useState({});
     const [startDate, setStartDate] = useState(moment().startOf('year').toDate());
@@ -367,14 +369,11 @@ export default function Invoices() {
     const onClosespDeleteModal = () => setDeleteSpOpen(false);
 
     useEffect(() => {
-        const companies = localStorage.getItem("companyList");
-        let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
-        if(companies){
-            setCompanyList(JSON.parse(companies));
+        let details = JSON.parse(userDetails);
+        if((details !== null) || (details !== undefined)){
+            setUser(details?.user);
+            fetchData('Pending');
         }
-        setUser(user);
-        fetchData('Pending');
-        fetchCurrentSupplier()
     }, []);
 
     let lockedItems = invoiceItems && invoiceItems.Items.filter((Item) => Item.lock === true)
@@ -626,9 +625,7 @@ export default function Invoices() {
             <SelectCompany 
                 open={showCompanyModal}
                 onCloseModal={onCloseCompanyModal}
-                companyList={companyList}
-                selectedCompany={selectedCompany}
-                setSelectedCompany={(item) => setSelectedCompany(item)}
+                company={company}
                 setCompany={(item) => setCompany(item)}
             />
         </>

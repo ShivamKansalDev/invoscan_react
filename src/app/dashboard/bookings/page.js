@@ -13,9 +13,12 @@ import FeatherIcon from 'feather-icons-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { SelectCompany } from "@/components/SelectCompany";
+import { useSelector } from "react-redux";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 export default function Bookings() {
+    const { userDetails } = useSelector((state) => state.user);
+
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [totalRows, setTotalRows] = useState(0)
@@ -355,7 +358,7 @@ export default function Bookings() {
         }
     }
 
-    const fetchCurrentSupplier = async (userId) => {
+    const fetchCurrentSupplier = async () => {
         let response = await Request.get(`/supplier`);
         if (response.data) {
             setSupplierList(response.data)
@@ -405,10 +408,12 @@ export default function Bookings() {
     const [supplierId, setSupplierId] = useState('');
 
     useEffect(() => {
-        let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
-        setUser(user);
-        fetchData(1);
-        fetchCurrentSupplier();
+        let details = JSON.parse(userDetails);
+        if((details !== null) || (details !== undefined)){
+            setUser(details?.user);
+            fetchData(1);
+            fetchCurrentSupplier();
+        }
     }, []);
 
     let lockedItems = invoiceItems && invoiceItems.Items.filter((Item) => Item.lock === true)

@@ -11,6 +11,7 @@ import { Modal } from 'react-responsive-modal';
 
 import "../assets/vendor/css/pages/page-account-settings.css";
 import { SelectCompany } from './SelectCompany';
+import { logout } from '@/lib/store';
 
 function CustomDashboard({ 
   children,
@@ -26,10 +27,7 @@ function CustomDashboard({
   const [open, setOpen] = useState(false);
 
   const logoutUser = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem("companyList");
-    localStorage.removeItem("company");
+    logout();
     toast.error('Logout successfully.');
     router.push('/');
   }
