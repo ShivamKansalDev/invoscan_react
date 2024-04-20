@@ -7,7 +7,7 @@ import "../assets/vendor/css/theme-default.css";
 import "../assets/css/demo.css";
 import "../assets/css/style.css";
 import "../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css";
-import "../assets/vendor/css/pages/page-auth.css";
+import "../assets/vendor/css/pages/page-auth.css"; 
 
 
 const inter = Inter({ subsets: ["latin"] });
