@@ -141,17 +141,17 @@ export default function RootLayout({ children }) {
             </li>
 
             <li className="menu-item">
-              <button onClick={(e) => { logoutUser() }} className="menu-link">
+              <Link href={'/'} onClick={(e) => { logoutUser() }} className="menu-link">
                 <FeatherIcon icon="log-out" className='menu-icon' />
                 <div data-i18n="Dashboards">Logout</div>
-              </button>
+              </Link>
             </li>
 
             <li className="menu-item">
-              <button onClick={(e) => { openModalPopup() }} className="menu-link">
+              <Link  href={''} onClick={(e) => { openModalPopup() }} className="menu-link">
                 <FeatherIcon icon="briefcase" className='menu-icon' />
                 <div data-i18n="Dashboards">{company?.name || "Select company"}</div>
-              </button>
+              </Link>
             </li>
 
           </ul>

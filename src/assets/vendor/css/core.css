@@ -17317,7 +17317,7 @@ html:not(.layout-footer-fixed) .content-wrapper {
   }
 }
 @media (max-width: 1199.98px) {
-  .layout-menu {
+  /* .layout-menu {
     position: fixed !important;
     top: 0 !important;
     height: 100% !important;
@@ -17326,7 +17326,7 @@ html:not(.layout-footer-fixed) .content-wrapper {
     margin-left: 0 !important;
     transform: translate3d(-100%, 0, 0);
     will-change: transform, -webkit-transform;
-  }
+  } */
   .layout-menu-expanded .layout-menu {
     transform: translate3d(0, 0, 0) !important;
   }
@@ -17369,7 +17369,7 @@ html:not(.layout-footer-fixed) .content-wrapper {
 
 @media (max-width: 1199.98px) {
   .layout-menu {
-    z-index: 1100;
+    z-index: 11;
   }
   .layout-overlay {
     z-index: 1099;

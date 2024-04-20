@@ -72,10 +72,10 @@ function CustomDashboard({
             })}            
 
             <li className="menu-item">
-              <button onClick={(e) => { logoutUser() }} className="menu-link">
+              <Link href={'/'} onClick={(e) => { logoutUser() }} className="menu-link">
                 <FeatherIcon icon="log-out" className='menu-icon' />
                 <div data-i18n="Dashboards">Logout</div>
-              </button>
+              </Link>
             </li>
 
           </ul>
