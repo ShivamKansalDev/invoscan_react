@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import Link from "next/link";
 import { toast } from 'react-toastify';
 import FeatherIcon from 'feather-icons-react';
+import { useDispatch } from 'react-redux';
 
 import Request from "@/Request";
 import 'react-responsive-modal/styles.css';
@@ -11,14 +12,14 @@ import { Modal } from 'react-responsive-modal';
 
 import "../assets/vendor/css/pages/page-account-settings.css";
 import { SelectCompany } from './SelectCompany';
-import { logout } from '@/lib/store';
+import { logout } from '../lib/features/thunk/logout';
 
 function CustomDashboard({ 
   children,
   dashboardItems = []
 }) {
   const router = useRouter();
-
+  const dispatch = useDispatch();
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [company, setCompany] = useState({});
   const [companyList, setCompanyList] = useState([]);
@@ -27,9 +28,9 @@ function CustomDashboard({
   const [open, setOpen] = useState(false);
 
   const logoutUser = () => {
-    logout();
-    toast.error('Logout successfully.');
     router.push('/');
+    toast.error('Logout successfully.');
+    dispatch(logout());
   }
   const onCloseModal = () => {
     setOpen(false);

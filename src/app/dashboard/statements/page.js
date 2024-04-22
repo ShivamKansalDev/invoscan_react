@@ -8,6 +8,8 @@ import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 
 import FeatherIcon from 'feather-icons-react';
+// import storage from 'redux-persist/lib/storage';
+import storage from "@/lib/store";
 
 export default function Statements() {
     let columns = [
@@ -228,7 +230,8 @@ export default function Statements() {
     const fetchData = async page => {
         setPage(page)
         setLoading(true)
-        let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        // let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        let company = storage.getItem('company') !== null ? JSON.parse(storage.getItem('company')) : { id: '' };
         const response = await Request.get(`/statement/${company.id}`);
         setLoading(false)
         if (response.data && response.data.length > 0) {
@@ -254,7 +257,8 @@ export default function Statements() {
         for (let index = 0; index < files.length; index++) {
             formData.append('files[]', files[index])
         }
-        let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        // let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        let company = storage.getItem('company') !== null ? JSON.parse(storage.getItem('company')) : { id: '' };
         const response = await Request.postUpload(`/form/analyze/${company.id}?supplierId=${selectedSupplier.id}&type=${actionType}`, formData);
         if (response && !response.error) {
             // setUploadedInvoiceItems(response.data)
@@ -305,7 +309,8 @@ export default function Statements() {
     const onCloseInnerDeleteModal = () => setDeleteInnerOpen(false);
 
     useEffect(() => {
-        let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
+        // let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
+        let user = storage.getItem('user') !== null ? JSON.parse(storage.getItem('user')) : null;
         setUser(user);
         fetchData(1);
     }, []);
@@ -461,7 +466,7 @@ export default function Statements() {
                                         supplierList && supplierList.map((item, index) => {
                                             if(selectedSupplier?.id === item?.id){
                                                 return (
-                                                    <div>
+                                                    <div key={index}>
                                                         <div id={(selectedSupplier?.id === item?.id) ? "bgColor" : "" } className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" className="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                                                             <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
@@ -470,7 +475,7 @@ export default function Statements() {
                                                 )
                                             }
                                             return (
-                                               <div>
+                                                <div key={index}>
                                                      <div  onClick={() => setSupplier(item)} className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
                                                         <div>
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" className="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>

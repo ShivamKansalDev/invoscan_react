@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { logout } from './lib/store';
+import storage from 'redux-persist/lib/storage';
+
 export const baseUrl = 'http://18.130.0.242:4000/api/';
 
 export const API = axios.create({
@@ -14,7 +15,8 @@ API.interceptors.request.use(
     async(config) => {
         const { interceptLoading } = require("../src/lib/store");
         interceptLoading(true);
-        const accessToken = localStorage.getItem("token");
+        // const accessToken = localStorage.getItem("token");
+        const accessToken = await storage.getItem("token");
         if(accessToken && config?.url !== "auth/login"){
             console.log("@@@@@ INRCPTR: ", accessToken);
             config.headers.Authorization = `Bearer ${accessToken}`;
@@ -35,13 +37,17 @@ API.interceptors.response.use(
         return response;
     },
     async(error) => {
-        const { interceptLoading } = require("../src/lib/store");
+        const { interceptLoading, makeStore } = require("../src/lib/store");
+        const { logout } = require("../src/lib/features/thunk/logout");
         interceptLoading(false);
         const config = error?.response?.config;
         const status = error?.response?.status;
         if((status === 401) || (status === 451)){
+            const store = makeStore();
             if(config?.url !== 'auth/login'){
-                alert("Session expired");
+                window.location.replace("/");
+                toast.warning("Session expired");
+                store.dispatch(logout());
             }
         }
     },
@@ -56,8 +62,9 @@ class Request {
     hide() {
         document.getElementById("ajax-loader").style.display = "none";
     }
-    getHeader() {
-        const token = localStorage.getItem('token');
+    async getHeader() {
+        // const token = localStorage.getItem('token');
+        const token = await storage.getItem("token");
         if (token != undefined && token && token != null) {
             return {
                 headers: {
@@ -74,10 +81,7 @@ class Request {
         try {
             if(err.response.status === 451) {
                 toast.warning(err.response.data.message);
-                logout();
-                window.location.href="/"                
             } else if (err.response.status === 401) {
-                logout();
                 toast.error(err.response.data.message);
             } else {
                 toast.warning(err.response.data.message);

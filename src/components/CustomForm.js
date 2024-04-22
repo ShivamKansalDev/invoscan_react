@@ -5,43 +5,46 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-
-import { userLogin } from "@/lib/features/thunk/user";
+import { userActions } from "@/lib/features/slice/userSlice";
+import storage, { logout, makeStore } from "@/lib/store";
+import { persistStore } from "redux-persist";
 
 const CustomForm = ()=>{
     const router = useRouter();
-    const { userDetails } = useSelector((state) => state.user);
+    const store = makeStore();
+    const persistor = persistStore(store);
+    const { userDetails, selectedCompany } = useSelector((state) => state.user);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const { setUserDetails } = userActions;
 
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if(userDetails){
-            if(userDetails?.user?.role?.toLowerCase() === "admin"){
-                router.push('/admin/dashboard/users');
-            }else if(userDetails?.user?.role?.toLowerCase() !== "admin"){
-                router.push('/dashboard/bookings');
-            }
+        if(selectedCompany){
+            persistor.purge().then(() => {
+                console.log("^^^ PURGE SUCCESS: ", selectedCompany);
+            }).catch((error) => {
+                console.log("!!!! PURGE ERROR: ", error);
+            })
+        }else{
+            console.log("@@@@ REDUX RESET SUCCESS: ", selectedCompany);
         }
-    }, [userDetails])
+    }, [selectedCompany]);
 
     const doLogin = async (e) => {
         e.preventDefault();
         try{
-            dispatch(userLogin({email, password}));
-        //   const response = await login({email, password});
-        //   const data = response.data?.data;
-        //   toast.success('Login successful.');
-        //   console.log("@@@ ROLE: ", data?.user?.role?.toLowerCase());
-        //   localStorage.setItem('token', data.accessToken);
-        //   localStorage.setItem('user', JSON.stringify(data.user));
-        //   if(data?.user?.role?.toLowerCase() === "admin"){
-        //     router.push('/admin/dashboard/users');
-        //   }else if(data?.user?.role?.toLowerCase() !== "admin"){
-        //     router.push('/dashboard/bookings');
-        //   }
+            const response = await login({email, password});
+            const data = response.data?.data;
+            dispatch(setUserDetails(JSON.stringify(data)));
+            storage.setItem('token', data.accessToken);
+            if(data?.user?.role?.toLowerCase() === "admin"){
+                router.push('/admin/dashboard/users');
+            }else if(data?.user?.role?.toLowerCase() !== "admin"){
+                router.push('/dashboard/bookings');
+            }
         }catch(error){
           console.log("@#@#@ LOGIN ERROR: ", error);
         }

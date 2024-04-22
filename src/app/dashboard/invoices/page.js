@@ -15,6 +15,7 @@ import 'react-pdf/dist/Page/TextLayer.css';
 import { SelectCompany } from "@/components/SelectCompany";
 import { useSelector } from "react-redux";
 import { userActions } from "@/lib/features/slice/userSlice";
+import { deleteInvoice, getPendingInvoices, markCompleteInvoice } from "@/api/invoices";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
  
 export default function Invoices() {
@@ -275,13 +276,6 @@ export default function Invoices() {
         setSecondOpen(false)
     }
 
-    const fetchCurrentSupplier = async (userId) => {
-        let response = await Request.get(`/supplier`);
-        if (response.data) {
-            setSupplierList(response.data)
-        }
-    }
-
     const deleteInvoiceData = () => {
         let {row, index} = deleteSPId;
         const updateInvoiceItems = invoiceItems.Items.filter((item) => (item?.index !== row?.index));
@@ -316,14 +310,14 @@ export default function Invoices() {
 
     const markCompleteCurrentInvoice = async () => {
         try{
-            const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, {
+            const response = await markCompleteInvoice(invoiceItems.id, {
                 "CustomerId": invoiceItems.CustomerId,
                 "InvoiceDate": invoiceItems.InvoiceDate,
                 "InvoiceId": invoiceItems.InvoiceId,
                 "Items": invoiceItems.Items,
                 "SubTotal": invoiceItems.SubTotal,
                 "isDelivered": true
-            });
+            })
             console.log(response.data,'response');
             setInvoiceItems({
                 Items: []
@@ -336,30 +330,36 @@ export default function Invoices() {
     }
 
     const deleteCurrentInvoice = async () => {
-        const response = await Request.delete(`/stock/${deleteId}`);
-        if (response) {
+        try{
+            const response = await deleteInvoice(deleteId);
             fetchData(currentTab);
             onCloseDeleteModal();
+        }catch(error){
+            console.log("!!! INVOICE(screen) DELETE ERROR: ", error);
         }
     }
 
     const fetchData = async (currentTab) => {
-        setLoading(true)
-        let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        let companyDetails = selectedCompany;
         console.log("@@@@ INVOICES: ", companyDetails);
-        if(companyDetails?.id){
-            let url = currentTab === 'Pending' ? `/stock/pending/${companyDetails?.id}` : `/stock/delivered/${companyDetails?.id}`
-            const response = await Request.get(`${url}?from=${moment(startDate).format('YYYY-MM-DD')}&to=${moment(endDate).format('YYYY-MM-DD')}${supplierId ? '&supplier=' + supplierId : ''}`);
-            setLoading(false)
-            if (response.data && response.data.data) {
-                setData(response.data.data)
-                setTotalRows(response.data.count)
-            } else {
-                setData([])
-                setTotalRows(0)
-            }
-        }else{
+        if(!companyDetails?.id) {
             setShowCompanyModal(true);
+            return;
+        }
+        setLoading(true);
+        try{
+            let url = (currentTab === 'Pending') ? `/stock/pending/${companyDetails?.id}` : `/stock/delivered/${companyDetails?.id}`;
+            const response = await getPendingInvoices(url);
+            setLoading(false);
+            if (response.data && response.data?.data) {
+                setData(response.data?.data)
+                setTotalRows(response.data?.count)
+            }
+        }catch(error){
+            setData([])
+            setTotalRows(0)
+            setLoading(false)
+            console.log("!!! GET PENDING INVOICES(screen) ERROR: ", error);
         }
     }
 
@@ -448,7 +448,7 @@ export default function Invoices() {
                                 invoiceItems.invoiceUrl && invoiceItems.invoiceUrl.map((invoice, key) => {
                                     console.log(invoice.url)
                                     return(
-                                        <Document file={invoice.url} className="pdf-section">
+                                        <Document key={key} file={invoice.url} className="pdf-section">
                                             <Page  pageNumber={1}/>
                                         </Document>
                                     )

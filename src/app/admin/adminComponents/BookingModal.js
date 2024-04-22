@@ -158,7 +158,7 @@ function BookingModal({
                             invoiceItems.invoiceUrl && invoiceItems.invoiceUrl.map((invoice, key) => {
                                 console.log(invoice.url)
                                 return(
-                                    <Document file={invoice.url} className="pdf-section">
+                                    <Document key={key} file={invoice.url} className="pdf-section">
                                         <Page  pageNumber={1}/>
                                     </Document>
                                 )

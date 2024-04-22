@@ -5,69 +5,39 @@ import Link from "next/link";
 import { toast } from 'react-toastify';
 import FeatherIcon from 'feather-icons-react';
 
-import Request from "@/Request";
-import 'react-responsive-modal/styles.css';
-import { Modal } from 'react-responsive-modal';
-
-import "../../assets/vendor/css/pages/page-account-settings.css";
 import { SelectCompany } from '@/components/SelectCompany';
-import { logout } from '@/lib/store';
-import { useDispatch, useSelector } from 'react-redux';
-import { getCompanyList } from '@/api/company';
-import { userCompanyList } from '@/lib/features/thunk/user';
+import { logout } from '../../lib/features/thunk/logout';
+import { useDispatch, useSelector } from 'react-redux';;
+import 'react-responsive-modal/styles.css';
+import "../../assets/vendor/css/pages/page-account-settings.css";
 
 export default function RootLayout({ children }) {
   const router = useRouter();
-
-  const [company, setCompany] = useState({});
-  const [currentUser, setCurrentUser] = useState({});
-  const [selectedSupplier, setSupplier] = useState(null);
   const [open, setOpen] = useState(false);
 
   const { userDetails, selectedCompany, companyList } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const details = JSON.parse(userDetails);
-    const user = details?.user;
-    if (user?.id) {
-      fetchCurrentCompanies(user?.id);
-    }
-  }, [])
-
-  useEffect(() => {
-    if(Array.isArray(companyList)){
+    if(!selectedCompany){
       setOpen(true);
     }
-  }, [companyList])
-
-  useEffect(() => {
-    // if(open){
-    //   let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : null;
-    //   if(companyDetails){
-    //     setSelectedCompany(companyDetails)
-    //   }
-    // }else{
-    //   setSelectedCompany(null);
-    // }
-  }, [open]);
+  }, [selectedCompany])
 
   const openModalPopup = () => {
     // fetchCurrentCompanies(currentUser.id);
     setOpen(true);
   }
 
-  const fetchCurrentCompanies = async (userId) => {
-    dispatch(userCompanyList(userId));
-  }
   const logoutUser = () => {
-    logout();
-    toast.error('Logout successfully.');
-    router.push('/');
+    // window.location.replace("/");
+    // e.preventDefault();
+    router.push("/");
+    toast.success('Logout successfully.');
+    dispatch(logout());
   }
   const onCloseModal = () => {
     setOpen(false);
-    setCompany(null);
   };
   const pathname = usePathname()
 
@@ -135,7 +105,7 @@ export default function RootLayout({ children }) {
             </li>
 
             <li className="menu-item">
-              <Link href={'/'} onClick={(e) => { logoutUser() }} className="menu-link">
+              <Link href={'/'} onClick={(e) => { logoutUser(e) }} className="menu-link">
                 <FeatherIcon icon="log-out" className='menu-icon' />
                 <div data-i18n="Dashboards">Logout</div>
               </Link>
@@ -170,8 +140,6 @@ export default function RootLayout({ children }) {
       <SelectCompany 
         open={open}
         onCloseModal={onCloseModal}
-        company={company}
-        setCompany={(item) => setCompany(item)}
       />
     </div>
   );

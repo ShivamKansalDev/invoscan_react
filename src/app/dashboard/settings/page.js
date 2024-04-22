@@ -2,20 +2,21 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { logout } from '@/lib/store';
+import { logout } from '../../../lib/features/thunk/logout';
 
 export default function Settings() {
     const router = useRouter();
+    const dispatch = useDispatch();
     const { userDetails } = useSelector((state) => state.user);
 
     const [currentUser, setCurrentUser] = useState({});
 
     const logoutUser = () => {
-        logout();
-        toast.error('Logout successfully.');
         router.push('/');
+        toast.error('Logout successfully.');
+        dispatch(logout());
     }
     useLayoutEffect(() => {
         const details = JSON.parse(userDetails);

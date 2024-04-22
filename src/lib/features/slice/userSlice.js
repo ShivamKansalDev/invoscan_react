@@ -2,8 +2,12 @@ import { createSlice } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 
 import { userCompanyList, userLogin } from "../thunk/user";
+// import storage from 'redux-persist/lib/storage';
+import storage from "@/lib/store";
+import { logout } from "../thunk/logout";
 
 const initialState = {
+    isAuthenticated: null,
     userDetails: null,
     companyList: [],
     selectedCompany: null
@@ -13,8 +17,11 @@ const userSlice = createSlice({
     name: 'user',
     initialState,
     reducers: {
-        resetUserDetails: (state, action) => {
-            return initialState;
+        setUserDetails: (state, action) => {
+            return {
+                ...state,
+                userDetails: action.payload
+            }
         },
         setSelectedCompany: (state, action) => {
             return {
@@ -32,8 +39,10 @@ const userSlice = createSlice({
             state.userDetails = JSON.stringify(data);
             toast.success('Logged in successfully.');
             console.log("@@@ ROLE: ", data);
-            localStorage.setItem('token', data.accessToken);
-            localStorage.setItem('user', JSON.stringify(data.user));
+            // localStorage.setItem('token', data.accessToken);
+            // localStorage.setItem('user', JSON.stringify(data.user));
+            storage.setItem('token', data.accessToken);
+            // storage.setItem('user', JSON.stringify(data.user));
         }).addCase(userLogin.rejected, (state, action) => {
             state.userDetails = null;
             console.log("!!!! LOGIN ERROR: ", action.payload);
@@ -48,6 +57,10 @@ const userSlice = createSlice({
         }).addCase(userCompanyList.rejected, (state, action) => {
             state.companyList = [];
             console.log("!!!! CMPNY LIST ERROR: ", action.payload);
+        }).addCase(logout.fulfilled, (state, action) => {
+            console.log("^^^^ LOGOUT via THUNK");
+            state = Object.assign(state, initialState);
+            // Object.assign(state, initialState)
         })
     }
 });

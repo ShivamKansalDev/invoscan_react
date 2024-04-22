@@ -21,6 +21,8 @@ import {
     PointElement
 } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
+// import storage from 'redux-persist/lib/storage';
+import storage from "@/lib/store";
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -231,7 +233,8 @@ export default function Analytics() {
     const fetchData = async page => {
         setPage(page)
         setLoading(true)
-        let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        // let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        let company = storage.getItem('company') !== null ? JSON.parse(storage.getItem('company')) : { id: '' };
         const response = await Request.get(`/stock/stock-by-company/${company.id}`);
         setLoading(false)
         console.log('response',response.data);
@@ -280,7 +283,8 @@ export default function Analytics() {
         }
     }
     const showRowData = async row => {
-        let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        // let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        let company = storage.getItem('company') !== null ? JSON.parse(storage.getItem('company')) : { id: '' };
         const response = await Request.post(`/stock/filter-stock/${company.id}`, { search: row.pip_code });
         if (response.data && response.data.length > 0) {
             setInvoiceItems({
@@ -328,7 +332,8 @@ export default function Analytics() {
     }
 
     const showInnerRowData = async row => {
-        let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        // let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        let company = storage.getItem('company') !== null ? JSON.parse(storage.getItem('company')) : { id: '' };
         const response = await Request.post(`/stock/get-stocks/${company.id}`, { search: row.pip_code });
         if (response.data && response.data.data && response.data.data[0]) {
             setUploadedInvoiceItems(response.data.data[0]);
@@ -349,7 +354,8 @@ export default function Analytics() {
     const onCloseDistributionModal = () => setDistributionOpen(false);
 
     useEffect(() => {
-        let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
+        // let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
+        let user = storage.getItem('user') !== null ? JSON.parse(storage.getItem('user')) : null;
         setUser(user);
         fetchData(1);
     }, []);

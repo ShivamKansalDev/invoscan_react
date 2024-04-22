@@ -6,6 +6,8 @@ import Request from "@/Request";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
 import FeatherIcon from 'feather-icons-react';
+// import storage from 'redux-persist/lib/storage';
+import storage from "@/lib/store";
 
 export default function Credits() {
     let columns = [
@@ -95,7 +97,8 @@ export default function Credits() {
     const fetchData = async (page) => {
         setPage(page)
         setLoading(true)
-        let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        // let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        let company = storage.getItem('company') !== null ? JSON.parse(storage.getItem('company')) : { id: '' };
         const response = await Request.get(`/stock-report/${company.id}`);
         setLoading(false)
         if (response.data && response.data.length > 0) {
@@ -148,7 +151,8 @@ export default function Credits() {
     const onCloseModal = () => setOpen(false);
 
     useEffect(() => {
-        let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
+        // let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
+        let user = storage.getItem('user') !== null ? JSON.parse(storage.getItem('user')) : null;
         setUser(user);
         fetchData(1);
     }, []);
