@@ -1,5 +1,5 @@
 'use client';
-import { AddComapny, AddUsers, CompaniesDelete, CompaniesList, addCompany, deleteCompany, usersList } from "@/api/auth";
+import { AddComapny, AddUsers, CompaniesDelete, CompaniesList, addCompany, deleteCompany, usersList } from "@/api/user";
 import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import Modal from "react-responsive-modal";

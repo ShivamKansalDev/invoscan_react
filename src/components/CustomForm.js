@@ -1,30 +1,40 @@
 'use client';
-import { login } from "@/api/auth";
+import { login } from "@/api/user";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { userActions } from "@/lib/features/slice/userSlice";
+import storage, { logout, makeStore } from "@/lib/store";
+import { persistStore } from "redux-persist";
 
-const CustomForm = ()=>{
+const CustomForm = ({
+    type = ""
+})=>{
     const router = useRouter();
+    const store = makeStore();
+    const persistor = persistStore(store);
+    const { userDetails, selectedCompany } = useSelector((state) => state.user);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const { setUserDetails } = userActions;
+
+    const dispatch = useDispatch();
 
     const doLogin = async (e) => {
         e.preventDefault();
         try{
-          const response = await login({email, password});
-          const data = response.data?.data;
-          toast.success('Login successful.');
-          console.log("@@@ ROLE: ", data?.user?.role?.toLowerCase());
-          localStorage.setItem('token', data.accessToken);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          if(data?.user?.role?.toLowerCase() === "admin"){
-            router.push('/admin/dashboard/users');
-          }else if(data?.user?.role?.toLowerCase() !== "admin"){
-            router.push('/dashboard/bookings');
-          }
+            const response = await login({email, password});
+            const data = response.data?.data;
+            dispatch(setUserDetails(JSON.stringify(data)));
+            storage.setItem('token', data.accessToken);
+            if(type === "admin"){
+                router.push('/admin/dashboard/users');
+            }else{
+                router.push('/dashboard/bookings');
+            }
         }catch(error){
           console.log("@#@#@ LOGIN ERROR: ", error);
         }

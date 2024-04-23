@@ -13,9 +13,15 @@ import FeatherIcon from 'feather-icons-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { SelectCompany } from "@/components/SelectCompany";
+import { useSelector } from "react-redux";
+import { userActions } from "@/lib/features/slice/userSlice";
+import { deleteInvoice, getPendingInvoices, markCompleteInvoice } from "@/api/invoices";
+import { toast } from "react-toastify";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
  
 export default function Invoices() {
+    const {userDetails, selectedCompany, companyList} = useSelector((state) => state.user);
+    const { setSelectedCompany } =  userActions;
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [totalRows, setTotalRows] = useState(0)
@@ -44,19 +50,12 @@ export default function Invoices() {
     const [currentTab, setCurrentTab] = useState('Pending');
     const [actionButtonType, setActionButtonType] = useState('update');
     const [showCompanyModal, setShowCompanyModal] = useState(false);
-    const [selectedCompany, setSelectedCompany] = useState(null);
     const [company, setCompany] = useState({});
-    const [companyList, setCompanyList] = useState([]);
 
     const [currentUser, setUser] = useState({});
     const [startDate, setStartDate] = useState(moment().startOf('year').toDate());
     const [endDate, setEndDate] = useState(moment().endOf('year').toDate());
     const [supplierId, setSupplierId] = useState('');
-
-    // useEffect(() => {
-    //     // pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
-    //     pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-    // }, []);
 
     let columns = [
         {
@@ -273,13 +272,6 @@ export default function Invoices() {
         setSecondOpen(false)
     }
 
-    const fetchCurrentSupplier = async (userId) => {
-        let response = await Request.get(`/supplier`);
-        if (response.data) {
-            setSupplierList(response.data)
-        }
-    }
-
     const deleteInvoiceData = () => {
         let {row, index} = deleteSPId;
         const updateInvoiceItems = invoiceItems.Items.filter((item) => (item?.index !== row?.index));
@@ -314,14 +306,14 @@ export default function Invoices() {
 
     const markCompleteCurrentInvoice = async () => {
         try{
-            const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, {
+            const response = await markCompleteInvoice(invoiceItems.id, {
                 "CustomerId": invoiceItems.CustomerId,
                 "InvoiceDate": invoiceItems.InvoiceDate,
                 "InvoiceId": invoiceItems.InvoiceId,
                 "Items": invoiceItems.Items,
                 "SubTotal": invoiceItems.SubTotal,
                 "isDelivered": true
-            });
+            })
             console.log(response.data,'response');
             setInvoiceItems({
                 Items: []
@@ -334,30 +326,38 @@ export default function Invoices() {
     }
 
     const deleteCurrentInvoice = async () => {
-        const response = await Request.delete(`/stock/${deleteId}`);
-        if (response) {
+        try{
+            const response = await deleteInvoice(deleteId);
             fetchData(currentTab);
+            toast.success("Invoice deleted successfully.")
             onCloseDeleteModal();
+        }catch(error){
+            console.log("!!! INVOICE(screen) DELETE ERROR: ", error);
         }
     }
 
     const fetchData = async (currentTab) => {
-        setLoading(true)
-        let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
+        let companyDetails = selectedCompany;
         console.log("@@@@ INVOICES: ", companyDetails);
-        if(companyDetails?.id){
-            let url = currentTab === 'Pending' ? `/stock/pending/${companyDetails?.id}` : `/stock/delivered/${companyDetails?.id}`
-            const response = await Request.get(`${url}?from=${moment(startDate).format('YYYY-MM-DD')}&to=${moment(endDate).format('YYYY-MM-DD')}${supplierId ? '&supplier=' + supplierId : ''}`);
-            setLoading(false)
-            if (response.data && response.data.data) {
-                setData(response.data.data)
-                setTotalRows(response.data.count)
-            } else {
-                setData([])
-                setTotalRows(0)
-            }
-        }else{
+        if(!companyDetails?.id) {
             setShowCompanyModal(true);
+            return;
+        }
+        setLoading(true);
+        try{
+            let url = (currentTab === 'Pending') ? `/stock/pending/${companyDetails?.id}` : `/stock/delivered/${companyDetails?.id}`;
+            const response = await getPendingInvoices(url);
+            const rcvdData = response.data?.data;
+            setLoading(false);
+            if (Array.isArray(rcvdData?.data)) {
+                setData(rcvdData?.data);
+                setTotalRows(rcvdData?.count);
+            }
+        }catch(error){
+            setData([])
+            setTotalRows(0)
+            setLoading(false)
+            console.log("!!! GET PENDING INVOICES(screen) ERROR: ", error);
         }
     }
 
@@ -367,14 +367,11 @@ export default function Invoices() {
     const onClosespDeleteModal = () => setDeleteSpOpen(false);
 
     useEffect(() => {
-        const companies = localStorage.getItem("companyList");
-        let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
-        if(companies){
-            setCompanyList(JSON.parse(companies));
+        let details = JSON.parse(userDetails);
+        if((details !== null) || (details !== undefined)){
+            setUser(details?.user);
+            fetchData('Pending');
         }
-        setUser(user);
-        fetchData('Pending');
-        fetchCurrentSupplier()
     }, []);
 
     let lockedItems = invoiceItems && invoiceItems.Items.filter((Item) => Item.lock === true)
@@ -449,7 +446,7 @@ export default function Invoices() {
                                 invoiceItems.invoiceUrl && invoiceItems.invoiceUrl.map((invoice, key) => {
                                     console.log(invoice.url)
                                     return(
-                                        <Document file={invoice.url} className="pdf-section">
+                                        <Document key={key} file={invoice.url} className="pdf-section">
                                             <Page  pageNumber={1}/>
                                         </Document>
                                     )
@@ -626,9 +623,7 @@ export default function Invoices() {
             <SelectCompany 
                 open={showCompanyModal}
                 onCloseModal={onCloseCompanyModal}
-                companyList={companyList}
-                selectedCompany={selectedCompany}
-                setSelectedCompany={(item) => setSelectedCompany(item)}
+                company={company}
                 setCompany={(item) => setCompany(item)}
             />
         </>

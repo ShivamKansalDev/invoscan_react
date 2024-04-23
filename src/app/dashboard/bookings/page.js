@@ -1,26 +1,26 @@
 'use client';
 import DataTable from "react-data-table-component";
-import React, { useState, useEffect, useLayoutEffect } from "react";
-import Request from "@/Request";
-import 'react-responsive-modal/styles.css';
+import React, { useState, useEffect } from "react";
 import { Modal } from 'react-responsive-modal';
 import { Carousel } from "react-responsive-carousel";
-import "react-responsive-carousel/lib/styles/carousel.min.css";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
 import FeatherIcon from 'feather-icons-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { SelectCompany } from "@/components/SelectCompany";
+import { useSelector } from "react-redux";
+import { deleteInvoice, getPendingInvoices, getSupplierList, markCompleteInvoice, uploadInvoice } from "@/api/invoices";
+import { toast } from "react-toastify";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 export default function Bookings() {
+    const { userDetails, selectedCompany } = useSelector((state) => state.user);
+
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [totalRows, setTotalRows] = useState(0)
     const [results, setResults] = useState(100)
-    const [page, setPage] = useState(1)
     const [open, setOpen] = useState(false);
     const [supplierOpen, setSupplierOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -50,22 +50,8 @@ export default function Bookings() {
     const [deleteId, setDeleteId] = useState(null);
     const [deleteSPId, setspDeleteId] = useState({});
     const [showCompanyModal, setShowCompanyModal] = useState(false);
-    const [selectedCompany, setSelectedCompany] = useState(null);
-    const [company, setCompany] = useState({});
-    const [companyList, setCompanyList] = useState([]);
     
     const [actionButtonType, setActionButtonType] = useState('update');
-
-    useEffect(() => {
-        if(showCompanyModal){
-          let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : null;
-          if(companyDetails){
-            setSelectedCompany(companyDetails)
-          }
-        }else{
-          setSelectedCompany(null);
-        }
-      }, [showCompanyModal]);
 
     let columns = [
         {
@@ -229,7 +215,9 @@ export default function Bookings() {
             setInvoiceItems(rowData);
             // console.log("#@@#@# ROW DATA: ", JSON.stringify(rowData, null, 4));
         }
-        setOpen(true);
+        if(actionType !== "statement"){
+            setOpen(true);
+        }
     }
 
     const showInvoiceData = (row, key) => {
@@ -243,12 +231,7 @@ export default function Bookings() {
     const saveInvoiceItems = () => {
         invoiceItems.Items[invoiceItemIndex] = invoiceData
         let invoiceItemsClone = { ...invoiceItems }
-        setInvoiceItems({
-            Items: []
-        })
-        setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
-        }, 500);
+        setInvoiceItems(invoiceItemsClone)
         setSecondOpen(false)
     }
 
@@ -262,12 +245,10 @@ export default function Bookings() {
                 index
             }
         }) 
-        setTimeout(() => {
-            setInvoiceItems({
-                ...invoiceItems,
-                Items: oldItems
-            });
-        }, 500);
+        setInvoiceItems({
+            ...invoiceItems,
+            Items: oldItems
+        });
         setSecondOpen(false)
     }
 
@@ -298,67 +279,78 @@ export default function Bookings() {
         invoiceItems.Items[index] = row
         let invoiceItemsClone = { ...invoiceItems }
         // setInvoiceItems({})
-        setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
-        }, 500);
+        setInvoiceItems(invoiceItemsClone);
     }
 
     const markCompleteCurrentInvoice = async () => {
         console.log("@@@@ API: ", invoiceItems);
-        //const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, { Items: invoiceItems.Items });
         try{
-            const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, {
+            const response = await markCompleteInvoice(invoiceItems.id, {
                 "CustomerId": invoiceItems.CustomerId,
                 "InvoiceDate": invoiceItems.InvoiceDate,
                 "InvoiceId": invoiceItems.InvoiceId,
                 "Items": invoiceItems.Items,
                 "SubTotal": invoiceItems.SubTotal,
                 "isDelivered": true
-            });
+            })
+            toast.success("Invoice has been marked as completed.");
             console.log(response.data,'response');
             setSupplier(null);
             setFileName('');
             setInvoiceItems({
                 Items: []
-            })
-            fetchData(1);
-            setOpen(false)
-            setSupplierOpen(false)
+            });
+            setOpen(false);
+            setSupplierOpen(false);
+            const updateData = data?.filter((item) => item?.id !== invoiceItems?.id);
+            setData(updateData);
         }catch(error){
-            console.log("!!!! CMPLT API ERROR: ", error)
+            console.log("!!!! USER CMPLT API ERROR: ", error)
         }
     }
 
     const deleteCurrentInvoice = async () => {
-        const response = await Request.delete(`/stock/${deleteId}`);
-        if (response) {
-            fetchData(1);
+        try{
+            const response = await deleteInvoice(deleteId);
+            // fetchData();
+            const updateData = data?.filter((item) => item?.id !== deleteId);
+            setData(updateData);
             onCloseDeleteModal();
+        }catch(error){
+            console.log("!!! DELETE INVOICE ERROR: ", error);
         }
     }
 
     const fetchData = async page => {
-        setPage(page)
-        setLoading(true)
-        let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
-        if(!companyDetails.id) {
+        let companyDetails = selectedCompany;
+        if(!companyDetails?.id) {
             return;
         }
-        const response = await Request.get(`/stock/pending/${companyDetails.id}?from=${moment(startDate).format('YYYY-MM-DD')}&to=${moment(endDate).format('YYYY-MM-DD')}${supplierId ? '&supplier=' + supplierId : ''}`);
-        setLoading(false)
-        if (response.data && response.data.data && response.data.count > 0) {
-            setData(response.data.data)
-            setTotalRows(response.data.count)
-        } else {
+        setLoading(true)
+        try{
+            const url = `stock/pending/${companyDetails.id}?from=${moment(startDate).format('YYYY-MM-DD')}&to=${moment(endDate).format('YYYY-MM-DD')}${supplierId ? '&supplier=' + supplierId : ''}`;
+            console.log("#### FETCH DATA: ", url);
+            const response = await getPendingInvoices(url);
+            const rcvdData = response.data?.data;
+            setLoading(false);
+            if (Array.isArray(rcvdData?.data)) {
+                setData(rcvdData?.data);
+                setTotalRows(rcvdData?.count);
+            }
+        }catch(error){
             setData([])
             setTotalRows(0)
+            setLoading(false)
+            console.log("!!! GET PENDING INVOICES ERROR: ", error);
         }
     }
 
-    const fetchCurrentSupplier = async (userId) => {
-        let response = await Request.get(`/supplier`);
-        if (response.data) {
-            setSupplierList(response.data)
+    const fetchCurrentSupplier = async () => {
+        try{
+            let response = await getSupplierList();
+            setSupplierList(response.data?.data);
+        }catch(error){
+            console.log("!!!! SUPPLIER LIST ERROR: ", error);
         }
     }
 
@@ -368,16 +360,26 @@ export default function Bookings() {
             formData.append('files[]', files[index])
         }
         console.log("@#@ ADD ATTACHMENT: ", files);
-        let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
-        const response = await Request.postUpload(`/form/analyze/${companyDetails.id}?supplierId=${selectedSupplier.id}&type=${actionType == 'bulk' ? 'invoice' : actionType}`, formData);
-        if (response && !response.error) {
-            showRowData(response.data);
-            setSupplierOpen(false);
-            fetchData(1);
+        let companyDetails = selectedCompany;
+        if(companyDetails?.id){
+            try{
+                const response = await uploadInvoice(`form/analyze/${companyDetails.id}?supplierId=${selectedSupplier.id}&type=${actionType == 'bulk' ? 'invoice' : actionType}`, formData);
+                const data = response.data;
+                console.log("&&&& INVOICE UPLOAD: ", data);
+                if (!data?.error) {
+                    showRowData(data?.data);
+                    setSupplierOpen(false);
+                    fetchData();
+                    const message = (actionType === "statement")? "Statement uploaded successfully." : "Invoice uploaded successfully";
+                    toast.success(message)
+                }else{
+                    toast.warning(data?.error);
+                }
+            }catch(error){
+                console.log("!!!! UPLOAD INVOICE ERROR: ", error);
+            }
         }
     }
-
-    const [currentUser, setUser] = useState({});
 
     const onCloseModal = () => {
         setConfirmOpen(true);
@@ -393,6 +395,7 @@ export default function Bookings() {
     };
     const onCloseDeleteModal = () => {
         setDeleteOpen(false);
+        setDeleteId(null);
     };
     const onClosespDeleteModal = () => {
         setDeleteSpOpen(false)
@@ -405,11 +408,11 @@ export default function Bookings() {
     const [supplierId, setSupplierId] = useState('');
 
     useEffect(() => {
-        let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
-        setUser(user);
-        fetchData(1);
-        fetchCurrentSupplier();
-    }, []);
+        if((selectedCompany !== null) && (Object.keys(selectedCompany).length > 0)){
+            fetchData();
+            fetchCurrentSupplier();
+        }
+    }, [selectedCompany]);
 
     let lockedItems = invoiceItems && invoiceItems.Items.filter((Item) => Item.lock === true)
 
@@ -452,29 +455,15 @@ export default function Bookings() {
 
     const onCloseCompanyModal = () => {
         setShowCompanyModal(false);
-        setSelectedCompany(null);
     };
 
     function checkSelectedCompany(type = ""){
-        console.log("$$$$$$$$$$ COMPANY: ", company, type);
-        let storedCompany = localStorage.getItem("company");
-        if(storedCompany && type){
+        if(selectedCompany){
             setNextAction(false); 
             setSupplierOpen(true); 
             setActionType(type);
         }else{
-            const companies = localStorage.getItem("companyList");
-            if(storedCompany){
-                storedCompany = JSON.parse(storedCompany);
-                setSelectedCompany(storedCompany);
-            }
-            if(companies){
-                const parsedData = JSON.parse(companies);
-                if(Array.isArray(parsedData)){
-                    setCompanyList(parsedData)
-                    setShowCompanyModal(true);
-                }
-            }
+            setShowCompanyModal(true);
         }
     }
 
@@ -506,7 +495,7 @@ export default function Bookings() {
                             <select className="form-control" onChange={(e) => setSupplierId(e.target.value)} >
                                 <option value={''}>All Supplier</option>
                                 {
-                                    supplierList && supplierList.map((supplier, index) => {
+                                    (Array.isArray(supplierList)) && supplierList.map((supplier, index) => {
                                         return (
                                             <option key={index} value={supplier.id}>{supplier.name}</option>
                                         )
@@ -516,7 +505,7 @@ export default function Bookings() {
                         </div>
                         <div className="col-md-3">
                             <label className="col-md-12"><br /></label>
-                            <button type="button" onClick={() => { fetchData(1) }} className={`btn btn-green me-2 width-86 ml-5`}>Search</button>
+                            <button type="button" onClick={() => { fetchData() }} className={`btn btn-green me-2 width-86 ml-5`}>Search</button>
                         </div>
                     </div>
                 </div>
@@ -545,7 +534,7 @@ export default function Bookings() {
                                 invoiceItems.invoiceUrl && invoiceItems.invoiceUrl.map((invoice, key) => {
                                     console.log(invoice.url)
                                     return(
-                                        <Document file={invoice.url} className="pdf-section">
+                                        <Document key={key} file={invoice.url} className="pdf-section">
                                             <Page  pageNumber={1}/>
                                         </Document>
                                     )
@@ -681,19 +670,19 @@ export default function Bookings() {
                                         supplierList && supplierList.map((item, index) => {
                                             if(selectedSupplier?.id === item?.id){
                                                 return (
-                                                    <div>
+                                                    <div key={index}>
                                                         <div id={(selectedSupplier?.id === item?.id) ? "bgColor" : "" } className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" className="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" strokeLinejoin="round" className="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                                                             <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
                                                         </div>
                                                     </div>
                                                 )
                                             }
                                             return (
-                                               <div>
+                                                <div key={index}>
                                                      <div  onClick={() => setSupplier(item)} className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
                                                         <div>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" className="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" strokeLinejoin="round" className="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>
                                                         </div>
                                                         <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
                                                     </div>
@@ -878,10 +867,6 @@ export default function Bookings() {
             <SelectCompany 
                 open={showCompanyModal}
                 onCloseModal={onCloseCompanyModal}
-                companyList={companyList}
-                selectedCompany={selectedCompany}
-                setSelectedCompany={(item) => setSelectedCompany(item)}
-                setCompany={(item) => setCompany(item)}
             />
         </>
     )

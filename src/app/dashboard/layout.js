@@ -5,75 +5,45 @@ import Link from "next/link";
 import { toast } from 'react-toastify';
 import FeatherIcon from 'feather-icons-react';
 
-import Request from "@/Request";
-import 'react-responsive-modal/styles.css';
-import { Modal } from 'react-responsive-modal';
-
-import "../../assets/vendor/css/pages/page-account-settings.css";
 import { SelectCompany } from '@/components/SelectCompany';
+import { logout } from '../../lib/features/thunk/logout';
+import { useDispatch, useSelector } from 'react-redux';;
+import 'react-responsive-modal/styles.css';
+import "../../assets/vendor/css/pages/page-account-settings.css";
 
 export default function RootLayout({ children }) {
   const router = useRouter();
-
-  const [selectedCompany, setSelectedCompany] = useState(null);
-  const [company, setCompany] = useState({});
-  const [companyList, setCompanyList] = useState([]);
-  const [currentUser, setCurrentUser] = useState({});
-  const [selectedSupplier, setSupplier] = useState(null);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    let token = localStorage.getItem('token');
-    let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
-    if (token === null && user === null) {
-      toast.error('Your session is expired, Please login again');
-      router.push('/');
-    }
-    setCurrentUser(user)
-    let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : null;
-    if (companyDetails === null) {
-      fetchCurrentCompanies(user.id);
-      setOpen(true);
-      setCompany({ id: '' });
-    } else {
-      setCompany(companyDetails);
-    }
-  }, [])
+  const { userDetails, selectedCompany, companyList } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    if(open){
-      let companyDetails = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : null;
-      if(companyDetails){
-        setSelectedCompany(companyDetails)
-      }
-    }else{
-      setSelectedCompany(null);
+    if(!selectedCompany){
+      setOpen(true);
     }
-  }, [open]);
+  }, [selectedCompany])
 
   const openModalPopup = () => {
-    fetchCurrentCompanies(currentUser.id);
+    // fetchCurrentCompanies(currentUser.id);
     setOpen(true);
   }
 
-  const fetchCurrentCompanies = async (userId) => {
-    let response = await Request.get(`company/user/${userId}`);
-    if (response.data) {
-      setCompanyList(response.data);
-      localStorage.setItem("companyList", JSON.stringify(response.data));
-    }
-  }
   const logoutUser = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem("companyList");
-    localStorage.removeItem("company");
-    toast.error('Logout successfully.');
-    router.push('/');
+    // window.location.replace("/");
+    // e.preventDefault();
+    if(path.includes("/admin/dashboard")){
+      console.log("^^^^ ADMIN LOGOUT", path)
+      window.location.replace("/admin");
+    }else{
+      console.log("**** ADMIN LOGOUT", path)
+      window.location.replace("/");
+    }
+    toast.success('Logout successfully.');
+    dispatch(logout());
   }
   const onCloseModal = () => {
     setOpen(false);
-    setSelectedCompany(null);
   };
   const pathname = usePathname()
 
@@ -141,16 +111,16 @@ export default function RootLayout({ children }) {
             </li>
 
             <li className="menu-item">
-              <Link href={'/'} onClick={(e) => { logoutUser() }} className="menu-link">
-                <FeatherIcon icon="log-out" className='menu-icon' />
-                <div data-i18n="Dashboards">Logout</div>
+              <Link  href={''} onClick={(e) => { openModalPopup() }} className="menu-link">
+                <FeatherIcon icon="briefcase" className='menu-icon' />
+                <div data-i18n="Dashboards">{selectedCompany?.name || "Select company"}</div>
               </Link>
             </li>
 
             <li className="menu-item">
-              <Link  href={''} onClick={(e) => { openModalPopup() }} className="menu-link">
-                <FeatherIcon icon="briefcase" className='menu-icon' />
-                <div data-i18n="Dashboards">{company?.name || "Select company"}</div>
+              <Link href={'/'} onClick={(e) => { logoutUser(e) }} className="menu-link">
+                <FeatherIcon icon="log-out" className='menu-icon' />
+                <div data-i18n="Dashboards">Logout</div>
               </Link>
             </li>
 
@@ -173,65 +143,9 @@ export default function RootLayout({ children }) {
       </div>
 
       <div className="layout-overlay layout-menu-toggle"></div>
-      {/* <Modal open={open} onClose={onCloseModal} classNames={{ modal: 'company-select-modal' }} center>
-        <div className=" mb-4">
-          <h2 className="card-header">Select company</h2>
-          <small>You must select a company before you create delivery.</small>
-          <div className="card-body mt-4">
-            {
-              companyList && companyList.map((item, index) => {
-                if(selectedCompany?.id === item?.id){
-                  return (
-                      <div>
-                          <div 
-                          id={selectedCompany?.id === item?.id ? "bgColor": ""}
-                          onClick={() => {}}
-                          className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                              <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
-                          </div>
-                      </div>
-                  )
-              }
-              return (
-                 <div>
-                       <div  
-                       id={selectedCompany?.id === item?.id ? "bgColor": ""}
-                       onClick={() => {
-                        setSelectedCompany(item)
-                        }} className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
-                          <div>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>
-                          </div>
-                          <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
-                      </div>
-                 </div>
-              )
-              })
-            }
-            <div className="mt-2">
-              <button 
-                type="button" 
-                disabled={!selectedCompany?.id} 
-                onClick={() => { 
-                  window.location.reload();
-                  setCompany(selectedCompany); 
-                  localStorage.setItem('company', JSON.stringify(selectedCompany))
-                }} 
-                className="btn btn-green me-2 width-100">
-                  Save
-                </button>
-            </div>
-          </div>
-        </div>
-      </Modal> */}
       <SelectCompany 
         open={open}
         onCloseModal={onCloseModal}
-        companyList={companyList}
-        selectedCompany={selectedCompany}
-        setSelectedCompany={(item) => setSelectedCompany(item)}
-        setCompany={() => setCompany(selectedCompany)}
       />
     </div>
   );

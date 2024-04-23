@@ -3,7 +3,7 @@ import CustomForm from "@/components/CustomForm";
 const AdminLogin = ()=>{
     return(
         <div>
-            <CustomForm/>
+            <CustomForm type={"admin"}/>
         </div>
     )
 }

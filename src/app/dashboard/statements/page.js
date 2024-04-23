@@ -1,15 +1,50 @@
 'use client';
 import DataTable from "react-data-table-component";
 import React, { useState, useEffect } from "react";
-import Request from "@/Request";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 
 import FeatherIcon from 'feather-icons-react';
+import { deleteStatement, deleteStatementInvoice, getStatementDetails, getStatementList, markCompleteStatementInvoice, uploadStatement } from "@/api/statement";
+// import storage from 'redux-persist/lib/storage';
+
+import { useSelector } from "react-redux";
+import { getSupplierList } from "@/api/invoices";
+import { toast } from "react-toastify";
 
 export default function Statements() {
+    const {selectedCompany} = useSelector((state)=>state.user);
+
+    const [data, setData] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [totalRows, setTotalRows] = useState(0)
+    const [open, setOpen] = useState(false);
+    const [invoiceOpen, setInvoiceOpen] = useState(false);
+
+    const [invoiceItem, setInvoiceItems] = useState({
+        row: {},
+        Items: []
+    })
+    const [uploadedInvoiceItems, setUploadedInvoiceItems] = useState([])
+    const [totalItemRows, setTotalItemRows] = useState(0)
+    const [supplierOpen, setSupplierOpen] = useState(false);
+    const [supplierList, setSupplierList] = useState([]);
+    const [selectedSupplier, setSupplier] = useState(null);
+    const [invoiceItemIndex, setInvoiceItemIndex] = useState();
+    const [invoiceData, setInvoiceData] = useState({});
+    const [actionType, setActionType] = useState('statement');
+    const [nextAction, setNextAction] = useState(false);
+    const [secondOpen, setSecondOpen] = useState(false);
+
+    const [fileName, setFileName] = useState('');
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteInnerOpen, setDeleteInnerOpen] = useState(false);
+
+    const [deleteId, setDeleteId] = useState(null)
+    const [statementId, setStatementId] = useState(null)
+
     let columns = [
         {
             name: 'Vendor Name',
@@ -38,7 +73,7 @@ export default function Statements() {
             cell: row => (
                 <div className="grid-flex">
                     <button
-                        onClick={(e) => showRowData(row)}
+                        onClick={(e) => fetchStatementData(row)}
                     >
                         <FeatherIcon icon="eye" className='menu-icon' />
                     </button>
@@ -80,7 +115,7 @@ export default function Statements() {
                         }
                     </button>
                     <button
-                        onClick={(e) => { setInnerDeleteId(row.id); setDeleteInnerOpen(true); }}
+                        onClick={(e) => { setStatementId(row.id); setDeleteInnerOpen(true); }}
                     >
                         <i className='bx bx-trash menu-icon menu-icon-red'></i>
                     </button>
@@ -162,90 +197,82 @@ export default function Statements() {
             },
         },
     };
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(false)
-    const [totalRows, setTotalRows] = useState(0)
-    const [results, setResults] = useState(100)
-    const [page, setPage] = useState(1)
-    const [open, setOpen] = useState(false);
-    const [invoiceOpen, setInvoiceOpen] = useState(false);
 
-    const [invoiceItem, setInvoiceItems] = useState({
-        row: {},
-        Items: []
-    })
-    const [uploadedInvoiceItems, setUploadedInvoiceItems] = useState([])
-    const [totalItemRows, setTotalItemRows] = useState(0)
-    const [supplierOpen, setSupplierOpen] = useState(false);
-    const [supplierList, setSupplierList] = useState([]);
-    const [selectedSupplier, setSupplier] = useState(null);
-    const [invoiceItemIndex, setInvoiceItemIndex] = useState();
-    const [invoiceData, setInvoiceData] = useState({});
-    const [actionType, setActionType] = useState('statement');
-    const [nextAction, setNextAction] = useState(false);
-    const [secondOpen, setSecondOpen] = useState(false);
-
-    const [fileName, setFileName] = useState('');
-    const [deleteOpen, setDeleteOpen] = useState(false);
-    const [deleteInnerOpen, setDeleteInnerOpen] = useState(false);
-
-    const [deleteId, setDeleteId] = useState(null)
-    const [deleteInnerId, setInnerDeleteId] = useState(null)
-
-    const fetchCurrentSupplier = async (userId) => {
-        let response = await Request.get(`/supplier`);
-        if (response.data) {
-            setSupplierList(response.data)
+    const fetchCurrentSupplier = async () => {
+        try{
+            let response = await getSupplierList();
+            setSupplierList(response.data?.data);
+        }catch(error){
+            console.log("!!!!STATEMENT SUPPLIER LIST ERROR: ", error);
         }
     }
 
-    const showRowData = async (row) => {
-        const response = await Request.get(`/statement-credit/statement/${row.id}`);
-        if (response.data && response.data.length > 0) {
-            setInvoiceItems({
-                row,
-                Items: response.data
-            })
-            setTotalItemRows(response.data.length)
-            setOpen(true);
+    const fetchStatementData = async (row) => {
+        try{
+            const response = await getStatementDetails(row?.id);
+            const data = response.data?.data;
+            if (Array.isArray(data)) {
+                setInvoiceItems({
+                    row,
+                    Items: data
+                })
+                setTotalItemRows(data.length)
+                setOpen(true);
+            }
+        }catch(error){
+            console.log("!!!!STATEMENT DETAILS ERROR: ", error);
         }
     }
     const markCompleteCurrentStatement = async (item) => {
-        const response = await Request.patch(`/statement-credit/resolve/${item.id}`, { "isResolved": true });
-        if (response) {
-            showRowData(invoiceItem.row)
+        try{
+            const response = await markCompleteStatementInvoice(item?.id, { "isResolved": true });
+            toast.success("Invoice has been marked as completed.");
+            if(response.data){
+                fetchStatementData(invoiceItem.row);
+            }            
+        }catch(error){
+            console.log("!!!! CMPLT STMNT INV ERROR: ", error);
         }
     }
 
     const deleteCurrentInnerInvoice = async () => {
-        const response = await Request.delete(`/statement-credit/delete/${deleteInnerId}`);
+        const response = await deleteStatement(statementId);
+        toast.success("Invoice deleted successfully.");
         if (response) {
-            showRowData(invoiceItem.row)
+            fetchStatementData(invoiceItem.row)
             onCloseInnerDeleteModal();
         }
     }
 
-    const fetchData = async page => {
-        setPage(page)
+    const fetchData = async () => {
         setLoading(true)
-        let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
-        const response = await Request.get(`/statement/${company.id}`);
-        setLoading(false)
-        if (response.data && response.data.length > 0) {
-            setData(response.data)
-            setTotalRows(response.data.length)
-        }else if (response.data && response.data.length === 0){
-            setData(response.data)
-            setTotalRows(response.data.length)
+        let company = selectedCompany;
+        if(!company?.id){
+          return;
+        }
+        setLoading(true)
+        try{
+            const response = await getStatementList(company.id);
+            setLoading(false)
+            const data = response.data?.data;
+            if (Array.isArray(data)) {
+            setData(data)
+            setTotalRows(data?.length)
+        }
+        }catch(error){
+            console.log(error);
+            setLoading(false)
         }
     }
 
-    const deleteCurrentInvoice = async () => {
-        const response = await Request.delete(`/statement/delete/${deleteId}`);
-        if (response) {
-            console.log("@#@#@ DELETE: ", response.data);
+    const deleteCurrentStatemt = async () => {
+        try{
+            const response = await deleteStatementInvoice(deleteId);
+            toast.success("Statement has been deleted successfully.")
             fetchData(1);
             onCloseDeleteModal();
+        }catch(error){
+            console.log("!!!! DELETE STMNT ERROR: ", response.data);
         }
     }
 
@@ -254,26 +281,23 @@ export default function Statements() {
         for (let index = 0; index < files.length; index++) {
             formData.append('files[]', files[index])
         }
-        let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
-        const response = await Request.postUpload(`/form/analyze/${company.id}?supplierId=${selectedSupplier.id}&type=${actionType}`, formData);
-        if (response && !response.error) {
-            // setUploadedInvoiceItems(response.data)
-            // setInvoiceOpen(true);
-            setSupplier(null);
-            setFileName("");
-            fetchData(1);
-            setSupplierOpen(false)
+        let company = selectedCompany;
+        if(!company?.id){
+            return;
         }
-    }
-
-    const markCompleteCurrentInvoice = async () => {
-        const response = await Request.patch(`/stock/update-stock/${uploadedInvoiceItems.id}`, { Items: uploadedInvoiceItems.Items });
-        if (response) {
-            console.log("@@@ CMPLT STATMENT: ", response.data);
-            setUploadedInvoiceItems({})
-            fetchData(1);
-            setInvoiceOpen(false)
+        try{
+            const url = `/form/analyze/${company.id}?supplierId=${selectedSupplier.id}&type=${actionType}`;
+            const response = await uploadStatement(url, formData);
+            if (response && !response.error) {
+                setSupplier(null);
+                setFileName("");
+                fetchData(1);
+                setSupplierOpen(false)
+            }
+        }catch(error){
+            console.log("!!!! UPLOAD STMNT ERROR: ", error);
         }
+        
     }
 
     const showInvoiceData = (row, key) => {
@@ -291,7 +315,6 @@ export default function Statements() {
         setSecondOpen(false)
     }
 
-    const [currentUser, setUser] = useState({});
     const onCloseSupplierModal = () => {
         setSupplierOpen(false)
         setSupplier(null)
@@ -305,8 +328,6 @@ export default function Statements() {
     const onCloseInnerDeleteModal = () => setDeleteInnerOpen(false);
 
     useEffect(() => {
-        let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
-        setUser(user);
         fetchData(1);
     }, []);
 
@@ -347,77 +368,6 @@ export default function Statements() {
                     highlightOnHover
                     pointerOnHover
                 />
-            </Modal>
-            <Modal open={invoiceOpen} classNames={{
-                modal: 'booking-modal',
-            }} onClose={onCloseInvoiceModal} center>
-                <div className="container-fluid">
-                    <div className="row">
-                        <div className="col-md-4">
-                            <Carousel
-                                showArrows={true}
-                                showIndicators={true}
-                                infiniteLoop={true}
-                                dynamicHeight={false}
-                                showThumbs={false}
-                            >
-                                {uploadedInvoiceItems.invoiceUrl && uploadedInvoiceItems.invoiceUrl.map((invoiceUrl, key) => (
-                                    <div key={key}>
-                                        <div>
-                                            <img src={invoiceUrl.url} alt="slides" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </Carousel>
-                        </div>
-                        <div className="col-md-8">
-                            {
-                                uploadedInvoiceItems ?
-                                    <div className="card mb-4">
-                                        <h5 className="card-header">{uploadedInvoiceItems.supplier && uploadedInvoiceItems.supplier.name}</h5>
-                                        <small>Make sure the information below is correct.</small>
-                                        <div className="card-body">
-                                            <div className="row">
-                                                <div className="mb-3 col-md-6">
-                                                    <label htmlFor="InvoiceId" className="form-label">Invoice Number</label>
-                                                    <input className="form-control" readOnly type="text" id="InvoiceId" name="InvoiceId" value={uploadedInvoiceItems.InvoiceId} />
-                                                </div>
-                                                <div className="mb-3 col-md-6">
-                                                    <label htmlFor="CustomerId" className="form-label">Customer ID</label>
-                                                    <input className="form-control" readOnly type="text" name="CustomerId" id="CustomerId" value={uploadedInvoiceItems.CustomerId} />
-                                                </div>
-                                                <div className="mb-3 col-md-6">
-                                                    <label htmlFor="InvoiceDate" className="form-label">Invoice date</label>
-                                                    <input className="form-control" readOnly type="text" id="InvoiceDate" name="InvoiceDate" value={uploadedInvoiceItems.InvoiceDate} />
-                                                </div>
-                                                <div className="mb-3 col-md-6">
-                                                    <label htmlFor="SubTotal" className="form-label">Net Total ex VAT</label>
-                                                    <input type="text" readOnly className="form-control" id="SubTotal" name="SubTotal" value={uploadedInvoiceItems.SubTotal} />
-                                                </div>
-                                            </div>
-                                            <DataTable
-                                                title={`Delivery products (${uploadedInvoiceItems.Items ? uploadedInvoiceItems.Items.length : 0})`}
-                                                columns={uploadedInvoiceItemsColumns}
-                                                data={uploadedInvoiceItems.Items}
-                                                progressPending={loading}
-                                                fixedHeader
-                                                pagination
-                                                paginationServer
-                                                paginationTotalRows={uploadedInvoiceItems.Items ? uploadedInvoiceItems.Items.length : 0}
-                                                customStyles={customStyles}
-                                                highlightOnHover
-                                                pointerOnHover
-                                            />
-                                        </div>
-                                        <div className="mt-2">
-                                            <button type="submit" onClick={markCompleteCurrentInvoice} className="btn btn-green me-2">Mark as complete</button>
-                                        </div>
-                                    </div>
-                                    : null
-                            }
-                        </div>
-                    </div>
-                </div>
             </Modal>
             <Modal open={secondOpen} onClose={onCloseSecondModal} center>
                 <div className="mb-4">
@@ -461,19 +411,19 @@ export default function Statements() {
                                         supplierList && supplierList.map((item, index) => {
                                             if(selectedSupplier?.id === item?.id){
                                                 return (
-                                                    <div>
+                                                    <div key={index}>
                                                         <div id={(selectedSupplier?.id === item?.id) ? "bgColor" : "" } className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" className="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" strokeLinejoin="round" className="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                                                             <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
                                                         </div>
                                                     </div>
                                                 )
                                             }
                                             return (
-                                               <div>
+                                                <div key={index}>
                                                      <div  onClick={() => setSupplier(item)} className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
                                                         <div>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" className="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" strokeLinejoin="round" className="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>
                                                         </div>
                                                         <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
                                                     </div>
@@ -531,7 +481,7 @@ export default function Statements() {
                         <small>Are You Sure, You want to delete this statement ?</small>
                         <div className="flex justify-center mt-2 mb-0">
                             <button type="button" onClick={(e) => { onCloseDeleteModal(); setDeleteId(null) }} className="btn btn-green-borded w-[49%] me-1">Cancel</button>
-                            <button type="button" onClick={(e) => { deleteCurrentInvoice();}} className="btn btn-green w-[49%] ms-1">Delete</button>
+                            <button type="button" onClick={(e) => { deleteCurrentStatemt();}} className="btn btn-green w-[49%] ms-1">Delete</button>
                         </div>
                     </div>
                 </div>
@@ -543,7 +493,7 @@ export default function Statements() {
                         <h5>Wait!</h5>
                         <small>Are You Sure, You want to delete this invoice?</small>
                         <div className="flex justify-center mt-2 mb-0">
-                            <button type="button" onClick={(e) => { onCloseInnerDeleteModal(); setInnerDeleteId(null) }} className="btn btn-green-borded w-[100%] me-1">Cancel</button>
+                            <button type="button" onClick={(e) => { onCloseInnerDeleteModal(); setStatementId(null) }} className="btn btn-green-borded w-[100%] me-1">Cancel</button>
                             <button type="button" onClick={(e) => { deleteCurrentInnerInvoice(); }} className="btn btn-green w-[100%] ms-1">Delete</button>
                         </div>
                     </div>

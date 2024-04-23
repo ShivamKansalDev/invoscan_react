@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import storage from 'redux-persist/lib/storage';
+
 export const baseUrl = 'http://18.130.0.242:4000/api/';
 
 export const API = axios.create({
@@ -11,28 +13,47 @@ export const fileURL = baseUrl + 'uploads/';
 
 API.interceptors.request.use(
     async(config) => {
-        const accessToken = localStorage.getItem("token");
+        const { interceptLoading } = require("../src/lib/store");
+        interceptLoading(true);
+        // const accessToken = localStorage.getItem("token");
+        const accessToken = await storage.getItem("token");
         if(accessToken && config?.url !== "auth/login"){
-            console.log("@@@@@ INRCPTR: ", accessToken);
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
         return config;
     },
     (error) => {
+        const { interceptLoading } = require("../src/lib/store");
+        interceptLoading(false);
         return Promise.reject(error);
     }
 );
 
 API.interceptors.response.use(
     (response) => {
+        const { interceptLoading } = require("../src/lib/store");
+        interceptLoading(false);
         return response;
     },
     async(error) => {
+        const { interceptLoading, makeStore } = require("../src/lib/store");
+        const { logout } = require("../src/lib/features/thunk/logout");
+        interceptLoading(false);
         const config = error?.response?.config;
         const status = error?.response?.status;
         if((status === 401) || (status === 451)){
+            const store = makeStore();
             if(config?.url !== 'auth/login'){
-                alert("Session expired");
+                if(window?.location?.pathname){
+                    const path = window.location.pathname;
+                    if(path.includes("/admin/dashboard")){
+                        window.location.replace("/admin");
+                    }else{
+                        window.location.replace("/");
+                    }
+                }
+                toast.warning("Session expired");
+                store.dispatch(logout());
             }
         }
     },
@@ -47,8 +68,9 @@ class Request {
     hide() {
         document.getElementById("ajax-loader").style.display = "none";
     }
-    getHeader() {
-        const token = localStorage.getItem('token');
+    async getHeader() {
+        // const token = localStorage.getItem('token');
+        const token = await storage.getItem("token");
         if (token != undefined && token && token != null) {
             return {
                 headers: {
@@ -65,11 +87,6 @@ class Request {
         try {
             if(err.response.status === 451) {
                 toast.warning(err.response.data.message);
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                localStorage.removeItem("companyList");
-                localStorage.removeItem("company");
-                window.location.href="/"                
             } else if (err.response.status === 401) {
                 toast.error(err.response.data.message);
             } else {

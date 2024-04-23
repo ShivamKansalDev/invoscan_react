@@ -6,8 +6,11 @@ import Request from "@/Request";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
 import FeatherIcon from 'feather-icons-react';
+import { useSelector } from "react-redux";
+import { getCreditsList, updateCredit } from "@/api/credits";
 
 export default function Credits() {
+    const {selectedCompany} = useSelector((state)=>state.user);
     let columns = [
         {
             name: 'Product',
@@ -79,8 +82,6 @@ export default function Credits() {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [totalRows, setTotalRows] = useState(0)
-    const [results, setResults] = useState(10)
-    const [page, setPage] = useState(1)
     const [currentTab, setCurrentTab] = useState('Pending');
     const [stockItem, setStockItems] = useState({})
     const [open, setOpen] = useState(false);
@@ -92,15 +93,23 @@ export default function Credits() {
     const [currentPage,setCurrentPage] = useState(1);
     //const perPage = 10;
     const [perPage, setPerPage] = useState(10);
-    const fetchData = async (page) => {
-        setPage(page)
+    const fetchData = async () => {
+        let company = selectedCompany;
+        if(!company?.id){
+          return;
+        }
         setLoading(true)
-        let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
-        const response = await Request.get(`/stock-report/${company.id}`);
-        setLoading(false)
-        if (response.data && response.data.length > 0) {
-            setAllRecords(response.data);
-            creditActiveTab(currentTab, response.data)
+        try{
+            const response = await getCreditsList(company.id);
+            setLoading(false);
+            const data = response.data?.data;
+            if (Array.isArray(data)) {
+                setAllRecords(data);
+                creditActiveTab(currentTab, data)
+            }
+        }catch(error){
+            console.log(error);
+            setLoading(false)
         }
     }
 
@@ -113,7 +122,6 @@ export default function Credits() {
         let creditItems = records.filter(function (data) {
             return data.isResolved === filter;
         });
-        console.log('creditItems', creditItems);
         setData(creditItems)
         setTotalRows(creditItems.length)
     }
@@ -129,27 +137,24 @@ export default function Credits() {
         for (let index = 0; index < files.length; index++) {
             formData.append('files[]', files[index])
         }
-        formData.append('comment', note)
-        console.log(currentTab)
+        formData.append('comment', note);
+        try{ 
+            const response = await updateCredit(stockItem.id);
+            if (response) {
+                setStockItems({})
+                setStockNote('');
+                setFiles([])
+                fetchData(1);
+                setOpen(false)
+            }
 
-        //const response = await Request.patch(`/stock-report/resolve/${stockItem.id}?isResolved=${currentTab == 'Completed' ? 'false' : 'true'}`, formData);
-        const response = await Request.patch(`/stock-report/resolve/${stockItem.id}?isResolved=${'true'}`, formData);
-
-        if (response) {
-            setStockItems({})
-            setStockNote('');
-            setFiles([])
-            fetchData(1);
-            setOpen(false)
+        }catch(error){
+            console.log(error);
         }
     }
-
-    const [currentUser, setUser] = useState({});
     const onCloseModal = () => setOpen(false);
 
     useEffect(() => {
-        let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
-        setUser(user);
         fetchData(1);
     }, []);
 

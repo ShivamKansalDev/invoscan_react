@@ -8,9 +8,17 @@ import "../assets/css/demo.css";
 import "../assets/css/style.css";
 import "../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css";
 import "../assets/vendor/css/pages/page-auth.css"; 
+import 'react-responsive-modal/styles.css';
+import "react-datepicker/dist/react-datepicker.css";
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+import StoreProvider from "./StoreProvider";
+import moment from "moment";
 
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  preload: true 
+});
 
 export const metadata = {
   title: "Invoscan",
@@ -18,16 +26,20 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const preload = `http://localhost:3000/_next/static/css/app/dashboard/bookings/page.css?v=${moment().valueOf()}`
   return (
     <html
       lang="en"
       className="light-style layout-wide customizer-hide"
       dir="ltr">
         <head>
-          <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'></link>
+          {/* <link rel="preload" href={preload} as="style" /> */}
+          <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet' as="style"></link>
         </head>
       <body className={inter.className}>
-        {children}
+        <StoreProvider>
+          {children}
+        </StoreProvider>
         <ToastContainer autoClose={2000}/>
         <div id="ajax-loader">
           <img src="/loader.gif" />
