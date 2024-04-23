@@ -38,7 +38,7 @@ export const uploadStatement = (url, data) => {
 
 export const markCompleteStatementInvoice = (invoiceId, data) => {
     return API.request({
-        url: `/statement-credit/resolve/${invoiceId}`,
+        url: `statement-credit/resolve/${invoiceId}`,
         method: "PATCH",
         data
     })
