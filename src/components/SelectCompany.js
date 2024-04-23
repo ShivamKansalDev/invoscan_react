@@ -27,10 +27,10 @@ function SelectCompany({
   }, [open]);
 
   useEffect(() => {
-    if(selectedCompany){
+    if(selectedCompany && open){
       setCompany(selectedCompany)
     }
-  }, [selectedCompany]);
+  }, [selectedCompany, open]);
 
     return (
         <Modal 

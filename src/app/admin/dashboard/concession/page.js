@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import FeatherIcon from "feather-icons-react";
 import DataTable from "react-data-table-component";
 
-import { concessionList, upload_csv } from "@/api/auth";
+import { concessionList, upload_csv } from "@/api/user";
 import useDebounce from "@/hooks/useDebounce";
 import { Search } from "../../adminComponents/Search";
 

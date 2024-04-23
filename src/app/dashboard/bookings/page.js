@@ -215,7 +215,9 @@ export default function Bookings() {
             setInvoiceItems(rowData);
             // console.log("#@@#@# ROW DATA: ", JSON.stringify(rowData, null, 4));
         }
-        setOpen(true);
+        if(actionType !== "statement"){
+            setOpen(true);
+        }
     }
 
     const showInvoiceData = (row, key) => {
@@ -229,12 +231,7 @@ export default function Bookings() {
     const saveInvoiceItems = () => {
         invoiceItems.Items[invoiceItemIndex] = invoiceData
         let invoiceItemsClone = { ...invoiceItems }
-        setInvoiceItems({
-            Items: []
-        })
-        setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
-        }, 500);
+        setInvoiceItems(invoiceItemsClone)
         setSecondOpen(false)
     }
 
@@ -248,12 +245,10 @@ export default function Bookings() {
                 index
             }
         }) 
-        setTimeout(() => {
-            setInvoiceItems({
-                ...invoiceItems,
-                Items: oldItems
-            });
-        }, 500);
+        setInvoiceItems({
+            ...invoiceItems,
+            Items: oldItems
+        });
         setSecondOpen(false)
     }
 
@@ -284,9 +279,7 @@ export default function Bookings() {
         invoiceItems.Items[index] = row
         let invoiceItemsClone = { ...invoiceItems }
         // setInvoiceItems({})
-        setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
-        }, 500);
+        setInvoiceItems(invoiceItemsClone);
     }
 
     const markCompleteCurrentInvoice = async () => {
@@ -309,7 +302,8 @@ export default function Bookings() {
             });
             setOpen(false);
             setSupplierOpen(false);
-            fetchData();
+            const updateData = data?.filter((item) => item?.id !== invoiceItems?.id);
+            setData(updateData);
         }catch(error){
             console.log("!!!! USER CMPLT API ERROR: ", error)
         }
@@ -318,7 +312,9 @@ export default function Bookings() {
     const deleteCurrentInvoice = async () => {
         try{
             const response = await deleteInvoice(deleteId);
-            fetchData();
+            // fetchData();
+            const updateData = data?.filter((item) => item?.id !== deleteId);
+            setData(updateData);
             onCloseDeleteModal();
         }catch(error){
             console.log("!!! DELETE INVOICE ERROR: ", error);
@@ -332,11 +328,14 @@ export default function Bookings() {
         }
         setLoading(true)
         try{
-            const response = await getPendingInvoices(`stock/pending/${companyDetails.id}?from=${moment(startDate).format('YYYY-MM-DD')}&to=${moment(endDate).format('YYYY-MM-DD')}${supplierId ? '&supplier=' + supplierId : ''}`);
+            const url = `stock/pending/${companyDetails.id}?from=${moment(startDate).format('YYYY-MM-DD')}&to=${moment(endDate).format('YYYY-MM-DD')}${supplierId ? '&supplier=' + supplierId : ''}`;
+            console.log("#### FETCH DATA: ", url);
+            const response = await getPendingInvoices(url);
+            const rcvdData = response.data?.data;
             setLoading(false);
-            if (response.data && response.data?.data && response.data?.count > 0) {
-                setData(response.data?.data);
-                setTotalRows(response.data?.count);
+            if (Array.isArray(rcvdData?.data)) {
+                setData(rcvdData?.data);
+                setTotalRows(rcvdData?.count);
             }
         }catch(error){
             setData([])
@@ -365,10 +364,16 @@ export default function Bookings() {
         if(companyDetails?.id){
             try{
                 const response = await uploadInvoice(`form/analyze/${companyDetails.id}?supplierId=${selectedSupplier.id}&type=${actionType == 'bulk' ? 'invoice' : actionType}`, formData);
-                if (response && !response.error) {
-                    showRowData(response.data);
+                const data = response.data;
+                console.log("&&&& INVOICE UPLOAD: ", data);
+                if (!data?.error) {
+                    showRowData(data?.data);
                     setSupplierOpen(false);
                     fetchData();
+                    const message = (actionType === "statement")? "Statement uploaded successfully." : "Invoice uploaded successfully";
+                    toast.success(message)
+                }else{
+                    toast.warning(data?.error);
                 }
             }catch(error){
                 console.log("!!!! UPLOAD INVOICE ERROR: ", error);

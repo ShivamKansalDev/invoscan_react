@@ -16,6 +16,7 @@ import { SelectCompany } from "@/components/SelectCompany";
 import { useSelector } from "react-redux";
 import { userActions } from "@/lib/features/slice/userSlice";
 import { deleteInvoice, getPendingInvoices, markCompleteInvoice } from "@/api/invoices";
+import { toast } from "react-toastify";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
  
 export default function Invoices() {
@@ -55,11 +56,6 @@ export default function Invoices() {
     const [startDate, setStartDate] = useState(moment().startOf('year').toDate());
     const [endDate, setEndDate] = useState(moment().endOf('year').toDate());
     const [supplierId, setSupplierId] = useState('');
-
-    // useEffect(() => {
-    //     // pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
-    //     pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-    // }, []);
 
     let columns = [
         {
@@ -333,6 +329,7 @@ export default function Invoices() {
         try{
             const response = await deleteInvoice(deleteId);
             fetchData(currentTab);
+            toast.success("Invoice deleted successfully.")
             onCloseDeleteModal();
         }catch(error){
             console.log("!!! INVOICE(screen) DELETE ERROR: ", error);
@@ -350,10 +347,11 @@ export default function Invoices() {
         try{
             let url = (currentTab === 'Pending') ? `/stock/pending/${companyDetails?.id}` : `/stock/delivered/${companyDetails?.id}`;
             const response = await getPendingInvoices(url);
+            const rcvdData = response.data?.data;
             setLoading(false);
-            if (response.data && response.data?.data) {
-                setData(response.data?.data)
-                setTotalRows(response.data?.count)
+            if (Array.isArray(rcvdData?.data)) {
+                setData(rcvdData?.data);
+                setTotalRows(rcvdData?.count);
             }
         }catch(error){
             setData([])

@@ -5,7 +5,7 @@ import FeatherIcon from "feather-icons-react";
 import {debounce} from "lodash";
 import { toast } from 'react-toastify';
 
-import { master_csv, master_csvDelete, master_csvEdit, upload_csv } from "../../../../api/auth";
+import { master_csv, master_csvDelete, master_csvEdit, upload_csv } from "../../../../api/user";
 import useDebounce from "@/hooks/useDebounce";
 import { Search } from "../../adminComponents/Search";
 import ConfirmDeleteModal from "../../adminComponents/ConfirmDeleteModal";
