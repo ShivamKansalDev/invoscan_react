@@ -28,12 +28,24 @@ export default function RootLayout({children}) {
         },
         {
             id: 4,
+            title: "VMPP",
+            pathName:"/admin/dashboard/vmpp",
+            icon: (<FeatherIcon icon="package" className='menu-icon' />)
+        },
+        {
+            id: 5,
+            title: "AMPP",
+            pathName:"/admin/dashboard/ampp",
+            icon: (<FeatherIcon icon="box" className='menu-icon' />)
+        },
+        {
+            id: 6,
             title: "Concession",
             pathName:"/admin/dashboard/concession",
             icon: (<FeatherIcon icon="percent" className='menu-icon' />)
         },
         {
-            id: 5,
+            id: 7,
             title: "Missing Report",
             pathName:"/admin/dashboard/missing_report",
             icon: (<FeatherIcon icon="alert-triangle" className='menu-icon' />)

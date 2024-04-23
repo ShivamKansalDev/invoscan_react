@@ -10,6 +10,7 @@ import useDebounce from "@/hooks/useDebounce";
 import { Search } from "../../adminComponents/Search";
 import ConfirmDeleteModal from "../../adminComponents/ConfirmDeleteModal";
 import EditModal from "../../adminComponents/EditModal";
+import { UploadCSV } from "../../adminComponents/UploadCSV";
 
 const MasterCsv = ()=>{
     const [data, setData] = useState([])
@@ -205,40 +206,17 @@ const MasterCsv = ()=>{
     return(
         <>
             <div className="card mb-4">
-                MasterCSV
                 
-                <div className="card-body my-0">
-                    <div className="mb-3 col-md-12 file-upload-wrapper"
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}>
-                        <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
-                            <input className="form-control" type="file" id="files" name="files[]" onChange={handleInputChange} hidden />
-                            <div className="d-flex flex-col justify-center space-y-0">
-                                <div className="d-flex justify-center mt-0">
-                                    <FeatherIcon icon="upload-cloud" className='menu-icon' />
-                                </div>
-                                
-                                {
-                                    fileName ?
-                                        <a className="text-center">{fileName}</a>
-                                        : 
-                                        (
-                                            <>
-                                                <p className="text-center">Browse File</p>
-                                                <p className="text-center leading-3">or</p>
-                                                <p className="text-center">Drag and Drop to Upload</p>
-                                            </>
-                                        )
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="card-body d-flex justify-center mt-[-30px]">
-                    <button disabled={files.length==0} type="button" onClick={() => { saveUploadedItem(); }} className="btn btn-green">Confirm</button>
-                </div>
+                <UploadCSV
+                    handleDragOver={handleDragOver}
+                    handleDragLeave={handleDragLeave}
+                    handleDrop={handleDrop}
+                    handleInputChange={handleInputChange}
+                    saveUploadedItem={saveUploadedItem}
+                    fileName = {fileName}
+                    files = {files}
+                    title="MasterCSV"
+                />
 
                 <Search 
                     search={search}
