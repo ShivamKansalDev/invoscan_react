@@ -1,7 +1,6 @@
 'use client';
 import DataTable from "react-data-table-component";
 import React, { useState, useEffect } from "react";
-import Request from "@/Request";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
 import { Carousel } from "react-responsive-carousel";
@@ -20,9 +19,9 @@ import {
     LineElement,
     PointElement
 } from 'chart.js';
-import { Bar, Line } from 'react-chartjs-2';
-// import storage from 'redux-persist/lib/storage';
-import storage from "@/lib/store";
+import { Bar } from 'react-chartjs-2';
+import { useSelector } from "react-redux";
+import { getAnalyticsData, getAnalyticsList, getStocksAnalytics } from "@/api/analytics";
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -36,6 +35,24 @@ ChartJS.register(
 );
 
 export default function Analytics() {
+    const {selectedCompany} = useSelector((state)=>state.user);
+    const [data, setData] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [totalRows, setTotalRows] = useState(0)
+    const [invoiceItems, setInvoiceItems] = useState([])
+    const [uploadedInvoiceItems, setUploadedInvoiceItems] = useState({});
+    const [chartDataSets, setChartDataSets] = useState([]);
+    const [chartLabels, setChartLabels] = useState([]);
+    const [chartQuantDataSets, setChartQuantDataSets] = useState([]);
+    const [chartQuantLabels, setChartQuantLabels] = useState([]);
+    const [chartUnitLabels, setChartUnitLabels] = useState([]);
+    const [chartUnitDataSets, setChartUnitDataSets] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [invoiceOpen, setInvoiceOpen] = useState(false);
+    const [distributionOpen, setDistributionOpen] = useState(false);
+    const [currentTab, setCurrentTab] = useState('Pricing');
+
+
     let columns = [
         {
             name: 'Product',
@@ -207,137 +224,137 @@ export default function Analytics() {
             },
         },
     };
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(false)
-    const [totalRows, setTotalRows] = useState(0)
-    const [results, setResults] = useState(10)
-    const [invoiceItems, setInvoiceItems] = useState([])
-    const [uploadedInvoiceItems, setUploadedInvoiceItems] = useState({});
-    const [chartDataSets, setChartDataSets] = useState([]);
-    const [chartLabels, setChartLabels] = useState([]);
-
-    const [chartQuantDataSets, setChartQuantDataSets] = useState([]);
-    const [chartQuantLabels, setChartQuantLabels] = useState([]);
-
-    const [chartUnitLabels, setChartUnitLabels] = useState([]);
-    const [chartUnitDataSets, setChartUnitDataSets] = useState([]);
-
-    const [page, setPage] = useState(1)
-
-    const [open, setOpen] = useState(false);
-    const [invoiceOpen, setInvoiceOpen] = useState(false);
-    const [distributionOpen, setDistributionOpen] = useState(false);
-
-    const [currentTab, setCurrentTab] = useState('Pricing');
-
-    const fetchData = async page => {
-        setPage(page)
+    const fetchData = async () => {
+        let company = selectedCompany;
+        if(!company?.id){
+            return;
+        }
         setLoading(true)
-        // let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
-        let company = storage.getItem('company') !== null ? JSON.parse(storage.getItem('company')) : { id: '' };
-        const response = await Request.get(`/stock/stock-by-company/${company.id}`);
-        setLoading(false)
-        console.log('response',response.data);
-        if (response.data && response.data.length > 0) {
-            setData(response.data)
-            setTotalRows(response.data.length)
-            let chartQuantArray = [];
-            let chartUnitArray = [];
-            let chartQuantUnitLabelArray = [];
-            response.data.map((data, index) => {
-                if(chartQuantArray[data.cheapestSupplier] == undefined) {
-                    chartQuantArray[data.cheapestSupplier] = 0;
-                }
-                chartQuantArray[data.cheapestSupplier] += parseFloat(data.totalVolume);
+        try{
+            const response = await getAnalyticsList(company?.id);
+            const responseData = response.data?.data;
+            setLoading(false);
+            if (Array.isArray(responseData)) {
+                setData(responseData)
+                setTotalRows(responseData.length)
+                let chartQuantArray = [];
+                let chartUnitArray = [];
+                let chartQuantUnitLabelArray = [];
+                responseData.map((data, index) => {
+                    if(chartQuantArray[data.cheapestSupplier] == undefined) {
+                        chartQuantArray[data.cheapestSupplier] = 0;
+                    }
+                    chartQuantArray[data.cheapestSupplier] += parseFloat(data.totalVolume);
 
-                if(chartUnitArray[data.cheapestSupplier] == undefined) {
-                    chartUnitArray[data.cheapestSupplier] = 0;
-                }
-                chartUnitArray[data.cheapestSupplier] += parseFloat(data.totalSpent);
-                if(!chartQuantUnitLabelArray.includes(data.cheapestSupplier)) {
-                    chartQuantUnitLabelArray.push(data.cheapestSupplier)
-                } 
-            })
-            
-            if(chartQuantUnitLabelArray) {
-                let datasetsQntArray = [];
-                let datasetsUnitArray = [];
-                chartQuantUnitLabelArray.map((key) => {
-                    datasetsQntArray.push(chartQuantArray[key])
-                    datasetsUnitArray.push(chartUnitArray[key].toFixed(2))
+                    if(chartUnitArray[data.cheapestSupplier] == undefined) {
+                        chartUnitArray[data.cheapestSupplier] = 0;
+                    }
+                    chartUnitArray[data.cheapestSupplier] += parseFloat(data.totalSpent);
+                    if(!chartQuantUnitLabelArray.includes(data.cheapestSupplier)) {
+                        chartQuantUnitLabelArray.push(data.cheapestSupplier)
+                    } 
                 })
-                setChartQuantLabels(chartQuantUnitLabelArray)
-                setChartUnitLabels(chartQuantUnitLabelArray)
-                setChartQuantDataSets([{
-                    label: '',
-                    data: datasetsQntArray,
-                    backgroundColor: 'rgb(11, 201, 147,0.3)',
-                }]);
-                setChartUnitDataSets([{
-                    label: '',
-                    data: datasetsUnitArray,
-                    backgroundColor: 'rgb(11, 201, 147,0.3)',
-                }]);
-            }            
-            
+                
+                if(chartQuantUnitLabelArray) {
+                    let datasetsQntArray = [];
+                    let datasetsUnitArray = [];
+                    chartQuantUnitLabelArray.map((key) => {
+                        datasetsQntArray.push(chartQuantArray[key])
+                        datasetsUnitArray.push(chartUnitArray[key].toFixed(2))
+                    })
+                    setChartQuantLabels(chartQuantUnitLabelArray)
+                    setChartUnitLabels(chartQuantUnitLabelArray)
+                    setChartQuantDataSets([{
+                        label: '',
+                        data: datasetsQntArray,
+                        backgroundColor: 'rgb(11, 201, 147,0.3)',
+                    }]);
+                    setChartUnitDataSets([{
+                        label: '',
+                        data: datasetsUnitArray,
+                        backgroundColor: 'rgb(11, 201, 147,0.3)',
+                    }]);
+                }              
+            }
+        }catch(error){
+            console.log(error);
+            setLoading(false)
         }
     }
     const showRowData = async row => {
-        // let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
-        let company = storage.getItem('company') !== null ? JSON.parse(storage.getItem('company')) : { id: '' };
-        const response = await Request.post(`/stock/filter-stock/${company.id}`, { search: row.pip_code });
-        if (response.data && response.data.length > 0) {
-            setInvoiceItems({
-                row: row,
-                items: response.data
-            });
-            let datasetsArray = [];
-            let labelArray = [];
-            let InvoiceUnitPrice = [];
-            let DrugTarrifPrice = [];
-            let RetailPrice = [];
-            let TradePrice = [];
-            response.data.map((data, index) => {
-                InvoiceUnitPrice.push(parseFloat(data.UnitPrice))
-                DrugTarrifPrice.push(parseFloat(data.csvRetailPrice))
-                RetailPrice.push('')
-                TradePrice.push('')
+        let company = selectedCompany;
+        if(!company?.id){
+            return;
+        }
+        setLoading(true);
+        try{
+            const response = await getAnalyticsData(company?.id, { search: row.pip_code });
+            const responseData = response.data?.data;
+            if (Array.isArray(responseData)) {
+                setInvoiceItems({
+                    row: row,
+                    items: responseData
+                });
+                let datasetsArray = [];
+                let labelArray = [];
+                let InvoiceUnitPrice = [];
+                let DrugTarrifPrice = [];
+                let RetailPrice = [];
+                let TradePrice = [];
+                responseData.map((data, index) => {
+                    InvoiceUnitPrice.push(parseFloat(data.UnitPrice))
+                    DrugTarrifPrice.push(parseFloat(data.csvRetailPrice))
+                    RetailPrice.push('')
+                    TradePrice.push('')
 
-                labelArray.push(data.InvoiceDate)
-            })
-            datasetsArray.push({
-                label: 'Invoice Unit Price',
-                data: InvoiceUnitPrice,
-                backgroundColor: '#B0BA35',
-            })
-            datasetsArray.push({
-                label: 'Drug Tarrif Price',
-                data: DrugTarrifPrice,
-                backgroundColor: '#DA3A0F',
-            })
-            datasetsArray.push({
-                label: 'Retail Price',
-                data: RetailPrice,
-                backgroundColor: '#35999E',
-            })
-            datasetsArray.push({
-                label: 'Trade Price',
-                data: TradePrice,
-                backgroundColor: '#DA0FD4',
-            })
-            setChartLabels(labelArray);
-            setChartDataSets(datasetsArray);
-            setOpen(true);
+                    labelArray.push(data.InvoiceDate)
+                })
+                datasetsArray.push({
+                    label: 'Invoice Unit Price',
+                    data: InvoiceUnitPrice,
+                    backgroundColor: '#B0BA35',
+                })
+                datasetsArray.push({
+                    label: 'Drug Tarrif Price',
+                    data: DrugTarrifPrice,
+                    backgroundColor: '#DA3A0F',
+                })
+                datasetsArray.push({
+                    label: 'Retail Price',
+                    data: RetailPrice,
+                    backgroundColor: '#35999E',
+                })
+                datasetsArray.push({
+                    label: 'Trade Price',
+                    data: TradePrice,
+                    backgroundColor: '#DA0FD4',
+                })
+                setChartLabels(labelArray);
+                setChartDataSets(datasetsArray);
+                setOpen(true);
+            }
+        }catch(error){
+            console.log("!!!! ANALYTICS DATA ERROR: ", error)
         }
     }
 
     const showInnerRowData = async row => {
-        // let company = localStorage.getItem('company') !== null ? JSON.parse(localStorage.getItem('company')) : { id: '' };
-        let company = storage.getItem('company') !== null ? JSON.parse(storage.getItem('company')) : { id: '' };
-        const response = await Request.post(`/stock/get-stocks/${company.id}`, { search: row.pip_code });
-        if (response.data && response.data.data && response.data.data[0]) {
-            setUploadedInvoiceItems(response.data.data[0]);
-            setInvoiceOpen(true);
+        let company = selectedCompany;
+        if(!company?.id){
+            return;
+        }
+        setLoading(true);
+        try{
+            const response = await getStocksAnalytics(company?.id,{ search: row.pip_code });
+            const responseData = response.data?.data;
+            setLoading(false);
+            if (Array.isArray(responseData)) {
+                setUploadedInvoiceItems(responseData[0]);
+                setInvoiceOpen(true);
+            }
+        }catch(error){
+            console.log("!!!! ANALYTICS DATA ERROR: ", error);
+            setLoading(false);
         }
     }
 
@@ -347,16 +364,12 @@ export default function Analytics() {
         }
     }
 
-    const [currentUser, setUser] = useState({});
 
     const onCloseModal = () => setOpen(false);
     const onCloseInvoiceModal = () => setInvoiceOpen(false);
     const onCloseDistributionModal = () => setDistributionOpen(false);
 
     useEffect(() => {
-        // let user = localStorage.getItem('user') !== null ? JSON.parse(localStorage.getItem('user')) : null;
-        let user = storage.getItem('user') !== null ? JSON.parse(storage.getItem('user')) : null;
-        setUser(user);
         fetchData(1);
     }, []);
 

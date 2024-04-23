@@ -2,15 +2,12 @@
 import { useEffect, useState } from "react";
 import FeatherIcon from "feather-icons-react";
 import DataTable from "react-data-table-component";
-
 import { concessionList, upload_csv } from "@/api/user";
-import useDebounce from "@/hooks/useDebounce";
-import { Search } from "../../adminComponents/Search";
+import { toast } from "react-toastify";
 
 const Concession = ()=>{
     const [fileName, setFileName] = useState('');
     const [totalRows, setTotalRows] = useState(0);
-    const [search, setSearch] = useState("");
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [files, setFiles] = useState([]);
@@ -19,7 +16,6 @@ const Concession = ()=>{
     let columns = [
         {
             name: 'Pack Size',
-            // selector: row => (row.supplier && row.supplier.name ? row.supplier.name : 'NA'),
             selector: row => row.packSize,
         },
         {
@@ -30,23 +26,6 @@ const Concession = ()=>{
             name: 'Concession Price',
             selector: row => (row.priceConcession ? row.priceConcession : "NA"),
         },
-        // {
-        //     name: 'Actions',
-        //     cell: row => (
-        //         <div className="grid-flex">
-        //             <button
-        //                 onClick={(e) => {}}
-        //             >
-        //                 <FeatherIcon icon="edit-3" className='menu-icon' />
-        //             </button>
-        //             <button
-        //                 onClick={(e) => {}}
-        //             >
-        //                 <i className='bx bx-trash menu-icon menu-icon-red'></i>
-        //             </button>
-        //         </div>
-        //     )
-        // }
     ]
     let customStyles = {
         headRow: {
@@ -91,7 +70,6 @@ const Concession = ()=>{
                 setLoading(false);
             }
         };
-
         fetchData();
     }, []);
 
@@ -102,7 +80,8 @@ const Concession = ()=>{
         }
         try{
             const response = await upload_csv(formData, "concession");
-            toast("CSV File uploaded successfully");
+            toast.success("CSV File uploaded successfully");
+            setFileName("");
         }catch(error){
             console.log("!!! CSV Upload error: ", error);
         }

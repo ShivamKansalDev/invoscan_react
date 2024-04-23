@@ -9,7 +9,9 @@ import { userActions } from "@/lib/features/slice/userSlice";
 import storage, { logout, makeStore } from "@/lib/store";
 import { persistStore } from "redux-persist";
 
-const CustomForm = ()=>{
+const CustomForm = ({
+    type = ""
+})=>{
     const router = useRouter();
     const store = makeStore();
     const persistor = persistStore(store);
@@ -21,18 +23,6 @@ const CustomForm = ()=>{
 
     const dispatch = useDispatch();
 
-    useEffect(() => {
-        if(selectedCompany){
-            persistor.purge().then(() => {
-                console.log("^^^ PURGE SUCCESS: ", selectedCompany);
-            }).catch((error) => {
-                console.log("!!!! PURGE ERROR: ", error);
-            })
-        }else{
-            console.log("@@@@ REDUX RESET SUCCESS: ", selectedCompany);
-        }
-    }, [selectedCompany]);
-
     const doLogin = async (e) => {
         e.preventDefault();
         try{
@@ -40,9 +30,9 @@ const CustomForm = ()=>{
             const data = response.data?.data;
             dispatch(setUserDetails(JSON.stringify(data)));
             storage.setItem('token', data.accessToken);
-            if(data?.user?.role?.toLowerCase() === "admin"){
+            if(type === "admin"){
                 router.push('/admin/dashboard/users');
-            }else if(data?.user?.role?.toLowerCase() !== "admin"){
+            }else{
                 router.push('/dashboard/bookings');
             }
         }catch(error){

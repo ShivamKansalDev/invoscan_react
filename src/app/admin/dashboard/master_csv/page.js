@@ -139,6 +139,7 @@ const MasterCsv = ()=>{
         try{
             const response = await upload_csv(formData);
             toast.success("CSV File uploaded successfully");
+            setFileName("");
         }catch(error){
             console.log("!!! CSV Upload error: ", error);
         }

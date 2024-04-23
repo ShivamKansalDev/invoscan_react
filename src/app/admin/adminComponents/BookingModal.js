@@ -126,7 +126,6 @@ function BookingModal({
 
     const markCompleteCurrentInvoice = async () => {
         console.log("@@@@ API: ", invoiceItems);
-        //const response = await Request.patch(`/stock/update-stock/${invoiceItems.id}`, { Items: invoiceItems.Items });
         try{
             const response = await markCompleteInvoice(invoiceItems.id, {
                 "CustomerId": invoiceItems.CustomerId,

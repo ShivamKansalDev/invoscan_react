@@ -32,7 +32,13 @@ export default function RootLayout({ children }) {
   const logoutUser = () => {
     // window.location.replace("/");
     // e.preventDefault();
-    router.push("/");
+    if(path.includes("/admin/dashboard")){
+      console.log("^^^^ ADMIN LOGOUT", path)
+      window.location.replace("/admin");
+    }else{
+      console.log("**** ADMIN LOGOUT", path)
+      window.location.replace("/");
+    }
     toast.success('Logout successfully.');
     dispatch(logout());
   }
@@ -105,16 +111,16 @@ export default function RootLayout({ children }) {
             </li>
 
             <li className="menu-item">
-              <Link href={'/'} onClick={(e) => { logoutUser(e) }} className="menu-link">
-                <FeatherIcon icon="log-out" className='menu-icon' />
-                <div data-i18n="Dashboards">Logout</div>
+              <Link  href={''} onClick={(e) => { openModalPopup() }} className="menu-link">
+                <FeatherIcon icon="briefcase" className='menu-icon' />
+                <div data-i18n="Dashboards">{selectedCompany?.name || "Select company"}</div>
               </Link>
             </li>
 
             <li className="menu-item">
-              <Link  href={''} onClick={(e) => { openModalPopup() }} className="menu-link">
-                <FeatherIcon icon="briefcase" className='menu-icon' />
-                <div data-i18n="Dashboards">{selectedCompany?.name || "Select company"}</div>
+              <Link href={'/'} onClick={(e) => { logoutUser(e) }} className="menu-link">
+                <FeatherIcon icon="log-out" className='menu-icon' />
+                <div data-i18n="Dashboards">Logout</div>
               </Link>
             </li>
 

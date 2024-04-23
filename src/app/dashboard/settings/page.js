@@ -14,7 +14,13 @@ export default function Settings() {
     const [currentUser, setCurrentUser] = useState({});
 
     const logoutUser = () => {
-        router.push('/');
+        if(path.includes("/admin/dashboard")){
+            console.log("^^^^ ADMIN LOGOUT", path)
+            window.location.replace("/admin");
+        }else{
+            console.log("**** ADMIN LOGOUT", path)
+            window.location.replace("/");
+        }
         toast.error('Logout successfully.');
         dispatch(logout());
     }

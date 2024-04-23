@@ -9,3 +9,11 @@ export const logout = createAsyncThunk("user/logout", async(data, thunkAPI) => {
         return thunkAPI.rejectWithValue(error);
     }
 });
+
+
+// if(window?.location?.pathname){
+//     const path = window.location.pathname;
+//     if(path.includes("/admin/dashboard")){
+        
+//     }
+// }

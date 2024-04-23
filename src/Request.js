@@ -18,7 +18,6 @@ API.interceptors.request.use(
         // const accessToken = localStorage.getItem("token");
         const accessToken = await storage.getItem("token");
         if(accessToken && config?.url !== "auth/login"){
-            console.log("@@@@@ INRCPTR: ", accessToken);
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
         return config;
@@ -45,7 +44,14 @@ API.interceptors.response.use(
         if((status === 401) || (status === 451)){
             const store = makeStore();
             if(config?.url !== 'auth/login'){
-                window.location.replace("/");
+                if(window?.location?.pathname){
+                    const path = window.location.pathname;
+                    if(path.includes("/admin/dashboard")){
+                        window.location.replace("/admin");
+                    }else{
+                        window.location.replace("/");
+                    }
+                }
                 toast.warning("Session expired");
                 store.dispatch(logout());
             }

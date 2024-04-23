@@ -28,7 +28,16 @@ function CustomDashboard({
   const [open, setOpen] = useState(false);
 
   const logoutUser = () => {
-    router.push('/');
+    if(window?.location?.pathname){
+      const path = window.location.pathname;
+      if(path.includes("/admin/dashboard")){
+        console.log("^^^^ ADMIN LOGOUT", path)
+        window.location.replace("/admin");
+      }else{
+        console.log("**** ADMIN LOGOUT", path)
+        window.location.replace("/");
+      }
+    }
     toast.error('Logout successfully.');
     dispatch(logout());
   }

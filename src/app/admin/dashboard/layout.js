@@ -1,6 +1,9 @@
+"use client"
+
 import FeatherIcon from 'feather-icons-react';
 
 import {CustomDashboard} from "../../../components/CustomDashboard";
+import { useEffect } from 'react';
 
 export default function RootLayout({children}) {
 
@@ -36,6 +39,11 @@ export default function RootLayout({children}) {
             icon: (<FeatherIcon icon="alert-triangle" className='menu-icon' />)
         },
     ]
+
+    useEffect(() => {
+        const path = (!window)? "test" : window.location.pathname
+        console.log("@@@ LOCATION: ", path);
+    }, []);
 
     return (
         <CustomDashboard 
