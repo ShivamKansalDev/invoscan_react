@@ -14,15 +14,32 @@ import "../../assets/vendor/css/pages/page-account-settings.css";
 export default function RootLayout({ children }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [reset, setReset] = useState(false);
 
   const { userDetails, selectedCompany, companyList } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if(!selectedCompany){
+    const path = window?.location?.pathname;
+    if(!selectedCompany && !reset && (!path.includes("/dashboard/settings"))){
       setOpen(true);
     }
   }, [selectedCompany])
+
+  useEffect(() => {
+    if(reset){
+      if(window?.location?.pathname){
+        const path = window.location.pathname;
+        if(path.includes("/admin/dashboard")){
+            window.location.replace("/admin");
+        }else{
+            window.location.replace("/");
+        }
+      }
+      toast.success('Logout successfully.');
+      dispatch(logout());
+    }
+  }, [reset]);
 
   const openModalPopup = () => {
     // fetchCurrentCompanies(currentUser.id);
@@ -32,17 +49,9 @@ export default function RootLayout({ children }) {
   const logoutUser = (e) => {
     // window.location.replace("/");
     e.preventDefault();
-    if(window?.location?.pathname){
-      const path = window.location.pathname;
-      if(path.includes("/admin/dashboard")){
-          window.location.replace("/admin");
-      }else{
-          window.location.replace("/");
-      }
-    }
-    toast.success('Logout successfully.');
-    dispatch(logout());
+    setReset(true);
   }
+
   const onCloseModal = () => {
     setOpen(false);
   };
