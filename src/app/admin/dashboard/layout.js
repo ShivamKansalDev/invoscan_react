@@ -60,7 +60,8 @@ export default function RootLayout({children}) {
     return (
         <CustomDashboard 
             dashboardItems={dashboardItems}
-            children={children}
-        />
+        >
+            {children}
+        </CustomDashboard>
     )
 }
