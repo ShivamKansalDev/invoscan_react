@@ -23,6 +23,10 @@ const CustomForm = ({
 
     const dispatch = useDispatch();
 
+    useEffect(() => {
+        console.log("^^^ RESET REDUX: ", selectedCompany)
+    }, [selectedCompany])
+
     const doLogin = async (e) => {
         e.preventDefault();
         try{

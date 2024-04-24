@@ -29,15 +29,16 @@ export default function RootLayout({ children }) {
     setOpen(true);
   }
 
-  const logoutUser = () => {
+  const logoutUser = (e) => {
     // window.location.replace("/");
-    // e.preventDefault();
-    if(path.includes("/admin/dashboard")){
-      console.log("^^^^ ADMIN LOGOUT", path)
-      window.location.replace("/admin");
-    }else{
-      console.log("**** ADMIN LOGOUT", path)
-      window.location.replace("/");
+    e.preventDefault();
+    if(window?.location?.pathname){
+      const path = window.location.pathname;
+      if(path.includes("/admin/dashboard")){
+          window.location.replace("/admin");
+      }else{
+          window.location.replace("/");
+      }
     }
     toast.success('Logout successfully.');
     dispatch(logout());

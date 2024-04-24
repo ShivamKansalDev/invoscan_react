@@ -13,13 +13,15 @@ export default function Settings() {
 
     const [currentUser, setCurrentUser] = useState({});
 
-    const logoutUser = () => {
-        if(path.includes("/admin/dashboard")){
-            console.log("^^^^ ADMIN LOGOUT", path)
-            window.location.replace("/admin");
-        }else{
-            console.log("**** ADMIN LOGOUT", path)
-            window.location.replace("/");
+    const logoutUser = (e) => {
+        e.preventDefault();
+        if(window?.location?.pathname){
+            const path = window.location.pathname;
+            if(path.includes("/admin/dashboard")){
+                window.location.replace("/admin");
+            }else{
+                window.location.replace("/");
+            }
         }
         toast.error('Logout successfully.');
         dispatch(logout());
@@ -40,7 +42,7 @@ export default function Settings() {
                     <div className="button-wrapper">
                         <h5 className="card-title">{currentUser?.firstName + ' ' + currentUser?.lastName}</h5>
                         <h6 className="card-subtitle text-muted mb-4">{currentUser?.email}</h6>
-                        <button onClick={(e) => { logoutUser() }} type="button" className="btn btn-green mb-4">
+                        <button onClick={(e) => { logoutUser(e) }} type="button" className="btn btn-green mb-4">
                             <i className="bx bx-reset d-block d-sm-none"></i>
                             <span className="d-none d-sm-block">Logout</span>
                         </button>
