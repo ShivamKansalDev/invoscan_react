@@ -1,6 +1,6 @@
 "use client";
 
-import { upload_csv } from "@/api/vmpp";
+import { upload_csv } from "@/api/csvUpload";
 import { UploadCSV } from "../../adminComponents/UploadCSV";
 
 const { useState } = require("react");
