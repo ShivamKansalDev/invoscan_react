@@ -15,14 +15,7 @@ export default function Settings() {
 
     const logoutUser = (e) => {
         e.preventDefault();
-        if(window?.location?.pathname){
-            const path = window.location.pathname;
-            if(path.includes("/admin/dashboard")){
-                window.location.replace("/admin");
-            }else{
-                window.location.replace("/");
-            }
-        }
+        router.push("/");
         toast.error('Logout successfully.');
         dispatch(logout());
     }
