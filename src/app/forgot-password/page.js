@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Request from "@/Request";
 import { useRouter } from "next/navigation";
+import { choosePassword, forgotPassword } from "@/api/forgotPassword";
 
 export default function ForgotPassword() {
     const router = useRouter();
@@ -13,14 +13,18 @@ export default function ForgotPassword() {
     const doResetPassword = async (e) => {
         e.preventDefault();
         if (otp) {
-            let otpResponse = await Request.post('auth/choose-password', { email, otp, password });
-            if (otpResponse) {
+            try {
+                let otpResponse = await choosePassword({ email, otp, password });
                 router.push('/')
+            } catch (error) {
+                console.log(error)
             }
         } else {
-            let response = await Request.post('auth/forgot-password', { email });
-            if (response) {
+            try {
+                let response = await forgotPassword({ email });
                 setShowOTPField(true);
+            } catch (error) {
+                console.log(error);
             }
         }
     }
@@ -37,7 +41,7 @@ export default function ForgotPassword() {
                                     </span>
                                 </a>
                             </div>
-                            <h4 className="mb-2 text-center mb-3">Forgot Password</h4>
+                            <h4 className="text-center mb-3">Forgot Password</h4>
 
                             <form id="formAuthentication" method="POST" onSubmit={(e) => { doResetPassword(e) }} className="mb-3">
                                 <div className="mb-3">

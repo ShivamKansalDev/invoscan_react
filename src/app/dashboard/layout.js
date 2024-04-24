@@ -28,16 +28,10 @@ export default function RootLayout({ children }) {
 
   useEffect(() => {
     if(reset){
-      if(window?.location?.pathname){
-        const path = window.location.pathname;
-        if(path.includes("/admin/dashboard")){
-            window.location.replace("/admin");
-        }else{
-            window.location.replace("/");
-        }
-      }
+      router.push("/");
       toast.success('Logout successfully.');
       dispatch(logout());
+      setReset(false);
     }
   }, [reset]);
 

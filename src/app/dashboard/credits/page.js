@@ -1,7 +1,6 @@
 'use client';
 import DataTable from "react-data-table-component";
 import React, { useState, useEffect } from "react";
-import Request from "@/Request";
 
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';

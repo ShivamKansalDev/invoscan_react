@@ -3,18 +3,15 @@ import { login } from "@/api/user";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
+
 import { userActions } from "@/lib/features/slice/userSlice";
-import storage, { logout, makeStore } from "@/lib/store";
-import { persistStore } from "redux-persist";
+import storage from "@/lib/store";
 
 const CustomForm = ({
     type = ""
 })=>{
     const router = useRouter();
-    const store = makeStore();
-    const persistor = persistStore(store);
     const { userDetails, selectedCompany } = useSelector((state) => state.user);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');

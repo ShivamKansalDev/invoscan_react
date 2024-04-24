@@ -26,7 +26,6 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  const preload = `http://localhost:3000/_next/static/css/app/dashboard/bookings/page.css?v=${moment().valueOf()}`
   return (
     <html
       lang="en"

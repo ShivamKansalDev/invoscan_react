@@ -6,10 +6,7 @@ import { toast } from 'react-toastify';
 import FeatherIcon from 'feather-icons-react';
 import { useDispatch } from 'react-redux';
 
-import Request from "@/Request";
 import 'react-responsive-modal/styles.css';
-import { Modal } from 'react-responsive-modal';
-
 import "../assets/vendor/css/pages/page-account-settings.css";
 import { SelectCompany } from './SelectCompany';
 import { logout } from '../lib/features/thunk/logout';
@@ -23,24 +20,34 @@ function CustomDashboard({
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [company, setCompany] = useState({});
   const [companyList, setCompanyList] = useState([]);
-  const [currentUser, setCurrentUser] = useState({});
+  const [reset, setReset] = useState(false);
   const [selectedSupplier, setSupplier] = useState(null);
   const [open, setOpen] = useState(false);
 
-  const logoutUser = () => {
-    if(window?.location?.pathname){
-      const path = window.location.pathname;
-      if(path.includes("/admin/dashboard")){
-        console.log("^^^^ ADMIN LOGOUT", path)
-        window.location.replace("/admin");
-      }else{
-        console.log("**** ADMIN LOGOUT", path)
-        window.location.replace("/");
-      }
-    }
-    toast.error('Logout successfully.');
-    dispatch(logout());
+  const logoutUser = (e) => {
+    e.preventDefault();
+    setReset(true);
   }
+
+  useEffect(() => {
+    if(reset){
+        if(window?.location?.pathname){
+            const path = window.location.pathname.includes("/admin")
+            if(path){
+                console.log("^^^^ ADMIN LOGOUT", path)
+                router.replace("/admin");
+            }else{
+                console.log("**** ADMIN LOGOUT", path)
+                // window.location.replace("/");
+                router.replace("/")
+            }
+        }
+        toast.error('Logout successfully.');
+        dispatch(logout());
+        setReset(false);
+    }
+  }, [reset])
+  
   const onCloseModal = () => {
     setOpen(false);
     setSelectedCompany(null);
@@ -80,7 +87,7 @@ function CustomDashboard({
             })}            
 
             <li className="menu-item">
-              <Link href={'/'} onClick={(e) => { logoutUser() }} className="menu-link">
+              <Link href={'/'} onClick={(e) => { logoutUser(e)}} className="menu-link">
                 <FeatherIcon icon="log-out" className='menu-icon' />
                 <div data-i18n="Dashboards">Logout</div>
               </Link>
