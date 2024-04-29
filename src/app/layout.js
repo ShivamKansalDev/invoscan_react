@@ -33,7 +33,8 @@ export default function RootLayout({ children }) {
       dir="ltr">
         <head>
           {/* <link rel="preload" href={preload} as="style" /> */}
-          <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet' as="style"></link>
+          <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'
+           as="style"></link>
         </head>
       <body className={inter.className}>
         <StoreProvider>

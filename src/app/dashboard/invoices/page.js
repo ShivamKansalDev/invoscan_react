@@ -16,6 +16,7 @@ import { useSelector } from "react-redux";
 import { userActions } from "@/lib/features/slice/userSlice";
 import { deleteInvoice, getPendingInvoices, markCompleteInvoice } from "@/api/invoices";
 import { toast } from "react-toastify";
+import BookingModal from "@/components/BookingModal";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
  
 export default function Invoices() {
@@ -109,10 +110,18 @@ export default function Invoices() {
             )
         },
         {
-            name: 'Inv. packs',
+            name: 'Quantity',
             cell: row => (
                 <div>
                     <input type="text" className="form-control" value={row.Quantity} readOnly />
+                </div>
+            )
+        },
+        {
+            name: 'Price/unit',
+            cell: row => (
+                <div>
+                    <input type="text" className="form-control" value={"£" + row.Amount} readOnly />
                 </div>
             )
         },
@@ -125,10 +134,11 @@ export default function Invoices() {
             )
         },
         {
-            name: 'Price/unit',
+            name: 'Reason',
+            width: "15%",
             cell: row => (
                 <div>
-                    <input type="text" className="form-control" value={"£" + row.Amount} readOnly />
+                    <input type="text" className="form-control" value={row.Reason} readOnly />
                 </div>
             )
         },
@@ -312,13 +322,15 @@ export default function Invoices() {
                 "Items": invoiceItems.Items,
                 "SubTotal": invoiceItems.SubTotal,
                 "isDelivered": true
-            })
+            });
             console.log(response.data,'response');
             setInvoiceItems({
                 Items: []
-            })
-            fetchData(1);
-            setOpen(false)
+            });
+            const updateData = data.filter((item) => item?.id !== invoiceItems?.id);
+            setData(updateData);
+            setOpen(false);
+            toast.success("Invoice has been marked as completed.")
         }catch(error){
             console.log("!!!! CMPLT API ERROR: ", error)
         }
@@ -435,7 +447,7 @@ export default function Invoices() {
                     />
                 </div>
             </div>
-            <Modal open={open} classNames={{
+            {/* <Modal open={open} classNames={{
                 modal: 'booking-modal',
             }} onClose={onCloseModal} center>
                 <div className="container-fluid">
@@ -451,24 +463,6 @@ export default function Invoices() {
                                     )
                                 })
                             }
-                        {/* <Document file="https://pdfobject.com/pdf/sample.pdf"> */}
-                            {/* <Carousel
-                                showArrows={true}
-                                showIndicators={true}
-                                infiniteLoop={true}
-                                dynamicHeight={false}
-                                showThumbs={false}
-                            >
-                                {invoiceItems.invoiceUrl && invoiceItems.invoiceUrl.map((invoiceUrl, key) => (
-                                    invoiceUrl.type !== 'pdf' ?
-                                        <div key={key}>
-                                            <div>
-                                                <img src={invoiceUrl.url} alt="slides" />
-                                            </div>
-                                        </div>
-                                        : null
-                                ))}
-                            </Carousel> */}
                         </div>
                         <div className="col-md-8">
                             {
@@ -529,7 +523,20 @@ export default function Invoices() {
                         </div>
                     </div>
                 </div>
-            </Modal>
+            </Modal> */}
+            <BookingModal
+                open={open}
+                onCloseModal={onCloseModal}
+                invoiceItems={invoiceItems}
+                setInvoiceItems={setInvoiceItems}
+                invoiceItemsColumns={invoiceItemsColumns}
+                loading={loading}
+                customStyles={customStyles}
+                
+                markCompleteCurrentInvoice={markCompleteCurrentInvoice}
+                setActionButtonType={setActionButtonType}
+                showInvoiceData={showInvoiceData}
+            />
             <Modal open={secondOpen} onClose={onCloseSecondModal} center>
                 <div className=" mb-4">
                     <small>Pack Size:- {invoiceData.PackSize}</small>
@@ -547,7 +554,7 @@ export default function Invoices() {
                         </div>
                         <div className="row">
                             <div className="mb-3 col-md-6">
-                                <label htmlFor="Quantity" className="form-label">Inv. packs</label>
+                                <label htmlFor="Quantity" className="form-label">Quantity</label>
                                 <input className="form-control" type="text" id="Quantity" name="Quantity" onChange={(e) => { setInvoiceData({ ...invoiceData, Quantity: e.target.value, Amount: (parseInt(e.target.value) * parseFloat(invoiceData.UnitPrice)) }); }} value={invoiceData.Quantity} />
                             </div>
                             <div className="mb-3 col-md-6">

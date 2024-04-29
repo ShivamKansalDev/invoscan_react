@@ -10,13 +10,14 @@ import { logout } from '../../lib/features/thunk/logout';
 import { useDispatch, useSelector } from 'react-redux';;
 import 'react-responsive-modal/styles.css';
 import "../../assets/vendor/css/pages/page-account-settings.css";
+import { userActions } from '@/lib/features/slice/userSlice';
 
 export default function RootLayout({ children }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [reset, setReset] = useState(false);
 
-  const { userDetails, selectedCompany, companyList } = useSelector((state) => state.user);
+  const { userDetails, selectedCompany, isAuthenticated } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -24,16 +25,22 @@ export default function RootLayout({ children }) {
     if(!selectedCompany && !reset && (!path.includes("/dashboard/settings"))){
       setOpen(true);
     }
-  }, [selectedCompany])
+  }, [])
 
   useEffect(() => {
     if(reset){
       router.push("/");
       toast.success('Logout successfully.');
-      dispatch(logout());
+      dispatch(userActions.resetAuthentication());
       setReset(false);
     }
   }, [reset]);
+
+  useEffect(() => {
+    if(!isAuthenticated){
+      dispatch(logout());
+    }
+  }, [isAuthenticated])
 
   const openModalPopup = () => {
     // fetchCurrentCompanies(currentUser.id);

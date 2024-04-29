@@ -13,6 +13,7 @@ import { deleteStatement, deleteStatementInvoice, getStatementDetails, getStatem
 import { useSelector } from "react-redux";
 import { getSupplierList } from "@/api/invoices";
 import { toast } from "react-toastify";
+import BackArrow from "@/components/BackArrow";
 
 export default function Statements() {
     const {selectedCompany} = useSelector((state)=>state.user);
@@ -55,7 +56,7 @@ export default function Statements() {
             selector: row => row.CustomerName,
         },
         {
-            name: 'Invoice Date',
+            name: 'Statement Month',
             selector: row => row.InvoiceDate,
         },
         {
@@ -466,8 +467,8 @@ export default function Statements() {
                             </div>
                             <div className="card-body">
                                 <div className="mt-2">
-                                    <button type="button" onClick={() => { setNextAction(false) }} className="btn btn-green-borded me-2">Back</button>
-                                    <button type="button" onClick={() => { saveUploadedItem() }} className="btn btn-green me- width-86">Confirm</button>
+                                    <button type="button" onClick={() => { setNextAction(false) }} className="btn btn-green-borded ms-[16px] me-2 w-[9%]"><BackArrow/></button>
+                                    <button type="button" onClick={() => { saveUploadedItem() }} className="btn btn-green me-2 w-[86%]">Confirm</button>
                                 </div>
                             </div>
                         </div>

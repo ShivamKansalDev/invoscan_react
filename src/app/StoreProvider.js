@@ -7,7 +7,7 @@ import { makeStore } from '../lib/store';
 import { persistStore } from 'redux-persist';
 
 export default function StoreProvider({ children }) {
-  // const storeRef = useRef()
+  // const storeRef = useRef(null);
   // if (!storeRef.current) {
   //   storeRef.current = makeStore();
   // }

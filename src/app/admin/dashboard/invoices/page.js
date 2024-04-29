@@ -4,7 +4,9 @@ import { useState,useEffect } from "react";
 import DataTable from "react-data-table-component";
 import ConfirmDeleteModal from "../../adminComponents/ConfirmDeleteModal";
 import { toast } from "react-toastify";
-import { BookingModal } from "../../adminComponents/BookingModal";
+import BookingModal from "@/components/BookingModal";
+import FeatherIcon from "feather-icons-react";
+import moment from "moment";
 
 
 const Invoices = ()=>{
@@ -24,9 +26,11 @@ const Invoices = ()=>{
             name: 'Customer Id',
             selector: row => row.CustomerId ? row.CustomerId : 'NA',
         },
-        {
+        { 
             name: 'Invoice Date',
-            selector: row => row.InvoiceDate ? row.InvoiceDate : 'NA',
+            selector: row => {
+                return (row?.InvoiceDate)? row?.InvoiceDate : "NA"
+            },
         },
         {
             name: 'Vendor Name',
@@ -85,6 +89,98 @@ const Invoices = ()=>{
         },
     };
 
+    let invoiceItemsColumns = [
+        {
+            name: '',
+            width: "47%",
+            cell: row => (
+                <div className="grid-flex items-center">
+                    <div style={{ width: '100px', textAlign: 'center' }} className="form-control">{row.PackSize}</div>
+                    <b className="delivery-text" style={{ paddingLeft: '20px' }}>{row.Description}</b>
+                </div>
+            )
+        },
+        {
+            name: 'Quantity',
+            cell: row => (
+                <div>
+                    <input type="text" className="form-control" value={row.Quantity} readOnly />
+                </div>
+            )
+        },
+        {
+            name: 'Price/unit',
+            cell: row => (
+                <div>
+                    <input type="text" className="form-control" value={"£" + row.Amount} readOnly />
+                </div>
+            )
+        },
+        {
+            name: 'Credit packs',
+            cell: row => (
+                <div>
+                    <input type="text" className="form-control" value={row.QuantityForReport} readOnly />
+                </div>
+            )
+        },
+        {
+            name: 'Reason',
+            width: "15%",
+            cell: row => (
+                <div>
+                    <input type="text" className="form-control" value={row.Reason} readOnly />
+                </div>
+            )
+        },
+        {
+            name: '',
+            cell: (row, index) => (
+                <div className="grid-flex" id="operations">
+                    <div>
+                        {
+                            row.lock !== true ?
+                                <button
+                                    // onClick={(e) => { showInvoiceData(row, index); setActionButtonType('update') }}
+                                >
+                                    <FeatherIcon icon="eye" className='menu-icon' />
+                                </button>
+                                : null
+                        }
+                    </div>
+                    <div>
+                        {
+                            row.lock !== true ?
+                                <button
+                                    // onClick={(e) => { setspDeleteId({row, index}); setDeleteSpOpen(true); }}
+                                >
+                                    <i className='bx bx-trash menu-icon menu-icon-red'></i>
+                                </button>
+                                : null
+                        }
+                    </div>
+                    <div>
+                        {
+                            row.lock !== true ?
+                                <button 
+                                    // onClick={(e) => setInvoiceLock(row, index)}
+                                >
+                                    <FeatherIcon icon="unlock" className='menu-icon' />
+                                </button>
+                                :
+                                <button 
+                                    // onClick={(e) => setInvoiceUnlock(row, index)}
+                                >
+                                    <FeatherIcon icon="lock" className='menu-icon' />
+                                </button>
+                        }
+
+                    </div>
+                </div>
+            )
+        }
+    ];
+
     useEffect(() => {
         if(selectedInvoice && (typeof selectedInvoice === "string")){
             setShowDeleteModal(!showDeleteModal);
@@ -109,13 +205,25 @@ const Invoices = ()=>{
 
     const fetchData = async () => {
         setLoading(true)
-        try{
+        try{ 
             const response = await getAllInvoices();
             const data = response.data?.data?.data;
-            console.log("@#@# GHGHGH: " ,response.data?.data?.data);
+            // console.log("@#@# GHGHGH: " , data);
             if (Array.isArray(data) && (data.length > 0)) {
-               setData(data);
-               setTotalRows(data.count);
+                const updateData = data.map((item) => {
+                    let date = moment(item?.InvoiceDate).valueOf();
+                    let invoiceDate = item?.InvoiceDate;
+                    if(isNaN(date)){
+                        invoiceDate = moment(`${invoiceDate}`, "DD/MM/YYYY").format("MM/DD/YYYY")
+                    }
+                    // console.log("^^^^^ INVOICE DATE: ", invoiceDate);
+                    return {
+                        ...item,
+                        InvoiceDate: moment(invoiceDate).format("DD/MM/YYYY")
+                    }
+                })
+                setData(updateData);
+                setTotalRows(response.data?.data?.count);
             }else {
                 setData([])
                 setTotalRows(0)
@@ -157,13 +265,16 @@ const Invoices = ()=>{
                 {(showBookingModal) && (
                     <BookingModal 
                         open={showBookingModal}
-                        invoiceItems={selectedInvoice}
-                        loading={loading}
                         onCloseModal={() => {
                             setShowBookingModal(!showBookingModal)
                             setSelectedInvoice(null);
                         }}
-                        fetchData={fetchData}
+                        invoiceItems={selectedInvoice}
+                        setInvoiceItems={setSelectedInvoice}
+                        invoiceItemsColumns={invoiceItemsColumns}
+                        loading={loading}
+                        customStyles={customStyles}
+                        showInvoiceData={fetchData}
                     />
                 )}
             </div>

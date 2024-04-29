@@ -393,6 +393,7 @@ export default function Analytics() {
                     pagination
                     paginationTotalRows={totalRows}
                     customStyles={customStyles}
+                    paginationPerPage={15}
                     highlightOnHover
                     pointerOnHover
                 />

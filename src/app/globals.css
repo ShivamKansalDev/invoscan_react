@@ -50,6 +50,9 @@ body {
 
 .react-responsive-modal-modal.booking-modal {
   max-width: 97% !important;
+  background-color: #e5e7eb;
+  padding-left: 6px;
+  padding-right: 12px;
 }
 .react-responsive-modal-modal.users-modal {
   max-width: 97% !important;

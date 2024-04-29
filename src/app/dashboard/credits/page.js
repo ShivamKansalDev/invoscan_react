@@ -165,7 +165,7 @@ export default function Credits() {
         setPerPage(perPage);
     }
 
-    const si = (currentPage-1) * perPage + 1;
+    const si = (currentPage-1) * perPage == 0 ? 0 : (currentPage-1) * perPage + 1;
     const ei = Math.min(currentPage*perPage, totalRows);
 
 
@@ -176,7 +176,8 @@ export default function Credits() {
                     <button type="button" onClick={() => { creditActiveTab('Pending', records); }} className={`btn ${currentTab === 'Pending' ? 'btn-green' : 'btn-green-borded'} me-2`}>Unresolved</button>
                     <button type="button" onClick={() => { creditActiveTab('Completed', records); }} className={`btn ${currentTab === 'Completed' ? 'btn-green' : 'btn-green-borded'} me-2`}>Resolved</button>
                 </div>
-                <p className="mt-2 leading-3">Showing entries {si} - {ei} of page {currentPage}</p>
+                {totalRows > 0 && <p className="mt-2 leading-3">Showing entries {si} - {ei} of page {currentPage}</p>
+}
                 <DataTable
                     title={`${currentTab} Credits`}
                     columns={columns}

@@ -4,12 +4,13 @@ import { usePathname, useRouter } from 'next/navigation'
 import Link from "next/link";
 import { toast } from 'react-toastify';
 import FeatherIcon from 'feather-icons-react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import 'react-responsive-modal/styles.css';
 import "../assets/vendor/css/pages/page-account-settings.css";
 import { SelectCompany } from './SelectCompany';
 import { logout } from '../lib/features/thunk/logout';
+import { userActions } from '@/lib/features/slice/userSlice';
 
 function CustomDashboard({ 
   children,
@@ -17,6 +18,7 @@ function CustomDashboard({
 }) {
   const router = useRouter();
   const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((state) => state.user);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [company, setCompany] = useState({});
   const [companyList, setCompanyList] = useState([]);
@@ -43,10 +45,16 @@ function CustomDashboard({
             }
         }
         toast.error('Logout successfully.');
-        dispatch(logout());
+        dispatch(userActions.resetAuthentication());
         setReset(false);
     }
   }, [reset])
+
+  useEffect(() => {
+    if(!isAuthenticated){
+      dispatch(logout());
+    }
+  }, [isAuthenticated])
   
   const onCloseModal = () => {
     setOpen(false);

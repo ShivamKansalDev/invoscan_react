@@ -1,3 +1,4 @@
+"use client";
 function CustomInput({
     title = "Company",
     placeholder = "Company",

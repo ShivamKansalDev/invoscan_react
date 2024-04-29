@@ -1,3 +1,4 @@
+"use client";
 import { Modal } from 'react-responsive-modal';
 import { Document, Page, pdfjs } from 'react-pdf';
 import DataTable from "react-data-table-component";

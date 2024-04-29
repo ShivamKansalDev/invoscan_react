@@ -1,3 +1,4 @@
+"use client";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import storage from 'redux-persist/lib/storage';
@@ -21,9 +22,6 @@ function hide() {
 
 API.interceptors.request.use(
     async(config) => {
-        // const { interceptLoading } = require("../src/lib/store");
-        // interceptLoading(true);
-        // const accessToken = localStorage.getItem("token");
         show();
         const accessToken = await storage.getItem("token");
         if(accessToken && config?.url !== "auth/login"){
@@ -32,8 +30,6 @@ API.interceptors.request.use(
         return config;
     },
     (error) => {
-        // const { interceptLoading } = require("../src/lib/store");
-        // interceptLoading(false);
         hide();
         return Promise.reject(error);
     }
@@ -49,6 +45,7 @@ API.interceptors.response.use(
     async(error) => {
         const { makeStore } = require("../src/lib/store");
         const { logout } = require("../src/lib/features/thunk/logout");
+        const { userActions } = require("../src/lib/features/slice/userSlice");
         // interceptLoading(false);
         hide()
         const config = error?.response?.config;
@@ -60,6 +57,7 @@ API.interceptors.response.use(
         }
         if((status === 401) || (status === 451)){
             const store = makeStore();
+            store.dispatch(userActions.resetAuthentication());
             if(config?.url !== 'auth/login'){
                 if(window?.location?.pathname){
                     const path = window.location.pathname;

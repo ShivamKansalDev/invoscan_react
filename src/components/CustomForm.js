@@ -1,24 +1,31 @@
 'use client';
-import { login } from "@/api/user";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { userActions } from "@/lib/features/slice/userSlice";
-import storage from "@/lib/store";
+import { userLogin } from "@/lib/features/thunk/user";
 
 const CustomForm = ({
     type = ""
 })=>{
     const router = useRouter();
-    const { userDetails, selectedCompany } = useSelector((state) => state.user);
+    const { isAuthenticated, selectedCompany } = useSelector((state) => state.user);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const { setUserDetails } = userActions;
 
     const dispatch = useDispatch();
+
+    useEffect(() => {
+        if(isAuthenticated){
+            if(type === "admin"){
+                router.push('/admin/dashboard/users');
+            }else{
+                router.push('/dashboard/bookings');
+            }
+        }
+    }, [isAuthenticated])
 
     useEffect(() => {
         console.log("^^^ RESET REDUX: ", selectedCompany)
@@ -26,19 +33,8 @@ const CustomForm = ({
 
     const doLogin = async (e) => {
         e.preventDefault();
-        try{
-            const response = await login({email, password});
-            const data = response.data?.data;
-            dispatch(setUserDetails(JSON.stringify(data)));
-            storage.setItem('token', data.accessToken);
-            if(type === "admin"){
-                router.push('/admin/dashboard/users');
-            }else{
-                router.push('/dashboard/bookings');
-            }
-        }catch(error){
-          console.log("@#@#@ LOGIN ERROR: ", error);
-        }
+        console.log("#### LOGIN: ", email, password);
+        dispatch(userLogin({email, password}));
       } 
 
     return(

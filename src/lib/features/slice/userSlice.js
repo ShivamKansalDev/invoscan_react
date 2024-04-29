@@ -1,3 +1,4 @@
+"use client";
 import { createSlice } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 
@@ -13,10 +14,16 @@ const initialState = {
     selectedCompany: null
 }
 
-const userSlice = createSlice({
+export const userSlice = createSlice({
     name: 'user',
     initialState,
     reducers: {
+        resetAuthentication: (state, action) => {
+            return {
+                ...state,
+                isAuthenticated: null
+            }
+        },
         setUserDetails: (state, action) => {
             return {
                 ...state,
@@ -34,15 +41,11 @@ const userSlice = createSlice({
         builder.addCase(userLogin.pending, (state, action) => {
             state.userDetails = null;
         }).addCase(userLogin.fulfilled, (state, action) => {
-            // state.userDetails = action.payload;
             const data = action.payload?.data;
             state.userDetails = JSON.stringify(data);
+            state.isAuthenticated = true;
             toast.success('Logged in successfully.');
-            console.log("@@@ ROLE: ", data);
-            // localStorage.setItem('token', data.accessToken);
-            // localStorage.setItem('user', JSON.stringify(data.user));
             storage.setItem('token', data.accessToken);
-            // storage.setItem('user', JSON.stringify(data.user));
         }).addCase(userLogin.rejected, (state, action) => {
             state.userDetails = null;
             console.log("!!!! LOGIN ERROR: ", action.payload);
@@ -66,5 +69,3 @@ const userSlice = createSlice({
 });
 
 export const userActions = userSlice.actions;
-
-export default userSlice;

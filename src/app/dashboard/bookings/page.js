@@ -12,6 +12,8 @@ import { SelectCompany } from "@/components/SelectCompany";
 import { useSelector } from "react-redux";
 import { deleteInvoice, getPendingInvoices, getSupplierList, markCompleteInvoice, uploadInvoice } from "@/api/invoices";
 import { toast } from "react-toastify";
+import BackArrow from "@/components/BackArrow";
+import BookingModal from "@/components/BookingModal";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 export default function Bookings() {
@@ -114,6 +116,14 @@ export default function Bookings() {
             )
         },
         {
+            name: 'Price/unit',
+            cell: row => (
+                <div>
+                    <input type="text" className="form-control" value={"£" + row.Amount} readOnly />
+                </div>
+            )
+        },
+        {
             name: 'Credit packs',
             cell: row => (
                 <div>
@@ -122,10 +132,11 @@ export default function Bookings() {
             )
         },
         {
-            name: 'Price/unit',
+            name: 'Reason',
+            width: "15%",
             cell: row => (
                 <div>
-                    <input type="text" className="form-control" value={"£" + row.Amount} readOnly />
+                    <input type="text" className="form-control" value={row.Reason} readOnly />
                 </div>
             )
         },
@@ -229,9 +240,12 @@ export default function Bookings() {
     }
  
     const saveInvoiceItems = () => {
-        invoiceItems.Items[invoiceItemIndex] = invoiceData
-        let invoiceItemsClone = { ...invoiceItems }
-        setInvoiceItems(invoiceItemsClone)
+        let updateInvoiceItems = invoiceItems.Items.map((item) => item);
+        updateInvoiceItems[invoiceItemIndex] = invoiceData;
+        setInvoiceItems((oldData) => ({
+            ...oldData,
+            Items: updateInvoiceItems
+        }))
         setSecondOpen(false)
     }
 
@@ -414,7 +428,7 @@ export default function Bookings() {
         }
     }, [selectedCompany]);
 
-    let lockedItems = invoiceItems && invoiceItems.Items.filter((Item) => Item.lock === true)
+    // let lockedItems = invoiceItems && invoiceItems.Items.filter((Item) => Item.lock === true)
 
 
 
@@ -524,7 +538,7 @@ export default function Bookings() {
                     />
                 </div>
             </div>
-            <Modal open={open} classNames={{
+            {/* <Modal open={open} classNames={{
                 modal: 'booking-modal',
             }} onClose={onCloseModal} center>
                 <div className="container-fluid">
@@ -592,7 +606,19 @@ export default function Bookings() {
                         </div>
                     </div>
                 </div>
-            </Modal>
+            </Modal> */}
+            <BookingModal
+                open={open}
+                onCloseModal={onCloseModal}
+                invoiceItems={invoiceItems}
+                setInvoiceItems={setInvoiceItems}
+                invoiceItemsColumns={invoiceItemsColumns}
+                loading={loading}
+                customStyles={customStyles}
+                markCompleteCurrentInvoice={markCompleteCurrentInvoice}
+                setActionButtonType={setActionButtonType}
+                showInvoiceData={showInvoiceData}
+            />
             <Modal open={secondOpen} onClose={onCloseSecondModal} center>
                 <div className="mb-4">
                     <small>Pack Size:- {invoiceData.PackSize}</small>
@@ -819,8 +845,10 @@ export default function Bookings() {
 
                             <div className="card-body">
                                 <div className="mt-2">
-                                    <button type="button" onClick={() => { setNextAction(false) }} className="btn btn-default me-2">Back</button>
-                                    <button type="button" onClick={() => { saveUploadedItem(); }} className="btn btn-green me-2 width-86">Confirm</button>
+                                    <button type="button" onClick={() => { setNextAction(false) }} className="btn btn-default mx-2 w-[9%]">
+                                        <BackArrow className="w-[100%] text-black"/>
+                                    </button>
+                                    <button type="button" disabled={files.length==0} onClick={() => { saveUploadedItem(); }} className="btn btn-green me-2 w-[87%]">Confirm</button>
                                 </div>
                             </div>
                         </div>
