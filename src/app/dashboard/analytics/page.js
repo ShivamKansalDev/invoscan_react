@@ -462,7 +462,6 @@ export default function Analytics() {
                     {
                         currentTab === 'Pricing' ?
                             <div className="card-body">
-                                check
                                 <Bar
                                     options={{
                                         responsive: true,
