@@ -58,6 +58,11 @@ body {
   max-width: 97% !important;
 }
 
+.react-responsive-modal-modal.custom-modal {
+  background-color: #e5e7eb;
+  top: 10%;
+}
+
 .menu-icon-red {
   color: red !important;
 }

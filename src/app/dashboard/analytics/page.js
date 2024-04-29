@@ -374,7 +374,10 @@ export default function Analytics() {
     }, []);
 
     return (
-        <div className="card mb-4">
+        <div 
+            // className={`${open ? 'bg-transparent card mb-4' : 'card mb-4'}`}
+            className="card mb-4"
+        >
             <div className="row">
                 <div className="col-md-9">
                     <h3 className="card-header">Analytics</h3>
@@ -452,49 +455,66 @@ export default function Analytics() {
                     </div>
                 </div>
             </Modal>
-            <Modal open={open} onClose={onCloseModal} center>
-                <div className="mb-4">
-                    <h5 className="card-header">{invoiceItems.row ? invoiceItems.row.product : ''} <small style={{ paddingLeft: '20px' }}>( Pack size - )</small></h5>
-                    <div className="mt-2">
+            <Modal open={open} onClose={onCloseModal} center 
+                classNames={{
+                    modal: 'custom-modal'
+                }}
+            >
+                <div className="">
+                    <div className="mb-2">
                         <button type="button" onClick={() => { setCurrentTab('Pricing'); }} className={`btn ${currentTab === 'Pricing' ? 'btn-green' : 'btn-green-borded'} me-2`}>Pricing Details</button>
                         <button type="button" onClick={() => { setCurrentTab('Invoice'); }} className={`btn ${currentTab === 'Invoice' ? 'btn-green' : 'btn-btn-green-borded'} me-2`}>Invoice Details</button>
                     </div>
                     {
                         currentTab === 'Pricing' ?
-                            <div className="card-body">
-                                <Bar
-                                    options={{
-                                        responsive: true,
-                                        plugins: {
-                                            legend: {
-                                                position: 'bottom',
+                            <div className="card-body flex justify-start gap-3">
+                                <div className="border border-black flex flex-col rounded-md px-2 bg-white gap-[6px] pt-1">
+                                    <p>{invoiceItems.row ? invoiceItems.row.product : ''}</p>
+                                    <span className="border border-black rounded-md">Average Cost Price: {invoiceItems.row ? invoiceItems.row.averageCostPrice : ''}</span>
+                                    <span className="bg-white rounded-md">Average Retail Price: {invoiceItems.row ? invoiceItems.row.averageRetailPrice : ''}</span>
+                                    <span className="bg-white rounded-md">Price Movement: {invoiceItems.row ? invoiceItems.row.priceMovt : ''}</span>
+                                    <span className="bg-white rounded-md">Total Movement: {invoiceItems.row ? invoiceItems.row.totalVolume : ''}</span>
+                                    <span className="bg-white rounded-md">Total spent: {invoiceItems.row ? invoiceItems.row.totalSpent : ''}</span>
+                                    <span className="bg-white rounded-md">cheapest Supplier: {invoiceItems.row ? invoiceItems.row.cheapestSupplier : ''}</span>
+                                    <span className="bg-white rounded-md">Retail Margin: {invoiceItems.row ? invoiceItems.row.averageRetailPriceMargin : ''}</span>
+                                    <span className="bg-white rounded-md">DT Price: {invoiceItems.row ? invoiceItems.row.csvDtPrice : ''}</span>
+                                </div>
+                                <div className="size-fit border border-black h-96 w-[65%] rounded-md content-center bg-white">
+                                    <Bar
+                                        options={{
+                                            // indexAxis: 'y',
+                                            responsive: true,
+                                            plugins: {
+                                                legend: {
+                                                    position: 'bottom',
+                                                },
+                                                title: {
+                                                    display: true,
+                                                    text: (invoiceItems.row ? invoiceItems.row.product : ''),
+                                                },
+                                                datalabels: {
+                                                    display: true,
+                                                    color: "black",
+                                                    formatter:(value) => value || '0',
+                                                    anchor: "end",
+                                                    // offset: -20,
+                                                    align: "left",
+                                                    // backgroundColor: 'red'
+                                                },
                                             },
-                                            title: {
-                                                display: true,
-                                                text: (invoiceItems.row ? invoiceItems.row.product : ''),
-                                            },
-                                            datalabels: {
-                                                display: true,
-                                                color: "black",
-                                                formatter:(value) => value || '0',
-                                                anchor: "end",
-                                                // offset: -20,
-                                                align: "left",
-                                                // backgroundColor: 'red'
+                                            datasets: {
+                                                bar: {
+                                                    barThickness: 4,
+                                                    grouped: false,
+                                                }
                                             }
-                                        },
-                                        datasets: {
-                                            bar: {
-                                                barThickness: 4,
-                                                grouped: false,
-                                            }
-                                        }
-                                    }}
-                                    data={{
-                                        labels: chartLabels,
-                                        datasets: chartDataSets,
-                                    }}
-                                />
+                                        }}
+                                        data={{
+                                            labels: chartLabels,
+                                            datasets: chartDataSets,
+                                        }}
+                                    />
+                                </div>
                                 {/* <Line
                                     data={{
                                         labels: chartLabels,
