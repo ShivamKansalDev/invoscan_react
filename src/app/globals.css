@@ -51,8 +51,6 @@ body {
 .react-responsive-modal-modal.booking-modal {
   max-width: 97% !important;
   background-color: #e5e7eb;
-  padding-left: 6px;
-  padding-right: 12px;
   backdrop-filter: blur(4px);
   --tw-backdrop-blur: blur(4px);
 }

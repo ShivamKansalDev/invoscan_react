@@ -1,10 +1,10 @@
 "use client";
 import React, { useState } from 'react'
-import DataTable from 'react-data-table-component'
 import Modal from 'react-responsive-modal'
 import { Document, Page } from 'react-pdf';
 import moment from 'moment';
 import DatePicker from "react-datepicker";
+import { FilteredDataTable } from './FilteredDataTable';
 
 const BookingModal = ({
     open = false,
@@ -22,6 +22,7 @@ const BookingModal = ({
     console.log("@@@@@!!!!!",invoiceItems)
     let lockedItems = invoiceItems && invoiceItems?.Items.filter((Item) => Item?.lock === true)
 
+    let productTableColumns = ["Description", "Quantity", "Amount", "QuantityForReport", "Reason"];
     let newInvoiceItemsColumns = [
         {
             name: '',
@@ -128,15 +129,18 @@ const BookingModal = ({
                                         {invoiceItems.isDelivered==false && (<div className="pull-right" style={{ float: 'right' }}>
                                             <button className="btn btn-green" type="button" onClick={() => { setActionButtonType('new'); showInvoiceData({}, 0); }}>Add New</button>
                                         </div>)}
-                                        <DataTable
-                                            title={`Delivery products (${invoiceItems.Items ? invoiceItems.Items.length : 0})`}
-                                            columns={invoiceItemsColumns}
-                                            data={invoiceItems.Items}
-                                            progressPending={loading}
-                                            fixedHeader
-                                            pagination
-                                            paginationTotalRows={invoiceItems.Items ? invoiceItems.Items.length : 0}
-                                            customStyles={customStyles}
+                                        <FilteredDataTable
+                                            tableColumns={productTableColumns}
+                                            inputProps={{
+                                                title: `Delivery products (${invoiceItems.Items ? invoiceItems.Items.length : 0})`,
+                                                columns: invoiceItemsColumns,
+                                                data: invoiceItems.Items,
+                                                progressPending: loading,
+                                                fixedHeader: true,
+                                                pagination: true,
+                                                paginationTotalRows: invoiceItems.Items ? invoiceItems.Items.length : 0,
+                                                customStyles: customStyles
+                                            }}
                                         />
                                     </div>
                                     {invoiceItems.isDelivered==false && <div className="my-2">

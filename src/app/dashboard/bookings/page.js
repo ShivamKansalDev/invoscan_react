@@ -13,6 +13,7 @@ import { deleteInvoice, getPendingInvoices, getSupplierList, markCompleteInvoice
 import { toast } from "react-toastify";
 import BackArrow from "@/components/BackArrow";
 import BookingModal from "@/components/BookingModal";
+import { FilteredDataTable } from "@/components/FilteredDataTable";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 export default function Bookings() {
@@ -54,6 +55,7 @@ export default function Bookings() {
     
     const [actionButtonType, setActionButtonType] = useState('update');
 
+    let invoiceTableColumns = ["supplier.name", "InvoiceDate", "InvoiceId", "SubTotal"];
     let columns = [
         {
             name: 'Vendor Name',
@@ -523,17 +525,20 @@ export default function Bookings() {
                     </div>
                 </div>
                 <div className="card-body">
-                    <DataTable
-                        title="Pending Deliveries"
-                        columns={columns}
-                        data={data}
-                        progressPending={loading}
-                        fixedHeader
-                        pagination
-                        paginationTotalRows={totalRows}
-                        customStyles={customStyles}
-                        highlightOnHover
-                        pointerOnHover
+                    <FilteredDataTable
+                        tableColumns={invoiceTableColumns}
+                        inputProps={{
+                            title: "Pending Deliveries",
+                            columns: columns,
+                            data: data,
+                            progressPending: loading,
+                            fixedHeader: true,
+                            pagination: true,
+                            paginationTotalRows: totalRows,
+                            customStyles: customStyles,
+                            highlightOnHover: true,
+                            pointerOnHover: true,
+                        }}
                     />
                 </div>
             </div>

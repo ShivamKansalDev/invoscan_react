@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import BookingModal from "@/components/BookingModal";
 import FeatherIcon from "feather-icons-react";
 import moment from "moment";
+import { FilteredDataTable } from "@/components/FilteredDataTable";
 
 
 const Invoices = ()=>{
@@ -17,6 +18,7 @@ const Invoices = ()=>{
     const [selectedInvoice, setSelectedInvoice] = useState(null);
     const [showBookingModal, setShowBookingModal] = useState(false);
 
+    let invoiceTableColumns = ["InvoiceId", "CustomerId", "InvoiceDate", "VendorName", "CustomerName", "SubTotal"];
     let columns = [
         {
             name: 'Invoice Id',
@@ -241,17 +243,20 @@ const Invoices = ()=>{
     return(
         <>
             <div className="card mb-4">
-                <DataTable
-                    title="Invoices"
-                    data={data}
-                    columns={columns}
-                    progressPending={loading}
-                    fixedHeader
-                    pagination
-                    paginationTotalRows={totalRows}
-                    customStyles={customStyles}
-                    highlightOnHover
-                    pointerOnHover
+                <FilteredDataTable
+                    tableColumns={invoiceTableColumns}
+                    inputProps={{
+                        title: "Invoices",
+                        data: data,
+                        columns: columns,
+                        progressPending: loading,
+                        fixedHeader: true,
+                        pagination: true,
+                        paginationTotalRows: totalRows,
+                        customStyles: customStyles,
+                        highlightOnHover: true,
+                        pointerOnHover: true
+                    }}
                 />
                 <ConfirmDeleteModal
                     subTitle={"Are you sure you want to delete this invoice ?"}

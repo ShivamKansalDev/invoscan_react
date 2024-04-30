@@ -1,5 +1,4 @@
 'use client';
-import DataTable from "react-data-table-component";
 import React, { useState, useEffect } from "react";
 
 import 'react-responsive-modal/styles.css';
@@ -7,9 +6,12 @@ import { Modal } from 'react-responsive-modal';
 import FeatherIcon from 'feather-icons-react';
 import { useSelector } from "react-redux";
 import { getCreditsList, updateCredit } from "@/api/credits";
+import { FilteredDataTable } from "@/components/FilteredDataTable";
 
 export default function Credits() {
     const {selectedCompany} = useSelector((state)=>state.user);
+
+    let creditTableColumns = ["Description", "VendorName", "InvoiceDate", "Quantity", "Reason"];
     let columns = [
         {
             name: 'Product',
@@ -178,20 +180,23 @@ export default function Credits() {
                 </div>
                 {totalRows > 0 && <p className="mt-2 leading-3">Showing entries {si} - {ei} of page {currentPage}</p>
 }
-                <DataTable
-                    title={`${currentTab} Credits`}
-                    columns={columns}
-                    data={data}
-                    progressPending={loading}
-                    fixedHeader
-                    pagination
-                    paginationTotalRows={totalRows}
-                    customStyles={customStyles}
-                    highlightOnHover
-                    pointerOnHover
-                    onChangePage={handlePageChange}
-                    paginationPerPage={perPage}
-                    onChangeRowsPerPage={handlePerPageChange}
+                <FilteredDataTable
+                    tableColumns={creditTableColumns}
+                    inputProps={{
+                        title: `${currentTab} Credits`,
+                        columns: columns,
+                        data: data,
+                        progressPending: loading,
+                        fixedHeader: true,
+                        pagination: true,
+                        paginationTotalRows: totalRows,
+                        customStyles: customStyles,
+                        highlightOnHover: true,
+                        pointerOnHover: true,
+                        onChangePage: handlePageChange,
+                        paginationPerPage: perPage,
+                        onChangeRowsPerPage: handlePerPageChange,
+                    }}
                 />
             </div>
             <Modal open={open} onClose={onCloseModal} center>

@@ -16,6 +16,7 @@ import { userActions } from "@/lib/features/slice/userSlice";
 import { deleteInvoice, getPendingInvoices, markCompleteInvoice } from "@/api/invoices";
 import { toast } from "react-toastify";
 import BookingModal from "@/components/BookingModal";
+import { FilteredDataTable } from "@/components/FilteredDataTable";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
  
 export default function Invoices() {
@@ -55,6 +56,8 @@ export default function Invoices() {
     const [startDate, setStartDate] = useState(moment().startOf('year').toDate());
     const [endDate, setEndDate] = useState(moment().endOf('year').toDate());
     const [supplierId, setSupplierId] = useState('');
+
+    let invoiceTableColumns = ["supplier.name", "InvoiceDate", "InvoiceId", "SubTotal"];
 
     let columns = [
         {
@@ -432,17 +435,20 @@ export default function Invoices() {
                     <div className="mt-2">
                         <h4 className="card-header pl-0">{currentTab} Deliveries</h4>
                     </div>
-                    <DataTable
-                        title={``}
-                        columns={columns}
-                        data={data}
-                        progressPending={loading}
-                        fixedHeader
-                        pagination
-                        paginationTotalRows={totalRows}
-                        customStyles={customStyles}
-                        highlightOnHover
-                        pointerOnHover
+                    <FilteredDataTable
+                        tableColumns={invoiceTableColumns}
+                        inputProps={{
+                            title: "",
+                            columns: columns,
+                            data: data,
+                            progressPending: loading,
+                            fixedHeader: true,
+                            pagination: true,
+                            paginationTotalRows: totalRows,
+                            customStyles: customStyles,
+                            highlightOnHover: true,
+                            pointerOnHover: true
+                        }}
                     />
                 </div>
             </div>
