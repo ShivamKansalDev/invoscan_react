@@ -3,10 +3,10 @@ import DataTable from "react-data-table-component";
 import React, { useState, useEffect } from "react";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
-import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import FeatherIcon from 'feather-icons-react';
+import { Document, Page } from 'react-pdf';
 
 import {
     Chart as ChartJS,
@@ -113,7 +113,10 @@ export default function Analytics() {
                 <div className="grid-flex">
                     <button
                         className="btn rounded-pill btn-default"
-                        onClick={(e) => showRowData(row)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            showRowData(row)
+                        }}
                     >
                         <FeatherIcon icon="eye" className='menu-icon' />
                     </button>
@@ -290,6 +293,7 @@ export default function Analytics() {
         try{
             const response = await getAnalyticsData(company?.id, { search: row.pip_code });
             const responseData = response.data?.data;
+            setLoading(false);
             if (Array.isArray(responseData)) {
                 setInvoiceItems({
                     row: row,
@@ -334,6 +338,7 @@ export default function Analytics() {
                 setOpen(true);
             }
         }catch(error){
+            setLoading(false);
             console.log("!!!! ANALYTICS DATA ERROR: ", error)
         }
     }
@@ -346,7 +351,7 @@ export default function Analytics() {
         setLoading(true);
         try{
             const response = await getStocksAnalytics(company?.id,{ search: row.pip_code });
-            const responseData = response.data?.data;
+            const responseData = response.data?.data?.data;
             setLoading(false);
             if (Array.isArray(responseData)) {
                 setUploadedInvoiceItems(responseData[0]);
@@ -578,21 +583,15 @@ export default function Analytics() {
                 <div className="container-fluid">
                     <div className="row">
                         <div className="col-md-4">
-                            <Carousel
-                                showArrows={true}
-                                showIndicators={true}
-                                infiniteLoop={true}
-                                dynamicHeight={false}
-                                showThumbs={false}
-                            >
-                                {uploadedInvoiceItems.invoiceUrl && uploadedInvoiceItems.invoiceUrl.map((invoiceUrl, key) => (
-                                    <div key={key}>
-                                        <div>
-                                            <img src={invoiceUrl.url} alt="slides" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </Carousel>
+                            {
+                            uploadedInvoiceItems.invoiceUrl && uploadedInvoiceItems.invoiceUrl.map((invoice, key) => {
+                                return(
+                                    <Document key={key} file={invoice.url} className="pdf-section">
+                                        <Page  pageNumber={1}/>
+                                    </Document>
+                                )
+                            })
+                        }
                         </div>
                         <div className="col-md-8">
                             {

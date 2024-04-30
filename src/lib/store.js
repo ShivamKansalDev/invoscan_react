@@ -1,7 +1,7 @@
 "use client";
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistReducer, persistStore } from 'redux-persist';
-import persistStorage from "redux-persist/lib/storage";
+import createWebStorage from "redux-persist/lib/storage/createWebStorage";
 
 import { userSlice } from './features/slice/userSlice';
 
@@ -21,7 +21,7 @@ const createNoopStorage = () => {
   };
 };
 
-const storage = typeof window !== "undefined" ? persistStorage : createNoopStorage();
+const storage = typeof window !== "undefined" ? createWebStorage("local") : createNoopStorage();
 
 // const storage = persistStorage;
 
