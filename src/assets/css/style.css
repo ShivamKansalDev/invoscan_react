@@ -81,3 +81,8 @@ html, body {
   top: 0px;
   overflow: hidden;
 }
+
+.react-responsive-modal-root{
+  backdrop-filter: blur(4px);
+  --tw-backdrop-blur: blur(4px);
+}
