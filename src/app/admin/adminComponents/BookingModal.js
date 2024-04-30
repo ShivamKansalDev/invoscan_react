@@ -2,8 +2,6 @@
 import { Modal } from 'react-responsive-modal';
 import { Document, Page, pdfjs } from 'react-pdf';
 import DataTable from "react-data-table-component";
-
-import 'react-pdf/dist/Page/TextLayer.css';
 import FeatherIcon from 'feather-icons-react';
 import { markCompleteInvoice } from '@/api/invoices';
 import { toast } from 'react-toastify';

@@ -7,6 +7,8 @@ import "../assets/vendor/css/theme-default.css";
 import "../assets/css/demo.css";
 import "../assets/css/style.css";
 import "../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css";
+import 'react-pdf/dist/Page/TextLayer.css';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
 import "../assets/vendor/css/pages/page-auth.css"; 
 import 'react-responsive-modal/styles.css';
 import "react-datepicker/dist/react-datepicker.css";

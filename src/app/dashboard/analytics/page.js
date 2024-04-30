@@ -6,7 +6,9 @@ import { Modal } from 'react-responsive-modal';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import FeatherIcon from 'feather-icons-react';
-import { Document, Page } from 'react-pdf';
+import { Document, Page ,pdfjs} from 'react-pdf';
+import 'react-pdf/dist/Page/TextLayer.css';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
 
 import {
     Chart as ChartJS,
@@ -33,6 +35,8 @@ ChartJS.register(
     Legend,
     ChartDataLabels
 );
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 export default function Analytics() {
     const {selectedCompany} = useSelector((state)=>state.user);

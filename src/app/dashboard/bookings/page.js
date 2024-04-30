@@ -7,7 +7,6 @@ import DatePicker from "react-datepicker";
 import moment from "moment";
 import FeatherIcon from 'feather-icons-react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/Page/TextLayer.css';
 import { SelectCompany } from "@/components/SelectCompany";
 import { useSelector } from "react-redux";
 import { deleteInvoice, getPendingInvoices, getSupplierList, markCompleteInvoice, uploadInvoice } from "@/api/invoices";
