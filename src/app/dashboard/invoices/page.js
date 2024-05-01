@@ -219,7 +219,7 @@ export default function Invoices() {
     };
 
     useEffect(() => {
-        if(deleteSPId){
+        if(Object.keys(deleteSPId).length > 0){
             setDeleteSpOpen(true);
         }
     }, [deleteSPId])

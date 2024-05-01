@@ -114,7 +114,7 @@ export default function Bookings() {
             name: '',
             width: "47%",
             cell: row => (
-                <div className="grid-flex items-center">
+                <div key={`a${row?.index}`} className="grid-flex items-center">
                     <div style={{ width: '100px', textAlign: 'center' }} className="form-control">{row.PackSize}</div>
                     <b className="delivery-text" style={{ paddingLeft: '20px' }}>{row?.Description}</b>
                 </div>
@@ -123,7 +123,7 @@ export default function Bookings() {
         {
             name: 'Quantity',
             cell: row => (
-                <div>
+                <div key={`b${row?.index}`}>
                     <input type="text" className="form-control" value={row?.Quantity} readOnly />
                 </div>
             )
@@ -131,7 +131,7 @@ export default function Bookings() {
         {
             name: 'Price/unit',
             cell: row => (
-                <div>
+                <div key={`c${row?.index}`}>
                     <input type="text" className="form-control" value={"£" + row?.Amount} readOnly />
                 </div>
             )
@@ -139,7 +139,7 @@ export default function Bookings() {
         {
             name: 'Credit packs',
             cell: row => (
-                <div>
+                <div key={`d${row?.index}`}>
                     <input type="text" className="form-control" value={row?.QuantityForReport} readOnly />
                 </div>
             )
@@ -148,20 +148,20 @@ export default function Bookings() {
             name: 'Reason',
             width: "15%",
             cell: row => (
-                <div>
+                <div key={`e${row?.index}`}>
                     <input type="text" className="form-control" value={row?.Reason} readOnly />
                 </div>
             )
         },
         {
             name: '',
-            cell: (row, index) => (
-                <div className="grid-flex">
+            cell: (row) => (
+                <div className="grid-flex" key={`f${row?.index}`}>
                     <div>
                         {
                             row.lock !== true ?
                                 <button
-                                    onClick={(e) => { showInvoiceData(row, index); setActionButtonType('update') }}
+                                    onClick={(e) => { showInvoiceData(row); setActionButtonType('update') }}
                                 >
                                     <FeatherIcon icon="eye" className='menu-icon' />
                                 </button>
@@ -172,7 +172,7 @@ export default function Bookings() {
                         {
                             row.lock !== true ?
                                 <button
-                                    onClick={(e) => { setspDeleteId({row, index}); setDeleteSpOpen(true); }}
+                                    onClick={(e) => { setspDeleteId({row}); setDeleteSpOpen(true); }}
                                 >
                                     <i className='bx bx-trash menu-icon menu-icon-red'></i>
                                 </button>
@@ -182,11 +182,11 @@ export default function Bookings() {
                     <div>
                         {
                             row.lock !== true ?
-                                <button onClick={(e) => setInvoiceLock(row, index)}>
+                                <button onClick={(e) => setInvoiceLock(row)}>
                                     <FeatherIcon icon="unlock" className='menu-icon' />
                                 </button>
                                 :
-                                <button onClick={(e) => setInvoiceUnlock(row, index)}>
+                                <button onClick={(e) => setInvoiceUnlock(row)}>
                                     <FeatherIcon icon="lock" className='menu-icon' />
                                 </button>
                         }
@@ -244,28 +244,40 @@ export default function Bookings() {
         }
     }
 
-    const showInvoiceData = (row, key) => {
+    const showInvoiceData = (row) => {
         let rowData = { ...row };
         setInvoiceData(rowData)
-        setInvoiceItemIndex(key)
         setSecondOpen(true);
-        
     }
  
     const saveInvoiceItems = () => {
-        let updateInvoiceItems = invoiceItems.Items.map((item) => {
-            if(item?.index === invoiceData?.index){
-                return {
-                    ...item,
-                    ...invoiceData
+        // console.log("@#@#@# INVOICE DATA: ", invoiceData);
+        setInvoiceItems({
+            ...invoiceItems,
+            Items: invoiceItems.Items.map((item) => {
+                console.log("**** INVOICE ITEMS: ", typeof item?.index, typeof invoiceData?.index);
+                if(item?.index === invoiceData?.index){
+                    return invoiceData;
                 }
-            }
-            return item;
-        });
-        setInvoiceItems((oldData) => ({
-            ...oldData,
-            Items: updateInvoiceItems
-        }))
+                return item;
+            }),
+        })
+        // setInvoiceItems({
+        //     ...invoiceItems,
+        //     Items: []
+        // })
+        // setTimeout(() => {
+        //     setInvoiceItems({
+        //         ...invoiceItems,
+        //         Items: invoiceItems.Items.map((item) => {
+        //             console.log("**** INVOICE ITEMS: ", typeof item?.index, typeof invoiceData?.index);
+        //             if(item?.index === invoiceData?.index){
+        //                 return invoiceData;
+        //             }
+        //             return item;
+        //         }),
+        //     })
+        // }, 500);
         setSecondOpen(false)
     }
 
@@ -281,49 +293,86 @@ export default function Bookings() {
         }) 
         setInvoiceItems({
             ...invoiceItems,
-            Items: oldItems
-        });
+            Items: []
+        })
+        setTimeout(() => {
+            setInvoiceItems({
+                ...invoiceItems,
+                Items: oldItems
+            });
+        }, 500);
         setSecondOpen(false)
     }
 
-    const setInvoiceLock = (row, index) => {
+    const setInvoiceLock = (row) => {
+        console.log("@@@ LOCK: ", row?.index);
         row.lock = true;
-        invoiceItems.Items[index] = row
+        invoiceItems.Items[row?.index] = row
         let invoiceItemsClone = { ...invoiceItems }
         // setInvoiceItems({})
-        setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
-        }, 500);
+        setInvoiceItems(invoiceItemsClone);
+        // const updateItems = invoiceItems?.Items?.map((item) => {
+        //     if(item?.index === row?.index){
+        //         return {
+        //             ...item,
+        //             lock: true
+        //         }
+        //     }
+        //     return item;
+        // })
+        // setTimeout(() => {
+        //     setInvoiceItems({
+        //         ...invoiceItems,
+        //         Items: updateItems
+        //     })
+        // }, 500);
     }
 
-    const deleteInvoiceData = () => {
-        let {row, index} = deleteSPId;
-        const updateInvoiceItems = invoiceItems.Items.filter((item) => (item?.index !== row?.index));
-        setInvoiceItems({
-            ...invoiceItems,
-            Items: updateInvoiceItems
-        });
-        setTimeout(() => {
-            setDeleteSpOpen(false)
-        }, 10);
-    }
-
-    const setInvoiceUnlock = (row, index) => {
+    const setInvoiceUnlock = (row) => {
         row.lock = false;
-        invoiceItems.Items[index] = row
+        invoiceItems.Items[row?.index] = row
         let invoiceItemsClone = { ...invoiceItems }
         // setInvoiceItems({})
         setInvoiceItems(invoiceItemsClone);
     }
 
+    const deleteInvoiceData = () => {
+        let { row } = deleteSPId;
+        let updateInvoiceItems = invoiceItems.Items.filter((item) => (item?.index !== row?.index));
+        updateInvoiceItems = updateInvoiceItems.map((item, index) => {
+            return {
+                ...item,
+                index
+            }
+        })
+        setInvoiceItems({
+            ...invoiceItems,
+            Items: []
+        })
+        setTimeout(() => {
+            setInvoiceItems({
+                ...invoiceItems,
+                Items: updateInvoiceItems
+            });
+        }, 500);
+        setTimeout(() => {
+            setDeleteSpOpen(false)
+        }, 10);
+    }
+
     const markCompleteCurrentInvoice = async () => {
-        console.log("@@@@ API: ", invoiceItems);
+        const items = invoiceItems?.Items?.map((item) => {
+            delete item?.lock;
+            delete item?.index;
+            return item;
+        })
+        // console.log("@@@@ API: ", items);
         try{
             const response = await markCompleteInvoice(invoiceItems.id, {
                 "CustomerId": invoiceItems.CustomerId,
                 "InvoiceDate": invoiceItems.InvoiceDate,
                 "InvoiceId": invoiceItems.InvoiceId,
-                "Items": invoiceItems.Items,
+                "Items": items,
                 "SubTotal": invoiceItems.SubTotal,
                 "isDelivered": true
             })

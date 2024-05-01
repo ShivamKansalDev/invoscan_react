@@ -110,9 +110,9 @@ const BookingModal = ({
                                                     readOnly={invoiceItems?.isDelivered}
                                                     selected={invoiceItems.InvoiceDate}
                                                     className="form-control"
-                                                    onChange={(date) => 
-                                                        setInvoiceItems({...invoiceItems, InvoiceDate})
-                                                    }
+                                                    onChange={(date) => {
+                                                        setInvoiceItems({...invoiceItems, InvoiceDate: date})
+                                                    }}
                                                 />
                                             </div>
                                             <div className="mb-3 col-md-6">

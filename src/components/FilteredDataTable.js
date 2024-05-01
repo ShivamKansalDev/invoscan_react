@@ -147,11 +147,11 @@ function FilteredDataTable({
     return (
         <DataTable
             {...dataTableProps}
-            paginationResetDefaultPage={resetPaginationToggle} // optionally, a hook to reset pagination to page 1
+            // paginationResetDefaultPage={resetPaginationToggle} // optionally, a hook to reset pagination to page 1
             subHeader 
             subHeaderComponent={subHeaderComponentMemo} 
             subHeaderAlign={"left"}
-            persistTableHead
+            // persistTableHead
         />
     )
 }
