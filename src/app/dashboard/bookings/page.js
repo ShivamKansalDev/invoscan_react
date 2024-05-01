@@ -116,7 +116,7 @@ export default function Bookings() {
             cell: row => (
                 <div className="grid-flex items-center">
                     <div style={{ width: '100px', textAlign: 'center' }} className="form-control">{row.PackSize}</div>
-                    <b className="delivery-text" style={{ paddingLeft: '20px' }}>{row.Description}</b>
+                    <b className="delivery-text" style={{ paddingLeft: '20px' }}>{row?.Description}</b>
                 </div>
             )
         },
@@ -124,7 +124,7 @@ export default function Bookings() {
             name: 'Quantity',
             cell: row => (
                 <div>
-                    <input type="text" className="form-control" value={row.Quantity} readOnly />
+                    <input type="text" className="form-control" value={row?.Quantity} readOnly />
                 </div>
             )
         },
@@ -132,7 +132,7 @@ export default function Bookings() {
             name: 'Price/unit',
             cell: row => (
                 <div>
-                    <input type="text" className="form-control" value={"£" + row.Amount} readOnly />
+                    <input type="text" className="form-control" value={"£" + row?.Amount} readOnly />
                 </div>
             )
         },
@@ -140,7 +140,7 @@ export default function Bookings() {
             name: 'Credit packs',
             cell: row => (
                 <div>
-                    <input type="text" className="form-control" value={row.QuantityForReport} readOnly />
+                    <input type="text" className="form-control" value={row?.QuantityForReport} readOnly />
                 </div>
             )
         },
@@ -149,7 +149,7 @@ export default function Bookings() {
             width: "15%",
             cell: row => (
                 <div>
-                    <input type="text" className="form-control" value={row.Reason} readOnly />
+                    <input type="text" className="form-control" value={row?.Reason} readOnly />
                 </div>
             )
         },
@@ -253,8 +253,15 @@ export default function Bookings() {
     }
  
     const saveInvoiceItems = () => {
-        let updateInvoiceItems = invoiceItems.Items.map((item) => item);
-        updateInvoiceItems[invoiceItemIndex] = invoiceData;
+        let updateInvoiceItems = invoiceItems.Items.map((item) => {
+            if(item?.index === invoiceData?.index){
+                return {
+                    ...item,
+                    ...invoiceData
+                }
+            }
+            return item;
+        });
         setInvoiceItems((oldData) => ({
             ...oldData,
             Items: updateInvoiceItems
@@ -413,6 +420,15 @@ export default function Bookings() {
     };
     const onCloseSecondModal = () => {
         setSecondOpen(false);
+        setInvoiceData({
+            PackSize: '',
+            Description: '',
+            Quantity: '',
+            QuantityForReport: '',
+            Amount: '',
+            Reason: '',
+            UnitPrice: ''
+        })
     };
     const onCloseSupplierModal = () => { 
         setConfirmOpen(true);
@@ -566,71 +582,72 @@ export default function Bookings() {
                 setActionButtonType={setActionButtonType}
                 showInvoiceData={showInvoiceData}
             />
-            <Modal open={secondOpen} onClose={onCloseSecondModal} center>
-                <div className="mb-4">
-                    <small>Pack Size:- {invoiceData.PackSize}</small>
-                    <h5 className="card-header">{invoiceData.Description}</h5>
-                    <div className="card-body">
-                        <div className="row">
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="Description" className="form-label">Description</label>
-                                <input className="form-control" type="text" id="Description" name="Description" onChange={(e) => { setInvoiceData({ ...invoiceData, Description: e.target.value }) }} value={invoiceData.Description} />
+            {(secondOpen) && (
+                <Modal open={secondOpen} onClose={onCloseSecondModal} center>
+                    <div className="mb-4">
+                        <small>Pack Size:- {invoiceData?.PackSize || ""}</small>
+                        <h5 className="card-header">{invoiceData?.Description  || ""}</h5>
+                        <div className="card-body">
+                            <div className="row">
+                                <div className="mb-3 col-md-6">
+                                    <label htmlFor="Description" className="form-label">Description</label>
+                                    <input className="form-control" type="text" id="Description" name="Description" onChange={(e) => { setInvoiceData({ ...invoiceData, Description: e.target.value }) }} value={invoiceData?.Description  || ""} />
+                                </div>
+                                <div className="mb-3 col-md-6">
+                                    <label htmlFor="PackSize" className="form-label">Pack Size</label>
+                                    <input className="form-control" type="text" id="PackSize" name="PackSize" onChange={(e) => { setInvoiceData({ ...invoiceData, PackSize: e.target.value }) }} value={invoiceData?.PackSize  || ""} />
+                                </div>
                             </div>
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="PackSize" className="form-label">Pack Size</label>
-                                <input className="form-control" type="text" id="PackSize" name="PackSize" onChange={(e) => { setInvoiceData({ ...invoiceData, PackSize: e.target.value }) }} value={invoiceData.PackSize} />
-                            </div>
-                        </div>
-                        <div className="row">
-
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="Quantity" className="form-label">Quantity</label>
-                                <input className="form-control" type="text" id="Quantity" name="Quantity" onChange={(e) => { setInvoiceData({ ...invoiceData, Quantity: e.target.value, Amount: (parseInt(e.target.value) * parseFloat(invoiceData.UnitPrice)) }); }} value={invoiceData.Quantity} />
-                            </div>
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="QuantityForReport" className="form-label">Credit packs</label>
-                                <input className="form-control" type="text" name="QuantityForReport" id="QuantityForReport" onChange={(e) => { setInvoiceData({ ...invoiceData, QuantityForReport: e.target.value }) }} value={invoiceData.QuantityForReport} />
-                            </div>
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="UnitPrice" className="form-label">Price/unit</label>
-                                <input className="form-control" type="text" id="UnitPrice" name="UnitPrice" onChange={(e) => { setInvoiceData({ ...invoiceData, UnitPrice: e.target.value, Amount:  (parseInt(invoiceData.Quantity) * parseFloat(e.target.value)) }); }} value={invoiceData.UnitPrice} />
-                            </div>
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="Amount" className="form-label">Total Price</label>
-                                <input type="text" className="form-control" id="Amount" name="Amount" readOnly value={"£" + invoiceData.Amount} />
-                            </div>
-                            {
-                                invoiceData.QuantityForReport > 0 ?
-                                    <div className="mb-3 col-md-6">
-                                        <label htmlFor="Reason" className="form-label">Reason</label>
-                                        <select className="form-control" name="Reason" onChange={(e) => { setInvoiceData({ ...invoiceData, Reason: e.target.value }) }} value={invoiceData.Reason}>
-                                            <option value="">Drug Reasons</option>
-                                            <option value="Damaged">Damaged</option>
-                                            <option value="Expired">Expired</option>
-                                            <option value="Wrong Product">Wrong Product</option>
-                                            <option value="Wrong Quantity">Wrong Quantity</option>
-                                            <option value="Wrong Price">Wrong Price</option>
-                                            <option value="Wrong Discount">Wrong Discount</option>
-                                            <option value="Wrong Tax">Wrong Tax</option>
-                                            <option value="Wrong Unit">Wrong Unit</option>
-                                            <option value="Wrong Content">Wrong Content</option>
-                                            <option value="Wrong Product Code">Wrong Product Code</option>
-                                        </select>
-                                    </div>
-                                    : null
-                            }
-                            <div className="mt-2 mb-0">
-                                <button type="button" onClick={onCloseSecondModal} className="btn btn-default me-2">Cancel</button>
+                            <div className="row">
+                                <div className="mb-3 col-md-6">
+                                    <label htmlFor="Quantity" className="form-label">Quantity</label>
+                                    <input className="form-control" type="text" id="Quantity" name="Quantity" onChange={(e) => { setInvoiceData({ ...invoiceData, Quantity: e.target.value, Amount: (parseInt(e.target.value) * parseFloat(invoiceData?.UnitPrice)) }); }} value={invoiceData?.Quantity || ""} />
+                                </div>
+                                <div className="mb-3 col-md-6">
+                                    <label htmlFor="QuantityForReport" className="form-label">Credit packs</label>
+                                    <input className="form-control" type="text" name="QuantityForReport" id="QuantityForReport" onChange={(e) => { setInvoiceData({ ...invoiceData, QuantityForReport: e.target.value }) }} value={invoiceData?.QuantityForReport || ""} />
+                                </div>
+                                <div className="mb-3 col-md-6">
+                                    <label htmlFor="UnitPrice" className="form-label">Price/unit</label>
+                                    <input className="form-control" type="text" id="UnitPrice" name="UnitPrice" onChange={(e) => { setInvoiceData({ ...invoiceData, UnitPrice: e.target.value, Amount:  (parseInt(invoiceData?.Quantity) * parseFloat(e.target.value)) }); }} value={invoiceData?.UnitPrice || ""} />
+                                </div>
+                                <div className="mb-3 col-md-6">
+                                    <label htmlFor="Amount" className="form-label">Total Price</label>
+                                    <input type="text" className="form-control" id="Amount" name="Amount" readOnly value={"£" + invoiceData?.Amount || ""} />
+                                </div>
                                 {
-                                    actionButtonType === 'new' ?
-                                        <button type="button" onClick={saveNewInvoiceItems} className="btn btn-green me-2">Save</button>
-                                        : <button type="button" onClick={saveInvoiceItems} className="btn btn-green me-2">Save</button>
+                                    invoiceData?.QuantityForReport > 0 ?
+                                        <div className="mb-3 col-md-6">
+                                            <label htmlFor="Reason" className="form-label">Reason</label>
+                                            <select className="form-control" name="Reason" onChange={(e) => { setInvoiceData({ ...invoiceData, Reason: e.target.value }) }} value={invoiceData?.Reason || ""}>
+                                                <option value="">Drug Reasons</option>
+                                                <option value="Damaged">Damaged</option>
+                                                <option value="Expired">Expired</option>
+                                                <option value="Wrong Product">Wrong Product</option>
+                                                <option value="Wrong Quantity">Wrong Quantity</option>
+                                                <option value="Wrong Price">Wrong Price</option>
+                                                <option value="Wrong Discount">Wrong Discount</option>
+                                                <option value="Wrong Tax">Wrong Tax</option>
+                                                <option value="Wrong Unit">Wrong Unit</option>
+                                                <option value="Wrong Content">Wrong Content</option>
+                                                <option value="Wrong Product Code">Wrong Product Code</option>
+                                            </select>
+                                        </div>
+                                        : null
                                 }
+                                <div className="mt-2 mb-0">
+                                    <button type="button" onClick={onCloseSecondModal} className="btn btn-default me-2">Cancel</button>
+                                    {
+                                        actionButtonType === 'new' ?
+                                            <button type="button" onClick={saveNewInvoiceItems} className="btn btn-green me-2">Save</button>
+                                            : <button type="button" onClick={saveInvoiceItems} className="btn btn-green me-2">Update</button>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </Modal >
+                </Modal >
+            )}
             <Modal open={supplierOpen} onClose={onCloseSupplierModal} classNames={{ modal: 'supplier-modal' }} center>
                 {
                     !nextAction ?
