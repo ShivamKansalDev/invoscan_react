@@ -1,22 +1,50 @@
-import React from "react";
+import React, { useState } from "react";
+import _ from "lodash";
 import DataTable from "react-data-table-component";
 
 import { Search } from "@/app/admin/adminComponents/Search";
+import useDebounce from "@/hooks/useDebounce";
+import { master_csv } from "@/api/user";
 
 function FilteredDataTable({
     inputProps = {},
-    tableColumns = []
+    tableColumns = [],
+    type = null,
 }){
-    const [filterText, setFilterText] = React.useState('');
-    const [resetPaginationToggle, setResetPaginationToggle] = React.useState(false);
-    const [filteredData, setFilteredData] = React.useState([]);
+    const [filterText, setFilterText] = useState('');
+    const [resetPaginationToggle, setResetPaginationToggle] = useState(false);
+    const [filteredData, setFilteredData] = useState([]);
+    const [data, setData] = useState([]);
+
+    const debouncedSearch = useDebounce(filterText, 1000);
 
     React.useEffect(() => {
-        if(filterText){
-            const result = searchDetails();
-            setFilteredData(result)
+        if(debouncedSearch){
+            if(type === "masterCSV"){
+                fetchData();
+            }else{
+                const result = searchDetails();
+                setFilteredData(result)
+            }
+        }else{
+            setData([]);
         }
-    }, [filterText]);
+    }, [debouncedSearch]);
+
+    const fetchData = React.useCallback(async() => {
+        if(debouncedSearch){
+            try {
+                const response = await master_csv(debouncedSearch);
+                const data = response.data;
+                setData(data);
+            } catch (error) {
+                console.log('Error fetching data:', error);
+                setData([]);
+            } finally {
+
+            }
+        }
+    }, [debouncedSearch])
 
     function searchDetails(){
         const data = inputProps?.data;
@@ -32,35 +60,55 @@ function FilteredDataTable({
                 })
             });
             const filterIndex = itemNames.findIndex((subItem) => {
-                // console.log("$$$ ITEM NAMES: ", subItem)    
+                let subItemValue = "";
                 if((typeof item[subItem] === "object") && !!item[subItem] && item[subItem] !== "null"){
-                    return tableColumns.some((nestedItem) => {
-                        if(nestedItem?.includes(".")){
-                            const splitNestedItem = nestedItem.split(".");
-                            if(splitNestedItem[0] === subItem){}
-                            let current = Object.assign({}, item);
-                            for (let i = 0; i < splitNestedItem?.length - 1; i++) {
-                                current = current[splitNestedItem[i]];
-                            }
-                            const subItemValue = current[splitNestedItem[splitNestedItem?.length - 1]];
-                            const searchSubItem = subItemValue.substring(0, filterText.length)
-                            console.log("*** SOME: ", searchSubItem.toLowerCase(), " === ", filterText.toLowerCase(), " ---> ", (searchSubItem.toLowerCase() === filterText.toLowerCase()))    
-                            return searchSubItem.toLowerCase() === filterText.toLowerCase()
-                        }
-                        return false;
+                    const searchTableColumn = tableColumns.find((column) => {
+                        let columnValue = `${_.get(item, column)}`?.toLowerCase();
+                        // console.log("### COLUMN SEARCH: ", columnValue);
+                        columnValue = columnValue?.substring(0, filterText.length);
+                        return columnValue === filterText.toLowerCase()
                     })
+                    subItemValue = (searchTableColumn)? `${_.get(item, searchTableColumn)}` : "";
                 }else{
-                    const subItemValue = `${item[subItem]}`.toLowerCase();
-                    const searchSubItem = subItemValue.substring(0, filterText.length)
-                    return (searchSubItem === filterText.toLowerCase());
+                    subItemValue = `${item[subItem]}`;
                 }
+                if(subItemValue?.includes("£")){
+                    const splitValue = subItemValue?.split("£");
+                    subItemValue = splitValue[splitValue.length - 1];
+                    subItemValue = subItemValue?.toLowerCase()?.trim();
+                }
+                const searchSubItem = subItemValue?.substring(0, filterText.length)?.toLowerCase();
+                console.log("$$$ subItemValue: ", searchSubItem, " === ", filterText, searchSubItem === filterText.toLowerCase())
+                return (searchSubItem === filterText.toLowerCase());
             })
             if(filterIndex > -1){
                 const keyName = itemNames[filterIndex];
-                if((item[keyName] !== null) && (item[keyName] !== "null")){
-                    name = `${item[keyName]}`;
+                if((typeof item[keyName] === "object") && !!item[keyName] && item[keyName] !== "null"){
+                    // console.log("^^^ FILTER INDEX: ", filterIndex, item[keyName])
+                    const searchTableColumn = tableColumns.find((column) => {
+                        let columnValue = `${_.get(item, column)}`?.toLowerCase();
+                        // console.log("### COLUMN SEARCH: ", columnValue);
+                        if(columnValue?.includes("£")){
+                            const splitValue = columnValue?.split("£");
+                            columnValue = splitValue[splitValue.length - 1];
+                            columnValue = columnValue?.toLowerCase()?.trim()
+                        }
+                        columnValue = columnValue?.substring(0, filterText.length)?.toLowerCase();
+                        const result = columnValue === filterText.toLowerCase();
+                        if(result){
+                            name = columnValue;
+                        }
+                        return result;
+                    })                    
+                }else if((item[keyName] !== null) && (item[keyName] !== "null")){
+                    if(item[keyName]?.includes("£")){
+                        const splitValue = item[keyName]?.split("£");
+                        name = splitValue[splitValue.length - 1];
+                        name = name?.trim();
+                    }else{
+                        name = `${item[keyName]}`;
+                    }
                 }
-                console.log("^^^ FILTER INDEX: ", filterIndex, item[keyName])
             }
             if(!name){
                 return false;
@@ -91,7 +139,7 @@ function FilteredDataTable({
 
     let dataTableProps = {
         ...inputProps,
-        data: (filterText)? filteredData : inputProps?.data,
+        data: (filterText)? (type === "masterCSV")? data : filteredData : inputProps?.data,
         paginationTotalRows: (filterText)? filteredData.length : (inputProps?.data?.length || "0")
     }
       

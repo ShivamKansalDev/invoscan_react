@@ -14,6 +14,7 @@ import { useSelector } from "react-redux";
 import { getSupplierList } from "@/api/invoices";
 import { toast } from "react-toastify";
 import BackArrow from "@/components/BackArrow";
+import { FilteredDataTable } from "@/components/FilteredDataTable";
 
 export default function Statements() {
     const {selectedCompany} = useSelector((state)=>state.user);
@@ -87,6 +88,7 @@ export default function Statements() {
             )
         },
     ];
+    let invoiceTableColumns = ["invoiceNumber", "invoiceDate", "amount"];
     let invoiceItemsColumns = [
         {
             name: 'Invoice Number',
@@ -357,17 +359,20 @@ export default function Statements() {
                 </div>
             </div>
             <Modal open={open} onClose={onCloseModal} center>
-                <DataTable
-                    title={`${(invoiceItem.row.CustomerName ? invoiceItem.row.CustomerName : 'NA')} (${totalItemRows})`}
-                    columns={invoiceItemsColumns}
-                    data={invoiceItem.Items}
-                    progressPending={loading}
-                    fixedHeader
-                    pagination
-                    paginationTotalRows={totalItemRows}
-                    customStyles={customStyles}
-                    highlightOnHover
-                    pointerOnHover
+                <FilteredDataTable
+                    tableColumns={invoiceTableColumns}
+                    inputProps={{
+                        title: `${(invoiceItem.row.CustomerName ? invoiceItem.row.CustomerName : 'NA')} (${totalItemRows})`,
+                        columns: invoiceItemsColumns,
+                        data: invoiceItem.Items,
+                        progressPending: loading,
+                        fixedHeader: true,
+                        pagination: true,
+                        paginationTotalRows: totalItemRows,
+                        customStyles: customStyles,
+                        highlightOnHover: true,
+                        pointerOnHover: true
+                    }}
                 />
             </Modal>
             <Modal open={secondOpen} onClose={onCloseSecondModal} center>

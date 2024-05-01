@@ -71,9 +71,21 @@ export default function Bookings() {
         },
         {
             name: 'Sub Total',
-            cell: row => (
-                <div className="text-light-green">£{parseFloat(row?.SubTotal?.replace(/[^0-9\.]+/g, ""))?.toFixed(2)}</div>
-            )
+            cell: row => {
+                const checkPound = row?.SubTotal?.includes("£");
+                let value = "";
+                let split = [];
+                if(checkPound){
+                    split = row?.SubTotal?.split("£");
+                    value = parseFloat(row?.SubTotal?.replace(/[^0-9\.]+/g, ""))?.toFixed(2);
+                    value = Array.isArray(split)? `£${split[split.length - 1]}` : value;
+                }else{
+                    value = `£${parseFloat(row?.SubTotal?.replace(/[^0-9\.]+/g, ""))?.toFixed(2)}`
+                }
+                return(
+                    <div className="text-light-green">{value}</div>
+                )
+            }
         },
         {
             name: 'Actions',
