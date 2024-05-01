@@ -1,9 +1,7 @@
 'use client';
-import DataTable from "react-data-table-component";
 import React, { useState, useEffect } from "react";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
-import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 
 import FeatherIcon from 'feather-icons-react';
@@ -47,6 +45,7 @@ export default function Statements() {
     const [deleteId, setDeleteId] = useState(null)
     const [statementId, setStatementId] = useState(null)
 
+    let statementTableColumns = ["supplier.name", "CustomerName", "InvoiceDate", "CustomerAddress", "TotalTax"]
     let columns = [
         {
             name: 'Vendor Name',
@@ -344,17 +343,20 @@ export default function Statements() {
                     </div>
                 </div>
                 <div className="card-body">
-                    <DataTable
-                        title="Statements"
-                        columns={columns}
-                        data={data}
-                        progressPending={loading}
-                        fixedHeader
-                        pagination
-                        paginationTotalRows={totalRows}
-                        customStyles={customStyles}
-                        highlightOnHover
-                        pointerOnHover
+                    <FilteredDataTable
+                        tableColumns={statementTableColumns}
+                        inputProps={{
+                            title: "Statements",
+                            columns: columns,
+                            data: data,
+                            progressPending: loading,
+                            fixedHeader: true,
+                            pagination: true,
+                            paginationTotalRows: totalRows,
+                            customStyles: customStyles,
+                            highlightOnHover: true,
+                            pointerOnHover: true
+                        }}
                     />
                 </div>
             </div>

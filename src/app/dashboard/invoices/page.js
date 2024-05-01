@@ -165,7 +165,7 @@ export default function Invoices() {
                             {
                                 row.lock !== true ?
                                     <button
-                                        onClick={(e) => { setspDeleteId({row, index}); setDeleteSpOpen(true); }}
+                                        onClick={(e) => { setspDeleteId({row, index}); }}
                                     >
                                         <i className='bx bx-trash menu-icon menu-icon-red'></i>
                                     </button>
@@ -218,16 +218,13 @@ export default function Invoices() {
         },
     };
 
+    useEffect(() => {
+        if(deleteSPId){
+            setDeleteSpOpen(true);
+        }
+    }, [deleteSPId])
+
     const showRowData = (row, key) => {
-        // if (row.invoiceUrl && row.invoiceUrl.length > 0 && row.invoiceUrl[0].type == 'pdf') {
-        //     const pdfUrl = row.invoiceUrl[0].url;
-        //     const link = document.createElement("a");
-        //     link.href = pdfUrl;
-        //     link.download = "invoice.pdf";
-        //     document.body.appendChild(link);
-        //     link.click();
-        //     document.body.removeChild(link);
-        // }
         let rowData = Object.assign({}, row);
         const items = rowData?.Items;
         if(Array.isArray(items)){
@@ -244,20 +241,26 @@ export default function Invoices() {
 
     const showInvoiceData = (row, key) => {
         let rowData = { ...row };
+        console.log("@@@ INDEX: ", key);
         setInvoiceData(rowData)
         setInvoiceItemIndex(key)
         setSecondOpen(true);
     }
 
     const saveInvoiceItems = () => {
-        invoiceItems.Items[invoiceItemIndex] = invoiceData
-        let invoiceItemsClone = { ...invoiceItems }
-        setInvoiceItems({
-            Items: []
-        })
-        setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
-        }, 500);
+        let updateItems = invoiceItems.Items.map((item, index) => {
+            if(invoiceItemIndex == index){
+                return {
+                    ...item,
+                    ...invoiceData
+                }
+            }
+            return item;
+        });
+        setInvoiceItems((oldItem) => ({
+            ...oldItem,
+            Items: updateItems
+        }))
         setSecondOpen(false)
     }
 
@@ -284,15 +287,14 @@ export default function Invoices() {
     }
 
     const deleteInvoiceData = () => {
-        let {row, index} = deleteSPId;
-        const updateInvoiceItems = invoiceItems.Items.filter((item) => (item?.index !== row?.index));
-        setInvoiceItems({
-            ...invoiceItems,
-            Items: updateInvoiceItems
-        });
-        setTimeout(() => {
-            setDeleteSpOpen(false)
-        }, 10);
+        let { row } = deleteSPId;
+        let updateInvoiceItems = invoiceItems.Items.filter((item) => {
+            console.log("@@@ DELETE PRESSED: \n\n", item?.index, "!==", row?.index, item?.index !== row?.index)
+            return (item?.index !== row?.index)
+        })
+        updateInvoiceItems = updateInvoiceItems.map((item, itemIndex) => ({...item, index: itemIndex}))
+        setInvoiceItems(Object.assign(invoiceItems, {Items: updateInvoiceItems}));
+        setDeleteSpOpen(false);
     }
 
     const setInvoiceLock = (row, index) => {
@@ -351,7 +353,7 @@ export default function Invoices() {
 
     const fetchData = async (currentTab) => {
         let companyDetails = selectedCompany;
-        console.log("@@@@ INVOICES: ", companyDetails);
+        // console.log("@@@@ INVOICES: ", companyDetails);
         if(!companyDetails?.id) {
             setShowCompanyModal(true);
             return;
@@ -386,6 +388,12 @@ export default function Invoices() {
             fetchData('Pending');
         }
     }, []);
+
+    useEffect(() => {
+        if(invoiceItems){
+            console.log("@@@ UPDATED ITEM: ", invoiceItems.Items)
+        }
+    }, [invoiceItems])
 
     let lockedItems = invoiceItems && invoiceItems.Items.filter((Item) => Item.lock === true)
 
@@ -546,9 +554,9 @@ export default function Invoices() {
                 <div className=" mb-4">
                     <div className="card-body mt-3">
                         <h2 className="card-header">Wait!</h2>
-                        <small>Are You Sure, You want to delete ?</small>
+                        <small>Are You Sure, You want to delete this item?</small>
                         <div className="d-flex">
-                            <button type="button" onClick={(e) => { onClosespDeleteModal(); setspDeleteId({}) }} className={`btn btn-green-borded col-md-6`}>Cancel</button>&nbsp;
+                            <button type="button" onClick={(e) => { onClosespDeleteModal(); setspDeleteId(null) }} className={`btn btn-green-borded col-md-6`}>Cancel</button>&nbsp;
                             <button type="button" onClick={(e) => { deleteInvoiceData(); }} className={`btn btn-green col-md-6`}>Delete</button>
                         </div>
                     </div>

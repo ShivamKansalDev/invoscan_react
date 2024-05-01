@@ -493,7 +493,7 @@ export default function Analytics() {
                                         <span className="">Total Movement: {invoiceItems.row ? invoiceItems.row.totalVolume : ''}</span>
                                         <span className="">Total spent: {invoiceItems.row ? invoiceItems.row.totalSpent : ''}</span>
                                         <span className="">Cheapest Supplier: {invoiceItems.row ? invoiceItems.row.cheapestSupplier : ''}</span>
-                                        <span className="">Retail Margin: {invoiceItems.row ? invoiceItems.row.averageRetailPriceMargin : ''}</span>
+                                        <span className="">Retail Margin: {invoiceItems.row ? invoiceItems.row.averageRetailPriceMargin.toFixed(2) : ''}</span>
                                         <span className="">DT Price: {invoiceItems.row ? invoiceItems.row.csvDtPrice : ''}</span>
                                     </div>
                                 </div>
@@ -575,7 +575,7 @@ export default function Analytics() {
                         currentTab === 'Invoice' ?
                             <div className="card-body">
                                 <FilteredDataTable
-                                    tableColumns={invoiceItemColumns}
+                                    tableColumns={invoiceTableColumns}
                                     inputProps={{
                                         title: "",
                                         columns: invoiceItemColumns,

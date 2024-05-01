@@ -75,7 +75,7 @@ function FilteredDataTable({
                 if(subItemValue?.includes("£")){
                     const splitValue = subItemValue?.split("£");
                     subItemValue = splitValue[splitValue.length - 1];
-                    subItemValue = subItemValue?.toLowerCase()?.trim();
+                    subItemValue = String(subItemValue)?.toLowerCase()?.trim();
                 }
                 const searchSubItem = subItemValue?.substring(0, filterText.length)?.toLowerCase();
                 console.log("$$$ subItemValue: ", searchSubItem, " === ", filterText, searchSubItem === filterText.toLowerCase())
@@ -101,12 +101,13 @@ function FilteredDataTable({
                         return result;
                     })                    
                 }else if((item[keyName] !== null) && (item[keyName] !== "null")){
-                    if(item[keyName]?.includes("£")){
-                        const splitValue = item[keyName]?.split("£");
+                    const itemKeyName = String(item[keyName]);
+                    if(itemKeyName?.includes("£")){
+                        const splitValue = itemKeyName?.split("£");
                         name = splitValue[splitValue.length - 1];
                         name = name?.trim();
                     }else{
-                        name = `${item[keyName]}`;
+                        name = `${itemKeyName}`;
                     }
                 }
             }

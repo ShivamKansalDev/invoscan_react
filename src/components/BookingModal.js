@@ -19,7 +19,7 @@ const BookingModal = ({
     setActionButtonType = () => {},
     showInvoiceData = () => {},
 }) => {
-    console.log("@@@@@!!!!!",invoiceItems)
+    // console.log("@@@@@!!!!!",invoiceItems)
     let lockedItems = invoiceItems && invoiceItems?.Items.filter((Item) => Item?.lock === true)
 
     let productTableColumns = ["Description", "Quantity", "Amount", "QuantityForReport", "Reason"];
@@ -68,10 +68,6 @@ const BookingModal = ({
             )
         }
     ];
-
-    if(invoiceItems.isDelivered === true) {
-        invoiceItemsColumns = newInvoiceItemsColumns
-    }
     
     return (
         <Modal open={open} classNames={{
@@ -133,7 +129,7 @@ const BookingModal = ({
                                             tableColumns={productTableColumns}
                                             inputProps={{
                                                 title: `Delivery products (${invoiceItems.Items ? invoiceItems.Items.length : 0})`,
-                                                columns: invoiceItemsColumns,
+                                                columns: (invoiceItems.isDelivered)? newInvoiceItemsColumns : invoiceItemsColumns,
                                                 data: invoiceItems.Items,
                                                 progressPending: loading,
                                                 fixedHeader: true,
