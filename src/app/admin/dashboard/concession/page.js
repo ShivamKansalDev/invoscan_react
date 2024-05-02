@@ -18,12 +18,12 @@ const Concession = ()=>{
 
     let columns = [
         {
-            name: 'Pack Size',
-            selector: row => row.packSize,
-        },
-        {
             name: 'Drug',
             selector: row => row.drug,
+        },
+        {
+            name: 'Pack Size',
+            selector: row => row.packSize,
         },
         {
             name: 'Concession Price',
@@ -122,7 +122,6 @@ const Concession = ()=>{
     return(
         <>
             <div className="card mb-4">
-                Concession
                 <div className="card-body my-0">
                     <div className="mb-3 col-md-12 file-upload-wrapper"
                         onDragOver={handleDragOver}

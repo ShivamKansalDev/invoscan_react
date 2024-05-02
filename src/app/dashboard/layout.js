@@ -62,7 +62,7 @@ export default function RootLayout({ children }) {
     <div className="layout-wrapper layout-content-navbar">
       <div className="layout-container p-3">
         <div className='layout-left'>
-            <aside id="layout-menu" className="layout-menu menu-vertical menu bg-menu-theme rounded-[10px]">
+            <aside id="layout-menu" className="layout-menu menu-vertical menu bg-menu-theme rounded-[10px]" style={{ max: '550px', overflow: 'hidden' }}>
                 <div className="app-brand demo">
                   <Link href="/dashboard" className="app-brand-link">
                     <span className="app-brand-logo dashboard">
@@ -77,7 +77,7 @@ export default function RootLayout({ children }) {
 
                 <div className="menu-inner-shadow"></div>
 
-                <ul className="menu-inner py-1">
+                <ul className="menu-inner py-1 overflow-y-scroll h-32" style={{ maxWidth: '100%' ,overflowX: 'hidden' }}>
 
                   <li className={(pathname == '/dashboard/bookings' ? 'active' : '') + ' menu-item'}>
                     <Link href={'/dashboard/bookings'} className="menu-link">
@@ -111,6 +111,20 @@ export default function RootLayout({ children }) {
                     <Link href={'/dashboard/analytics'} className="menu-link">
                       <FeatherIcon icon="codesandbox" className='menu-icon' />
                       <div data-i18n="Dashboards">Analytics</div>
+                    </Link>
+                  </li>
+
+                  <li className={(pathname == '/dashboard/master_csv' ? 'active' : '') + ' menu-item'}>
+                    <Link href={'/dashboard/master_csv'} className="menu-link">
+                      <FeatherIcon icon="file-text" className='menu-icon' />
+                      <div data-i18n="Dashboards">Master CSV</div>
+                    </Link>
+                  </li>
+
+                  <li className={(pathname == '/dashboard/concession' ? 'active' : '') + ' menu-item'}>
+                    <Link href={'/dashboard/concession'} className="menu-link">
+                      <FeatherIcon icon="percent" className='menu-icon' />
+                      <div data-i18n="Dashboards">Concession</div>
                     </Link>
                   </li>
 
