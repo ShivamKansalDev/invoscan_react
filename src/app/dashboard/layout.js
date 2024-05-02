@@ -114,6 +114,20 @@ export default function RootLayout({ children }) {
                     </Link>
                   </li>
 
+                  <li className={(pathname == '/dashboard/master_csv' ? 'active' : '') + ' menu-item'}>
+                    <Link href={'/dashboard/master_csv'} className="menu-link">
+                      <FeatherIcon icon="file-text" className='menu-icon' />
+                      <div data-i18n="Dashboards">Master CSV</div>
+                    </Link>
+                  </li>
+
+                  <li className={(pathname == '/dashboard/concession' ? 'active' : '') + ' menu-item'}>
+                    <Link href={'/dashboard/concession'} className="menu-link">
+                      <FeatherIcon icon="percent" className='menu-icon' />
+                      <div data-i18n="Dashboards">Concession</div>
+                    </Link>
+                  </li>
+
                   <li className={(pathname == '/dashboard/settings' ? 'active' : '') + ' menu-item'}>
                     <Link href={'/dashboard/settings'} className="menu-link">
                       <FeatherIcon icon="settings" className='menu-icon' />

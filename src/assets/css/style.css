@@ -79,7 +79,8 @@ html, body {
   height: 100vh;
   position: sticky;
   top: 0px;
-  overflow: hidden;
+  /* width: 100%;
+  overflow-y: scroll; */
 }
 
 .react-responsive-modal-root{
@@ -93,3 +94,4 @@ html, body {
   backdrop-filter: blur(4px);
   --tw-backdrop-blur: blur(4px);
 }
+
