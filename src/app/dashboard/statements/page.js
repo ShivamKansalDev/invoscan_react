@@ -13,6 +13,7 @@ import { getSupplierList } from "@/api/invoices";
 import { toast } from "react-toastify";
 import BackArrow from "@/components/BackArrow";
 import { FilteredDataTable } from "@/components/FilteredDataTable";
+import { UploadCSV } from "@/app/admin/adminComponents/UploadCSV";
 
 export default function Statements() {
     const {selectedCompany} = useSelector((state)=>state.user);
@@ -44,6 +45,8 @@ export default function Statements() {
 
     const [deleteId, setDeleteId] = useState(null)
     const [statementId, setStatementId] = useState(null)
+    const [files, setFiles] = useState([]);
+    const [thumbnail, setThumbnail] = useState('');
 
     let statementTableColumns = ["supplier.name", "CustomerName", "InvoiceDate", "CustomerAddress", "TotalTax"]
     let columns = [
@@ -319,10 +322,12 @@ export default function Statements() {
 
     const onCloseSupplierModal = () => {
         setSupplierOpen(false)
-        setSupplier(null)
+        setSupplier(null);
+        setThumbnail('');
+        setFiles([]);
+        setFileName('');
     };
     const onCloseSecondModal = () => setSecondOpen(false);
-    const [files, setFiles] = useState([]);
 
     const onCloseModal = () => setOpen(false);
     const onCloseInvoiceModal = () => setInvoiceOpen(false);
@@ -332,6 +337,36 @@ export default function Statements() {
     useEffect(() => {
         fetchData(1);
     }, []);
+
+    const handleInputChange = (e) => {
+        if (e.target.files.length) {
+            const file = e.target.files[0];
+            setThumbnail(URL.createObjectURL(file));
+            setFileName(file ? file.name: "");
+            setFiles(e.target.files);
+            console.log("@#@#@ ADDED FILES: ", e.target.files);
+        }
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        console.log('handleDragOver');
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        console.log('handleDragOver');
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            setThumbnail(URL.createObjectURL(file));
+            setFileName(file.name);
+            setFiles([file]);
+        }
+    };
 
     return (
         <>
@@ -458,26 +493,16 @@ export default function Statements() {
                             <h2 className="card-header">Add Statement</h2>
                             <small>Upload Statement PDF File.</small>
                             <div className="mt-3"><h6 className="card-header" style={{ color: '#0bc993' }}>Supplier: {selectedSupplier?.name} </h6></div>
-                            <div className="card-body mt-3 py-5">
-                                <div className="mb-3 col-md-12 file-upload-wrapper">
-                                    <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
-                                        <input className="form-control" type="file" id="files" name="files[]" onChange={(e) => { setFiles(e.target.files); setFileName(e.target.files[0]?e.target.files[0].name:'') }} multiple hidden />
-                                        <FeatherIcon icon="upload-cloud" className='menu-icon' />
-                                        <p>Browse File to Upload</p>
-                                        {
-                                            fileName ?
-                                                <a>{fileName}</a>
-                                                : null
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="card-body">
-                                <div className="mt-2">
-                                    <button type="button" onClick={() => { setNextAction(false) }} className="btn btn-green-borded ms-[16px] me-2 w-[9%]"><BackArrow/></button>
-                                    <button type="button" onClick={() => { saveUploadedItem() }} className="btn btn-green me-2 w-[86%]">Confirm</button>
-                                </div>
-                            </div>
+                                <UploadCSV
+                                    handleDragOver={handleDragOver}
+                                    handleDragLeave={handleDragLeave}
+                                    handleDrop={handleDrop}
+                                    handleInputChange={handleInputChange}
+                                    saveUploadedItem={saveUploadedItem}
+                                    fileName = {fileName}
+                                    files = {files}
+                                    title=""
+                                />
                         </div>
                 }
             </Modal>

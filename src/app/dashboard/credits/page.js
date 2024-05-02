@@ -167,7 +167,7 @@ export default function Credits() {
         setPerPage(perPage);
     }
 
-    const si = (currentPage-1) * perPage == 0 ? 0 : (currentPage-1) * perPage + 1;
+    const si = totalRows == 0 ? 0 : (currentPage-1) * perPage + 1;
     const ei = Math.min(currentPage*perPage, totalRows);
 
 

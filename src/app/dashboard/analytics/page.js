@@ -477,7 +477,7 @@ export default function Analytics() {
                 }}
             >
                 <div className="">
-                    <div className="mb-2 bg-white p-1 rounded-md inline-block">
+                    <div className="mb-2 bg-white p-2 rounded-md inline-block">
                         <button type="button" onClick={() => { setCurrentTab('Pricing'); }} className={`me-2 btn ${currentTab === 'Pricing' ? 'btn-green' : 'btn-green-borded'}`}>Pricing Details</button>
                         <button type="button" onClick={() => { setCurrentTab('Invoice'); }} className={`btn ${currentTab === 'Invoice' ? 'btn-green' : 'btn-green-borded'}`}>Invoice Details</button>
                     </div>
@@ -485,16 +485,16 @@ export default function Analytics() {
                         currentTab === 'Pricing' ?
                             <div className="card-body flex justify-start gap-3">
                                 <div className="border w-[25%] border-black flex flex-col rounded-md px-2 bg-white gap-[6px] pt-1">
-                                    <p>{invoiceItems.row ? invoiceItems.row.product : ''}</p>
+                                    <p className="font-bold">{invoiceItems.row ? invoiceItems.row.product : ''}</p>
                                     <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
-                                        <span className="">Average Cost Price: {invoiceItems.row ? invoiceItems.row.averageCostPrice : ''}</span>
-                                        <span className="">Average Retail Price: {invoiceItems.row ? invoiceItems.row.averageRetailPrice : ''}</span>
-                                        <span className="">Price Movement: {invoiceItems.row ? invoiceItems.row.priceMovt : ''}</span>
-                                        <span className="">Total Movement: {invoiceItems.row ? invoiceItems.row.totalVolume : ''}</span>
-                                        <span className="">Total spent: {invoiceItems.row ? invoiceItems.row.totalSpent : ''}</span>
-                                        <span className="">Cheapest Supplier: {invoiceItems.row ? invoiceItems.row.cheapestSupplier : ''}</span>
-                                        <span className="">Retail Margin: {invoiceItems.row ? invoiceItems.row.averageRetailPriceMargin.toFixed(2) : ''}</span>
-                                        <span className="">DT Price: {invoiceItems.row ? invoiceItems.row.csvDtPrice : ''}</span>
+                                        <span className=""><strong>Average Cost Price:</strong> {invoiceItems.row ? invoiceItems.row.averageCostPrice.toFixed(2) : ''}</span>
+                                        <span className=""><strong>Average Retail Price:</strong> {invoiceItems.row ? invoiceItems.row.averageRetailPrice : ''}</span>
+                                        <span className=""><strong>Price Movement:</strong> {invoiceItems.row ? invoiceItems.row.priceMovt : ''}</span>
+                                        <span className=""><strong>Total Movement:</strong> {invoiceItems.row ? invoiceItems.row.totalVolume : ''}</span>
+                                        <span className=""><strong>Total spent:</strong> {invoiceItems.row ? invoiceItems.row.totalSpent.toFixed(2) : ''}</span>
+                                        <span className=""><strong>Cheapest Supplier:</strong> {invoiceItems.row ? invoiceItems.row.cheapestSupplier : ''}</span>
+                                        <span className=""><strong>Retail Margin:</strong> {invoiceItems.row ? invoiceItems.row.averageRetailPriceMargin.toFixed(2) : ''}</span>
+                                        <span className=""><strong>DT Price:</strong> {invoiceItems.row ? invoiceItems.row.csvDtPrice.toFixed(2) : ''}</span>
                                     </div>
                                 </div>
                                 <div className="size-fit border border-black h-96 w-[75%] rounded-md content-center bg-white">
@@ -573,7 +573,7 @@ export default function Analytics() {
                     }
                     {
                         currentTab === 'Invoice' ?
-                            <div className="card-body">
+                            <div className="card-body rounded-md">
                                 <FilteredDataTable
                                     tableColumns={invoiceTableColumns}
                                     inputProps={{
@@ -643,7 +643,7 @@ export default function Analytics() {
                                                     progressPending: loading,
                                                     fixedHeader: true,
                                                     pagination: true,
-                                                    paginationServer: true,
+                                                    paginationPerPage: 10,
                                                     paginationTotalRows: uploadedInvoiceItems.Items ? uploadedInvoiceItems.Items.length : 0,
                                                     customStyles: customStyles,
                                                     highlightOnHover: true,

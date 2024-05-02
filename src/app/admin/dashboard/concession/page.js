@@ -169,8 +169,8 @@ const Concession = ()=>{
                 /> */}
 
                 <div className="card-body">
-                    tableColumns={concessionTableColumns}
                     <FilteredDataTable
+                        tableColumns={concessionTableColumns}
                         inputProps={{
                             title: "Concession List",
                             columns: columns,

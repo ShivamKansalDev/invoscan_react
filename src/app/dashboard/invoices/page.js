@@ -1,9 +1,7 @@
 'use client';
-import DataTable from "react-data-table-component";
 import React, { useState, useEffect, useLayoutEffect } from "react";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
-import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -17,6 +15,7 @@ import { deleteInvoice, getPendingInvoices, markCompleteInvoice } from "@/api/in
 import { toast } from "react-toastify";
 import BookingModal from "@/components/BookingModal";
 import { FilteredDataTable } from "@/components/FilteredDataTable";
+import { ProductDetailsModal } from "@/components/ProductDetailsModal";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
  
 export default function Invoices() {
@@ -105,7 +104,7 @@ export default function Invoices() {
             name: '',
             width: "47%",
             cell: row => (
-                <div className="grid-flex">
+                <div key={`a${row?.index}`} className="grid-flex">
                     <div style={{ width: '100px', textAlign: 'center' }} className="form-control">{row.PackSize}</div>
                     <b style={{ paddingLeft: '20px' }} className="delivery-text">{row.Description}</b>
                 </div>
@@ -114,7 +113,7 @@ export default function Invoices() {
         {
             name: 'Quantity',
             cell: row => (
-                <div>
+                <div key={`b${row?.index}`}>
                     <input type="text" className="form-control" value={row.Quantity} readOnly />
                 </div>
             )
@@ -122,7 +121,7 @@ export default function Invoices() {
         {
             name: 'Price/unit',
             cell: row => (
-                <div>
+                <div key={`c${row?.index}`}>
                     <input type="text" className="form-control" value={"£" + row.Amount} readOnly />
                 </div>
             )
@@ -130,7 +129,7 @@ export default function Invoices() {
         {
             name: 'Credit packs',
             cell: row => (
-                <div>
+                <div key={`d${row?.index}`}>
                     <input type="text" className="form-control" value={row.QuantityForReport} readOnly />
                 </div>
             )
@@ -139,7 +138,7 @@ export default function Invoices() {
             name: 'Reason',
             width: "15%",
             cell: row => (
-                <div>
+                <div key={`e${row?.index}`}>
                     <input type="text" className="form-control" value={row.Reason} readOnly />
                 </div>
             )
@@ -148,7 +147,7 @@ export default function Invoices() {
             name: '',
             cell: (row, index) => (
                 currentTab === 'Pending' ?
-                    <div className="grid-flex">
+                    <div className="grid-flex" key={`f${row?.index}`}>
                         <div>
                             {
                                 row.lock !== true ?
@@ -239,44 +238,53 @@ export default function Invoices() {
         setOpen(true);
     }
 
-    const showInvoiceData = (row, key) => {
+    const showInvoiceData = (row) => {
         let rowData = { ...row };
-        console.log("@@@ INDEX: ", key);
         setInvoiceData(rowData)
-        setInvoiceItemIndex(key)
         setSecondOpen(true);
     }
 
     const saveInvoiceItems = () => {
-        let updateItems = invoiceItems.Items.map((item, index) => {
-            if(invoiceItemIndex == index){
-                return {
-                    ...item,
-                    ...invoiceData
+        // let updateItems = invoiceItems.Items.map((item, index) => {
+        //     if(invoiceItemIndex == index){
+        //         return {
+        //             ...item,
+        //             ...invoiceData
+        //         }
+        //     }
+        //     return item;
+        // });
+        // setInvoiceItems((oldItem) => ({
+        //     ...oldItem,
+        //     Items: updateItems
+        // }))
+        setInvoiceItems({
+            ...invoiceItems,
+            Items: invoiceItems.Items.map((item) => {
+                // console.log("**** INVOICE ITEMS: ", typeof item?.index, typeof invoiceData?.index);
+                if(item?.index === invoiceData?.index){
+                    return invoiceData;
                 }
-            }
-            return item;
-        });
-        setInvoiceItems((oldItem) => ({
-            ...oldItem,
-            Items: updateItems
-        }))
+                return item;
+            }),
+        })
         setSecondOpen(false)
     }
 
     const saveNewInvoiceItems = () => {
         invoiceData.lock = false;
         let oldItems = invoiceItems.Items.map((item) => item);
-        console.log("before", oldItems);
         oldItems.unshift(invoiceData);
-        console.log("after unshift", oldItems);
         oldItems = oldItems.map((item, index) => {
             return {
                 ...item,
                 index
             }
         })
-        console.log("finally", oldItems); 
+        setInvoiceItems({
+            ...invoiceItems,
+            Items: []
+        })
         setTimeout(() => {
             setInvoiceItems({
                 ...invoiceItems,
@@ -288,46 +296,76 @@ export default function Invoices() {
 
     const deleteInvoiceData = () => {
         let { row } = deleteSPId;
-        let updateInvoiceItems = invoiceItems.Items.filter((item) => {
-            console.log("@@@ DELETE PRESSED: \n\n", item?.index, "!==", row?.index, item?.index !== row?.index)
-            return (item?.index !== row?.index)
+        let updateInvoiceItems = invoiceItems.Items.filter((item) => (item?.index !== row?.index));
+        updateInvoiceItems = updateInvoiceItems.map((item, index) => {
+            return {
+                ...item,
+                index
+            }
         })
-        updateInvoiceItems = updateInvoiceItems.map((item, itemIndex) => ({...item, index: itemIndex}))
-        setInvoiceItems(Object.assign(invoiceItems, {Items: updateInvoiceItems}));
-        setDeleteSpOpen(false);
+        setInvoiceItems({
+            ...invoiceItems,
+            Items: []
+        })
+        setTimeout(() => {
+            setInvoiceItems({
+                ...invoiceItems,
+                Items: updateInvoiceItems
+            });
+        }, 500);
+        setTimeout(() => {
+            setDeleteSpOpen(false)
+        }, 10);;
     }
 
-    const setInvoiceLock = (row, index) => {
+    const setInvoiceLock = (row) => {
+        console.log("@@@ LOCK: ", row?.index);
         row.lock = true;
-        invoiceItems.Items[index] = row
+        invoiceItems.Items[row?.index] = row
         let invoiceItemsClone = { ...invoiceItems }
         // setInvoiceItems({})
-        setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
-        }, 500);
+        setInvoiceItems(invoiceItemsClone);
+        // const updateItems = invoiceItems?.Items?.map((item) => {
+        //     if(item?.index === row?.index){
+        //         return {
+        //             ...item,
+        //             lock: true
+        //         }
+        //     }
+        //     return item;
+        // })
+        // setTimeout(() => {
+        //     setInvoiceItems({
+        //         ...invoiceItems,
+        //         Items: updateItems
+        //     })
+        // }, 500);
     }
 
-    const setInvoiceUnlock = (row, index) => {
+    const setInvoiceUnlock = (row) => {
         row.lock = false;
-        invoiceItems.Items[index] = row
+        invoiceItems.Items[row?.index] = row
         let invoiceItemsClone = { ...invoiceItems }
         // setInvoiceItems({})
-        setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
-        }, 500);
+        setInvoiceItems(invoiceItemsClone);
     }
 
     const markCompleteCurrentInvoice = async () => {
+        const items = invoiceItems?.Items?.map((item) => {
+            delete item?.lock;
+            delete item?.index;
+            return item;
+        })
+        // console.log("@@@@ API: ", items);
         try{
             const response = await markCompleteInvoice(invoiceItems.id, {
                 "CustomerId": invoiceItems.CustomerId,
                 "InvoiceDate": invoiceItems.InvoiceDate,
                 "InvoiceId": invoiceItems.InvoiceId,
-                "Items": invoiceItems.Items,
+                "Items": items,
                 "SubTotal": invoiceItems.SubTotal,
                 "isDelivered": true
-            });
-            console.log(response.data,'response');
+            })
             setInvoiceItems({
                 Items: []
             });
@@ -336,18 +374,19 @@ export default function Invoices() {
             setOpen(false);
             toast.success("Invoice has been marked as completed.")
         }catch(error){
-            console.log("!!!! CMPLT API ERROR: ", error)
+            console.log("!!!! USER CMPLT API ERROR: ", error)
         }
     }
 
     const deleteCurrentInvoice = async () => {
         try{
             const response = await deleteInvoice(deleteId);
-            fetchData(currentTab);
-            toast.success("Invoice deleted successfully.")
+            // fetchData();
+            const updateData = data?.filter((item) => item?.id !== deleteId);
+            setData(updateData);
             onCloseDeleteModal();
         }catch(error){
-            console.log("!!! INVOICE(screen) DELETE ERROR: ", error);
+            console.log("!!! DELETE INVOICE ERROR: ", error);
         }
     }
 
@@ -391,7 +430,7 @@ export default function Invoices() {
 
     useEffect(() => {
         if(invoiceItems){
-            console.log("@@@ UPDATED ITEM: ", invoiceItems.Items)
+            // console.log("@@@ UPDATED ITEM: ", invoiceItems.Items)
         }
     }, [invoiceItems])
 
@@ -473,70 +512,15 @@ export default function Invoices() {
                 setActionButtonType={setActionButtonType}
                 showInvoiceData={showInvoiceData}
             />
-            <Modal open={secondOpen} onClose={onCloseSecondModal} center>
-                <div className=" mb-4">
-                    <small>Pack Size:- {invoiceData.PackSize}</small>
-                    <h5 className="card-header">{invoiceData.Description}</h5>
-                    <div className="card-body">
-                        <div className="row">
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="Description" className="form-label">Description</label>
-                                <input className="form-control" type="text" id="Description" name="Description" onChange={(e) => { setInvoiceData({ ...invoiceData, Description: e.target.value }) }} value={invoiceData.Description} />
-                            </div>
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="PackSize" className="form-label">Pack Size</label>
-                                <input className="form-control" type="text" id="PackSize" name="PackSize" onChange={(e) => { setInvoiceData({ ...invoiceData, PackSize: e.target.value }) }} value={invoiceData.PackSize} />
-                            </div>
-                        </div>
-                        <div className="row">
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="Quantity" className="form-label">Quantity</label>
-                                <input className="form-control" type="text" id="Quantity" name="Quantity" onChange={(e) => { setInvoiceData({ ...invoiceData, Quantity: e.target.value, Amount: (parseInt(e.target.value) * parseFloat(invoiceData.UnitPrice)) }); }} value={invoiceData.Quantity} />
-                            </div>
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="QuantityForReport" className="form-label">Credit packs</label>
-                                <input className="form-control" type="text" name="QuantityForReport" id="QuantityForReport" onChange={(e) => { setInvoiceData({ ...invoiceData, QuantityForReport: e.target.value }) }} value={invoiceData.QuantityForReport} />
-                            </div>
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="UnitPrice" className="form-label">Price/unit</label>
-                                <input className="form-control" type="text" id="UnitPrice" name="UnitPrice" onChange={(e) => { setInvoiceData({ ...invoiceData, UnitPrice: e.target.value, Amount: (parseInt(invoiceData.Quantity) * parseFloat(e.target.value)) }); }} value={invoiceData.UnitPrice} />
-                            </div>
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="Amount" className="form-label">Total Price</label>
-                                <input type="text" className="form-control" id="Amount" name="Amount" readOnly value={"£" + invoiceData.Amount} />
-                            </div>
-                            {
-                                invoiceData.QuantityForReport > 0 ?
-                                    <div className="mb-3 col-md-6">
-                                        <label htmlFor="Reason" className="form-label">Reason</label>
-                                        <select className="form-control" name="Reason" onChange={(e) => { setInvoiceData({ ...invoiceData, Reason: e.target.value }) }} value={invoiceData.Reason}>
-                                            <option value="">Drug Reasons</option>
-                                            <option value="Damaged">Damaged</option>
-                                            <option value="Expired">Expired</option>
-                                            <option value="Wrong Product">Wrong Product</option>
-                                            <option value="Wrong Quantity">Wrong Quantity</option>
-                                            <option value="Wrong Price">Wrong Price</option>
-                                            <option value="Wrong Discount">Wrong Discount</option>
-                                            <option value="Wrong Tax">Wrong Tax</option>
-                                            <option value="Wrong Unit">Wrong Unit</option>
-                                            <option value="Wrong Content">Wrong Content</option>
-                                            <option value="Wrong Product Code">Wrong Product Code</option>
-                                        </select>
-                                    </div>
-                                    : null
-                            }
-                            <div className="mt-2">
-                                <button type="button" onClick={onCloseSecondModal} className="btn btn-default me-2">Cancel</button>
-                                {
-                                    actionButtonType === 'new' ?
-                                        <button type="button" onClick={saveNewInvoiceItems} className="btn btn-green me-2">Save</button>
-                                        : <button type="button" onClick={saveInvoiceItems} className="btn btn-green me-2">Update</button>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Modal>
+            <ProductDetailsModal 
+                secondOpen={secondOpen}
+                invoiceData={invoiceData}
+                setInvoiceData={setInvoiceData}
+                saveInvoiceItems={saveInvoiceItems}
+                saveNewInvoiceItems={saveNewInvoiceItems}
+                onCloseSecondModal={onCloseSecondModal}
+                actionButtonType={actionButtonType}
+            />
             <Modal open={deleteOpen} onClose={onCloseDeleteModal} classNames={{ modal: 'company-select-modal' }} center>
                 <div className=" mb-4">
                     <div className="card-body mt-3">

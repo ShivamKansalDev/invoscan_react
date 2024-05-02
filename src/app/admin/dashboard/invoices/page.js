@@ -1,7 +1,6 @@
 'use client';
 import { deleteInvoice, getAllInvoices } from "@/api/invoices";
 import { useState,useEffect } from "react";
-import DataTable from "react-data-table-component";
 import ConfirmDeleteModal from "../../adminComponents/ConfirmDeleteModal";
 import { toast } from "react-toastify";
 import BookingModal from "@/components/BookingModal";
@@ -97,7 +96,7 @@ const Invoices = ()=>{
             width: "47%",
             cell: row => (
                 <div className="grid-flex items-center">
-                    <div style={{ width: '100px', textAlign: 'center' }} className="form-control">{row.PackSize}</div>
+                    <div key={`a${row?.index}`} style={{ width: '100px', textAlign: 'center' }} className="form-control">{row.PackSize}</div>
                     <b className="delivery-text" style={{ paddingLeft: '20px' }}>{row.Description}</b>
                 </div>
             )
@@ -105,7 +104,7 @@ const Invoices = ()=>{
         {
             name: 'Quantity',
             cell: row => (
-                <div>
+                <div key={`b${row?.index}`}>
                     <input type="text" className="form-control" value={row.Quantity} readOnly />
                 </div>
             )
@@ -113,7 +112,7 @@ const Invoices = ()=>{
         {
             name: 'Price/unit',
             cell: row => (
-                <div>
+                <div key={`c${row?.index}`}>
                     <input type="text" className="form-control" value={"£" + row.Amount} readOnly />
                 </div>
             )
@@ -121,7 +120,7 @@ const Invoices = ()=>{
         {
             name: 'Credit packs',
             cell: row => (
-                <div>
+                <div key={`d${row?.index}`}>
                     <input type="text" className="form-control" value={row.QuantityForReport} readOnly />
                 </div>
             )
@@ -130,7 +129,7 @@ const Invoices = ()=>{
             name: 'Reason',
             width: "15%",
             cell: row => (
-                <div>
+                <div key={`e${row?.index}`}>
                     <input type="text" className="form-control" value={row.Reason} readOnly />
                 </div>
             )
@@ -138,7 +137,7 @@ const Invoices = ()=>{
         {
             name: '',
             cell: (row, index) => (
-                <div className="grid-flex" id="operations">
+                <div className="grid-flex" key={`f${row?.index}`} id="operations">
                     <div>
                         {
                             row.lock !== true ?
