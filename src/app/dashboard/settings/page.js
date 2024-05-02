@@ -5,11 +5,12 @@ import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { logout } from '../../../lib/features/thunk/logout';
+import { userActions } from '@/lib/features/slice/userSlice';
 
 export default function Settings() {
     const router = useRouter();
     const dispatch = useDispatch();
-    const { userDetails } = useSelector((state) => state.user);
+    const { userDetails, isAuthenticated } = useSelector((state) => state.user);
 
     const [currentUser, setCurrentUser] = useState({});
 
@@ -17,8 +18,15 @@ export default function Settings() {
         e.preventDefault();
         router.push("/");
         toast.error('Logout successfully.');
-        dispatch(logout());
+        dispatch(userActions.resetAuthentication());
     }
+
+    useEffect(() => {
+        if(!isAuthenticated){
+          dispatch(logout());
+        }
+      }, [isAuthenticated])
+
     useLayoutEffect(() => {
         const details = JSON.parse(userDetails);
         console.log("@@@@@@ USER: ", details);

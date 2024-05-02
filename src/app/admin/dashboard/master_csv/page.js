@@ -11,15 +11,13 @@ import { Search } from "../../adminComponents/Search";
 import ConfirmDeleteModal from "../../adminComponents/ConfirmDeleteModal";
 import EditModal from "../../adminComponents/EditModal";
 import { UploadCSV } from "../../adminComponents/UploadCSV";
+import { FilteredDataTable } from "@/components/FilteredDataTable";
+import { useSelector } from "react-redux";
 
-const MasterCsv = ()=>{
+const MasterCsv = ()=> {
+    const { status: loading } = useSelector((state) => state.loading);
     const [data, setData] = useState([])
-    const [loading, setLoading] = useState(false);
     const [totalRows, setTotalRows] = useState(0);
-    const [page, setPage] = useState(1);
-    const [search, setSearch] = useState("");
-    const [query, setQuery] = useState('');
-    const [results, setResults] = useState([]);
     const [fileName, setFileName] = useState('');
     const [files, setFiles] = useState([]);
     const [thumbnail, setThumbnail] = useState('');
@@ -27,6 +25,7 @@ const MasterCsv = ()=>{
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
 
+    const productColumns = ["pack_size", "company", "product_name", "concessionPrice", "price"]
     let columns = [
         {
             name: 'Pack Size',
@@ -105,33 +104,6 @@ const MasterCsv = ()=>{
         },
     };
 
-    const debouncedSearch = useDebounce(search, 1000);
-
-
-    const fetchData = useCallback(async() => {
-        console.log("#$#$# SEARCH: ", debouncedSearch);
-        if(debouncedSearch){
-            setLoading(true);
-            try {
-                const response = await master_csv(debouncedSearch);
-                const data = response.data;
-                setData(data);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                setData([]);
-            } finally {
-                setLoading(false);
-            }
-        }
-    }, [debouncedSearch])
-
-
-    useEffect(() => {
-        if(debouncedSearch){
-            fetchData();
-        }
-    }, [debouncedSearch]);
-
     const saveUploadedItem = async () => {
         let formData = new FormData();
         for (let index = 0; index < files.length; index++) {
@@ -201,12 +173,15 @@ const MasterCsv = ()=>{
         }
     }
 
- 
+    useEffect(() => {
+        if(data.length > 0){
+            console.log("@@@@@ DATA: ", data);
+        }
+    }, [data])
  
     return(
         <>
             <div className="card mb-4">
-                
                 <UploadCSV
                     handleDragOver={handleDragOver}
                     handleDragLeave={handleDragLeave}
@@ -217,23 +192,21 @@ const MasterCsv = ()=>{
                     files = {files}
                     title="MasterCSV"
                 />
-
-                <Search 
-                    search={search}
-                    setSearch={setSearch}
-                />
                 <div className="card-body">
-                    <DataTable
-                        title="Master CSV List"
-                        columns={columns}
-                        data={debouncedSearch? data : []}
-                        progressPending={loading}
-                        fixedHeader
-                        pagination
-                        paginationTotalRows={totalRows}
-                        customStyles={customStyles}
-                        highlightOnHover
-                        pointerOnHover
+                    <FilteredDataTable
+                        type={"masterCSV"}
+                        tableColumns={productColumns}
+                        inputProps={{
+                            title: "Master CSV List",
+                            columns: columns,
+                            progressPending: loading,
+                            fixedHeader: true,
+                            pagination: true,
+                            paginationTotalRows: totalRows,
+                            customStyles: customStyles,
+                            highlightOnHover: true,
+                            pointerOnHover: true,
+                        }}
                     />
                 </div>
             </div>

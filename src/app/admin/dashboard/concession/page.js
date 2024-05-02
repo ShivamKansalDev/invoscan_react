@@ -4,6 +4,7 @@ import FeatherIcon from "feather-icons-react";
 import DataTable from "react-data-table-component";
 import { concessionList, upload_csv } from "@/api/user";
 import { toast } from "react-toastify";
+import { FilteredDataTable } from "@/components/FilteredDataTable";
 
 const Concession = ()=>{
     const [fileName, setFileName] = useState('');
@@ -12,6 +13,8 @@ const Concession = ()=>{
     const [loading, setLoading] = useState(false);
     const [files, setFiles] = useState([]);
     const [thumbnail, setThumbnail] = useState('');
+
+    let concessionTableColumns = ["packSize", "drug", "priceConcession"];
 
     let columns = [
         {
@@ -166,17 +169,20 @@ const Concession = ()=>{
                 /> */}
 
                 <div className="card-body">
-                    <DataTable
-                        title="Concession List"
-                        columns={columns}
-                        data={data}
-                        progressPending={loading}
-                        fixedHeader
-                        pagination
-                        paginationTotalRows={totalRows}
-                        customStyles={customStyles}
-                        highlightOnHover
-                        pointerOnHover
+                    <FilteredDataTable
+                        tableColumns={concessionTableColumns}
+                        inputProps={{
+                            title: "Concession List",
+                            columns: columns,
+                            data: data,
+                            progressPending: loading,
+                            fixedHeader: true,
+                            pagination: true,
+                            paginationTotalRows: totalRows,
+                            customStyles: customStyles,
+                            highlightOnHover: true,
+                            pointerOnHover: true
+                        }}
                     />
                 </div>
             </div>

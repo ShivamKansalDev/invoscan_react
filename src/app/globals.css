@@ -50,9 +50,17 @@ body {
 
 .react-responsive-modal-modal.booking-modal {
   max-width: 97% !important;
+  background-color: #e5e7eb;
+  backdrop-filter: blur(4px);
+  --tw-backdrop-blur: blur(4px);
 }
 .react-responsive-modal-modal.users-modal {
   max-width: 97% !important;
+}
+
+.react-responsive-modal-modal.custom-modal {
+  background-color: #e5e7eb;
+  top: 10%;
 }
 
 .menu-icon-red {

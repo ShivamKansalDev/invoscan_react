@@ -1,21 +1,21 @@
 'use client';
-import DataTable from "react-data-table-component";
 import React, { useState, useEffect, useLayoutEffect } from "react";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
-import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
 import FeatherIcon from 'feather-icons-react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/Page/TextLayer.css';
 import { SelectCompany } from "@/components/SelectCompany";
 import { useSelector } from "react-redux";
 import { userActions } from "@/lib/features/slice/userSlice";
 import { deleteInvoice, getPendingInvoices, markCompleteInvoice } from "@/api/invoices";
 import { toast } from "react-toastify";
+import BookingModal from "@/components/BookingModal";
+import { FilteredDataTable } from "@/components/FilteredDataTable";
+import { ProductDetailsModal } from "@/components/ProductDetailsModal";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
  
 export default function Invoices() {
@@ -55,6 +55,8 @@ export default function Invoices() {
     const [startDate, setStartDate] = useState(moment().startOf('year').toDate());
     const [endDate, setEndDate] = useState(moment().endOf('year').toDate());
     const [supplierId, setSupplierId] = useState('');
+
+    let invoiceTableColumns = ["supplier.name", "InvoiceDate", "InvoiceId", "SubTotal"];
 
     let columns = [
         {
@@ -102,33 +104,42 @@ export default function Invoices() {
             name: '',
             width: "47%",
             cell: row => (
-                <div className="grid-flex">
+                <div key={`a${row?.index}`} className="grid-flex">
                     <div style={{ width: '100px', textAlign: 'center' }} className="form-control">{row.PackSize}</div>
                     <b style={{ paddingLeft: '20px' }} className="delivery-text">{row.Description}</b>
                 </div>
             )
         },
         {
-            name: 'Inv. packs',
+            name: 'Quantity',
             cell: row => (
-                <div>
+                <div key={`b${row?.index}`}>
                     <input type="text" className="form-control" value={row.Quantity} readOnly />
-                </div>
-            )
-        },
-        {
-            name: 'Credit packs',
-            cell: row => (
-                <div>
-                    <input type="text" className="form-control" value={row.QuantityForReport} readOnly />
                 </div>
             )
         },
         {
             name: 'Price/unit',
             cell: row => (
-                <div>
+                <div key={`c${row?.index}`}>
                     <input type="text" className="form-control" value={"£" + row.Amount} readOnly />
+                </div>
+            )
+        },
+        {
+            name: 'Credit packs',
+            cell: row => (
+                <div key={`d${row?.index}`}>
+                    <input type="text" className="form-control" value={row.QuantityForReport} readOnly />
+                </div>
+            )
+        },
+        {
+            name: 'Reason',
+            width: "15%",
+            cell: row => (
+                <div key={`e${row?.index}`}>
+                    <input type="text" className="form-control" value={row.Reason} readOnly />
                 </div>
             )
         },
@@ -136,7 +147,7 @@ export default function Invoices() {
             name: '',
             cell: (row, index) => (
                 currentTab === 'Pending' ?
-                    <div className="grid-flex">
+                    <div className="grid-flex" key={`f${row?.index}`}>
                         <div>
                             {
                                 row.lock !== true ?
@@ -153,7 +164,7 @@ export default function Invoices() {
                             {
                                 row.lock !== true ?
                                     <button
-                                        onClick={(e) => { setspDeleteId({row, index}); setDeleteSpOpen(true); }}
+                                        onClick={(e) => { setspDeleteId({row, index}); }}
                                     >
                                         <i className='bx bx-trash menu-icon menu-icon-red'></i>
                                     </button>
@@ -206,16 +217,13 @@ export default function Invoices() {
         },
     };
 
+    useEffect(() => {
+        if(Object.keys(deleteSPId).length > 0){
+            setDeleteSpOpen(true);
+        }
+    }, [deleteSPId])
+
     const showRowData = (row, key) => {
-        // if (row.invoiceUrl && row.invoiceUrl.length > 0 && row.invoiceUrl[0].type == 'pdf') {
-        //     const pdfUrl = row.invoiceUrl[0].url;
-        //     const link = document.createElement("a");
-        //     link.href = pdfUrl;
-        //     link.download = "invoice.pdf";
-        //     document.body.appendChild(link);
-        //     link.click();
-        //     document.body.removeChild(link);
-        // }
         let rowData = Object.assign({}, row);
         const items = rowData?.Items;
         if(Array.isArray(items)){
@@ -230,38 +238,53 @@ export default function Invoices() {
         setOpen(true);
     }
 
-    const showInvoiceData = (row, key) => {
+    const showInvoiceData = (row) => {
         let rowData = { ...row };
         setInvoiceData(rowData)
-        setInvoiceItemIndex(key)
         setSecondOpen(true);
     }
 
     const saveInvoiceItems = () => {
-        invoiceItems.Items[invoiceItemIndex] = invoiceData
-        let invoiceItemsClone = { ...invoiceItems }
+        // let updateItems = invoiceItems.Items.map((item, index) => {
+        //     if(invoiceItemIndex == index){
+        //         return {
+        //             ...item,
+        //             ...invoiceData
+        //         }
+        //     }
+        //     return item;
+        // });
+        // setInvoiceItems((oldItem) => ({
+        //     ...oldItem,
+        //     Items: updateItems
+        // }))
         setInvoiceItems({
-            Items: []
+            ...invoiceItems,
+            Items: invoiceItems.Items.map((item) => {
+                // console.log("**** INVOICE ITEMS: ", typeof item?.index, typeof invoiceData?.index);
+                if(item?.index === invoiceData?.index){
+                    return invoiceData;
+                }
+                return item;
+            }),
         })
-        setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
-        }, 500);
         setSecondOpen(false)
     }
 
     const saveNewInvoiceItems = () => {
         invoiceData.lock = false;
         let oldItems = invoiceItems.Items.map((item) => item);
-        console.log("before", oldItems);
         oldItems.unshift(invoiceData);
-        console.log("after unshift", oldItems);
         oldItems = oldItems.map((item, index) => {
             return {
                 ...item,
                 index
             }
         })
-        console.log("finally", oldItems); 
+        setInvoiceItems({
+            ...invoiceItems,
+            Items: []
+        })
         setTimeout(() => {
             setInvoiceItems({
                 ...invoiceItems,
@@ -272,72 +295,104 @@ export default function Invoices() {
     }
 
     const deleteInvoiceData = () => {
-        let {row, index} = deleteSPId;
-        const updateInvoiceItems = invoiceItems.Items.filter((item) => (item?.index !== row?.index));
+        let { row } = deleteSPId;
+        let updateInvoiceItems = invoiceItems.Items.filter((item) => (item?.index !== row?.index));
+        updateInvoiceItems = updateInvoiceItems.map((item, index) => {
+            return {
+                ...item,
+                index
+            }
+        })
         setInvoiceItems({
             ...invoiceItems,
-            Items: updateInvoiceItems
-        });
+            Items: []
+        })
+        setTimeout(() => {
+            setInvoiceItems({
+                ...invoiceItems,
+                Items: updateInvoiceItems
+            });
+        }, 500);
         setTimeout(() => {
             setDeleteSpOpen(false)
-        }, 10);
+        }, 10);;
     }
 
-    const setInvoiceLock = (row, index) => {
+    const setInvoiceLock = (row) => {
+        console.log("@@@ LOCK: ", row?.index);
         row.lock = true;
-        invoiceItems.Items[index] = row
+        invoiceItems.Items[row?.index] = row
         let invoiceItemsClone = { ...invoiceItems }
         // setInvoiceItems({})
-        setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
-        }, 500);
+        setInvoiceItems(invoiceItemsClone);
+        // const updateItems = invoiceItems?.Items?.map((item) => {
+        //     if(item?.index === row?.index){
+        //         return {
+        //             ...item,
+        //             lock: true
+        //         }
+        //     }
+        //     return item;
+        // })
+        // setTimeout(() => {
+        //     setInvoiceItems({
+        //         ...invoiceItems,
+        //         Items: updateItems
+        //     })
+        // }, 500);
     }
 
-    const setInvoiceUnlock = (row, index) => {
+    const setInvoiceUnlock = (row) => {
         row.lock = false;
-        invoiceItems.Items[index] = row
+        invoiceItems.Items[row?.index] = row
         let invoiceItemsClone = { ...invoiceItems }
         // setInvoiceItems({})
-        setTimeout(() => {
-            setInvoiceItems(invoiceItemsClone)
-        }, 500);
+        setInvoiceItems(invoiceItemsClone);
     }
 
     const markCompleteCurrentInvoice = async () => {
+        const items = invoiceItems?.Items?.map((item) => {
+            delete item?.lock;
+            delete item?.index;
+            return item;
+        })
+        // console.log("@@@@ API: ", items);
         try{
             const response = await markCompleteInvoice(invoiceItems.id, {
                 "CustomerId": invoiceItems.CustomerId,
                 "InvoiceDate": invoiceItems.InvoiceDate,
                 "InvoiceId": invoiceItems.InvoiceId,
-                "Items": invoiceItems.Items,
+                "Items": items,
                 "SubTotal": invoiceItems.SubTotal,
                 "isDelivered": true
             })
-            console.log(response.data,'response');
             setInvoiceItems({
                 Items: []
-            })
-            fetchData(1);
-            setOpen(false)
+            });
+            const updateData = data.filter((item) => item?.id !== invoiceItems?.id);
+            setData(updateData);
+            setOpen(false);
+            toast.success("Invoice has been marked as completed.")
         }catch(error){
-            console.log("!!!! CMPLT API ERROR: ", error)
+            console.log("!!!! USER CMPLT API ERROR: ", error)
         }
     }
 
     const deleteCurrentInvoice = async () => {
         try{
             const response = await deleteInvoice(deleteId);
-            fetchData(currentTab);
-            toast.success("Invoice deleted successfully.")
+            // fetchData();
+            const updateData = data?.filter((item) => item?.id !== deleteId);
+            setData(updateData);
             onCloseDeleteModal();
         }catch(error){
-            console.log("!!! INVOICE(screen) DELETE ERROR: ", error);
+            console.log("!!! DELETE INVOICE ERROR: ", error);
         }
     }
 
     const fetchData = async (currentTab) => {
         let companyDetails = selectedCompany;
-        console.log("@@@@ INVOICES: ", companyDetails);
+        // console.log("@@@@ INVOICES: ", companyDetails);
         if(!companyDetails?.id) {
             setShowCompanyModal(true);
             return;
@@ -372,6 +427,12 @@ export default function Invoices() {
             fetchData('Pending');
         }
     }, []);
+
+    useEffect(() => {
+        if(invoiceItems){
+            // console.log("@@@ UPDATED ITEM: ", invoiceItems.Items)
+        }
+    }, [invoiceItems])
 
     let lockedItems = invoiceItems && invoiceItems.Items.filter((Item) => Item.lock === true)
 
@@ -421,179 +482,45 @@ export default function Invoices() {
                     <div className="mt-2">
                         <h4 className="card-header pl-0">{currentTab} Deliveries</h4>
                     </div>
-                    <DataTable
-                        title={``}
-                        columns={columns}
-                        data={data}
-                        progressPending={loading}
-                        fixedHeader
-                        pagination
-                        paginationTotalRows={totalRows}
-                        customStyles={customStyles}
-                        highlightOnHover
-                        pointerOnHover
+                    <FilteredDataTable
+                        tableColumns={invoiceTableColumns}
+                        inputProps={{
+                            title: "",
+                            columns: columns,
+                            data: data,
+                            progressPending: loading,
+                            fixedHeader: true,
+                            pagination: true,
+                            paginationTotalRows: totalRows,
+                            customStyles: customStyles,
+                            highlightOnHover: true,
+                            pointerOnHover: true
+                        }}
                     />
                 </div>
             </div>
-            <Modal open={open} classNames={{
-                modal: 'booking-modal',
-            }} onClose={onCloseModal} center>
-                <div className="container-fluid">
-                    <div className="row">
-                        <div className="col-md-4">
-                            {
-                                invoiceItems.invoiceUrl && invoiceItems.invoiceUrl.map((invoice, key) => {
-                                    console.log(invoice.url)
-                                    return(
-                                        <Document key={key} file={invoice.url} className="pdf-section">
-                                            <Page  pageNumber={1}/>
-                                        </Document>
-                                    )
-                                })
-                            }
-                        {/* <Document file="https://pdfobject.com/pdf/sample.pdf"> */}
-                            {/* <Carousel
-                                showArrows={true}
-                                showIndicators={true}
-                                infiniteLoop={true}
-                                dynamicHeight={false}
-                                showThumbs={false}
-                            >
-                                {invoiceItems.invoiceUrl && invoiceItems.invoiceUrl.map((invoiceUrl, key) => (
-                                    invoiceUrl.type !== 'pdf' ?
-                                        <div key={key}>
-                                            <div>
-                                                <img src={invoiceUrl.url} alt="slides" />
-                                            </div>
-                                        </div>
-                                        : null
-                                ))}
-                            </Carousel> */}
-                        </div>
-                        <div className="col-md-8">
-                            {
-                                invoiceItems ?
-                                    <div className=" mb-4">
-                                        <h5 className="card-header">{invoiceItems.supplier && invoiceItems.supplier.name}</h5>
-                                        <small>Make sure the information below is correct.</small>
-                                        <div className="card-body">
-                                            <div className="row">
-                                                <div className="mb-3 col-md-6">
-                                                    <label htmlFor="InvoiceId" className="form-label">Invoice Number</label>
-                                                    <input className="form-control" readOnly type="text" id="InvoiceId" name="InvoiceId" value={invoiceItems.InvoiceId} />
-                                                </div>
-                                                <div className="mb-3 col-md-6">
-                                                    <label htmlFor="CustomerId" className="form-label">Customer ID</label>
-                                                    <input className="form-control" readOnly type="text" name="CustomerId" id="CustomerId" value={invoiceItems.CustomerId} />
-                                                </div>
-                                                <div className="mb-3 col-md-6">
-                                                    <label htmlFor="InvoiceDate" className="form-label">Invoice date</label>
-                                                    <input className="form-control" readOnly type="text" id="InvoiceDate" name="InvoiceDate" value={invoiceItems.InvoiceDate} />
-                                                </div>
-                                                <div className="mb-3 col-md-6">
-                                                    <label htmlFor="SubTotal" className="form-label">Net Total ex VAT</label>
-                                                    <input type="text" readOnly className="form-control" id="SubTotal" name="SubTotal" value={"£" + (invoiceItems.SubTotal?invoiceItems.SubTotal.replace(/[^0-9\.]+/g, ""):'0.00')} />
-                                                </div>
-                                            </div>
-                                            {
-                                                currentTab === 'Pending' ?
-                                                    <div className="pull-right" style={{ float: 'right' }}>
-                                                        <button className="btn btn-green" type="button" onClick={() => { setActionButtonType('new'); showInvoiceData({}, 0); }}>Add New</button>
-                                                    </div>
-                                                    : null
-                                            }
-                                            <DataTable
-                                                title={`Delivery products (${invoiceItems.Items ? invoiceItems.Items.length : 0})`}
-                                                columns={invoiceItemsColumns}
-                                                data={invoiceItems.Items}
-                                                progressPending={loading}
-                                                fixedHeader
-                                                pagination
-                                                paginationTotalRows={invoiceItems.Items ? invoiceItems.Items.length : 0}
-                                                customStyles={customStyles}
-                                                highlightOnHover
-                                                pointerOnHover
-                                            />
-                                        </div>
-                                        {
-                                            currentTab === 'Pending' ?
-                                                <div className="mt-2">
-                                                    <button style={{ float: 'right' }} type="submit" disabled={lockedItems.length !== invoiceItems.Items.length} onClick={markCompleteCurrentInvoice} className="btn btn-green me-2">Mark as complete</button>
-                                                </div>
-                                                : null
-                                        }
-
-                                    </div>
-                                    : null
-                            }
-                        </div>
-                    </div>
-                </div>
-            </Modal>
-            <Modal open={secondOpen} onClose={onCloseSecondModal} center>
-                <div className=" mb-4">
-                    <small>Pack Size:- {invoiceData.PackSize}</small>
-                    <h5 className="card-header">{invoiceData.Description}</h5>
-                    <div className="card-body">
-                        <div className="row">
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="Description" className="form-label">Description</label>
-                                <input className="form-control" type="text" id="Description" name="Description" onChange={(e) => { setInvoiceData({ ...invoiceData, Description: e.target.value }) }} value={invoiceData.Description} />
-                            </div>
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="PackSize" className="form-label">Pack Size</label>
-                                <input className="form-control" type="text" id="PackSize" name="PackSize" onChange={(e) => { setInvoiceData({ ...invoiceData, PackSize: e.target.value }) }} value={invoiceData.PackSize} />
-                            </div>
-                        </div>
-                        <div className="row">
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="Quantity" className="form-label">Inv. packs</label>
-                                <input className="form-control" type="text" id="Quantity" name="Quantity" onChange={(e) => { setInvoiceData({ ...invoiceData, Quantity: e.target.value, Amount: (parseInt(e.target.value) * parseFloat(invoiceData.UnitPrice)) }); }} value={invoiceData.Quantity} />
-                            </div>
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="QuantityForReport" className="form-label">Credit packs</label>
-                                <input className="form-control" type="text" name="QuantityForReport" id="QuantityForReport" onChange={(e) => { setInvoiceData({ ...invoiceData, QuantityForReport: e.target.value }) }} value={invoiceData.QuantityForReport} />
-                            </div>
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="UnitPrice" className="form-label">Price/unit</label>
-                                <input className="form-control" type="text" id="UnitPrice" name="UnitPrice" onChange={(e) => { setInvoiceData({ ...invoiceData, UnitPrice: e.target.value, Amount: (parseInt(invoiceData.Quantity) * parseFloat(e.target.value)) }); }} value={invoiceData.UnitPrice} />
-                            </div>
-                            <div className="mb-3 col-md-6">
-                                <label htmlFor="Amount" className="form-label">Total Price</label>
-                                <input type="text" className="form-control" id="Amount" name="Amount" readOnly value={"£" + invoiceData.Amount} />
-                            </div>
-                            {
-                                invoiceData.QuantityForReport > 0 ?
-                                    <div className="mb-3 col-md-6">
-                                        <label htmlFor="Reason" className="form-label">Reason</label>
-                                        <select className="form-control" name="Reason" onChange={(e) => { setInvoiceData({ ...invoiceData, Reason: e.target.value }) }} value={invoiceData.Reason}>
-                                            <option value="">Drug Reasons</option>
-                                            <option value="Damaged">Damaged</option>
-                                            <option value="Expired">Expired</option>
-                                            <option value="Wrong Product">Wrong Product</option>
-                                            <option value="Wrong Quantity">Wrong Quantity</option>
-                                            <option value="Wrong Price">Wrong Price</option>
-                                            <option value="Wrong Discount">Wrong Discount</option>
-                                            <option value="Wrong Tax">Wrong Tax</option>
-                                            <option value="Wrong Unit">Wrong Unit</option>
-                                            <option value="Wrong Content">Wrong Content</option>
-                                            <option value="Wrong Product Code">Wrong Product Code</option>
-                                        </select>
-                                    </div>
-                                    : null
-                            }
-                            <div className="mt-2">
-                                <button type="button" onClick={onCloseSecondModal} className="btn btn-default me-2">Cancel</button>
-                                {
-                                    actionButtonType === 'new' ?
-                                        <button type="button" onClick={saveNewInvoiceItems} className="btn btn-green me-2">Save</button>
-                                        : <button type="button" onClick={saveInvoiceItems} className="btn btn-green me-2">Update</button>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Modal>
+            <BookingModal
+                open={open}
+                onCloseModal={onCloseModal}
+                invoiceItems={invoiceItems}
+                setInvoiceItems={setInvoiceItems}
+                invoiceItemsColumns={invoiceItemsColumns}
+                loading={loading}
+                customStyles={customStyles}
+                
+                markCompleteCurrentInvoice={markCompleteCurrentInvoice}
+                setActionButtonType={setActionButtonType}
+                showInvoiceData={showInvoiceData}
+            />
+            <ProductDetailsModal 
+                secondOpen={secondOpen}
+                invoiceData={invoiceData}
+                setInvoiceData={setInvoiceData}
+                saveInvoiceItems={saveInvoiceItems}
+                saveNewInvoiceItems={saveNewInvoiceItems}
+                onCloseSecondModal={onCloseSecondModal}
+                actionButtonType={actionButtonType}
+            />
             <Modal open={deleteOpen} onClose={onCloseDeleteModal} classNames={{ modal: 'company-select-modal' }} center>
                 <div className=" mb-4">
                     <div className="card-body mt-3">
@@ -611,9 +538,9 @@ export default function Invoices() {
                 <div className=" mb-4">
                     <div className="card-body mt-3">
                         <h2 className="card-header">Wait!</h2>
-                        <small>Are You Sure, You want to delete ?</small>
+                        <small>Are You Sure, You want to delete this item?</small>
                         <div className="d-flex">
-                            <button type="button" onClick={(e) => { onClosespDeleteModal(); setspDeleteId({}) }} className={`btn btn-green-borded col-md-6`}>Cancel</button>&nbsp;
+                            <button type="button" onClick={(e) => { onClosespDeleteModal(); setspDeleteId(null) }} className={`btn btn-green-borded col-md-6`}>Cancel</button>&nbsp;
                             <button type="button" onClick={(e) => { deleteInvoiceData(); }} className={`btn btn-green col-md-6`}>Delete</button>
                         </div>
                     </div>

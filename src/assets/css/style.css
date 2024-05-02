@@ -1,3 +1,7 @@
+html, body {
+  height: 100%;
+  overflow: auto;
+}
 #bgColor{
     background-color: #0bc9931a;
     color: #000;
@@ -47,10 +51,19 @@
   width: unset !important;
   height: unset !important;
 }
-
-.react-responsive-modal-modal .rdt_TableCol {
-  color: rgba(0, 0, 0, 1) !important;
-  background-color: rgba(237, 237, 237, 1) !important;
+.sc-dmXWDj.ibgBY {
+  border: 1px solid rgba(237, 237, 237, 1);
+}
+.faZveH{
+  border-bottom: 1px solid rgba(237, 237, 237, 1);
+}
+.lnOUep{
+  font-weight: 700;
+  color: #374151;
+  font-size: 16px;
+}
+#cell-1-107aed75-186f-4010-ab79-d8659ca3d7b0:hover{
+  color: #16e9ad;
 }
 .cTWGPQ:hover{
   border-radius:0px !important;
@@ -58,4 +71,25 @@
 
 .react-responsive-modal-modal.add-users-modal{
   max-width: 55% !important;
+}
+.layout-container{
+  background: #f5f5f4;
+}
+#layout-menu {
+  height: 100vh;
+  position: sticky;
+  top: 0px;
+  overflow: hidden;
+}
+
+.react-responsive-modal-root{
+  backdrop-filter: blur(4px);
+  --tw-backdrop-blur: blur(4px);
+}
+
+.react-responsive-modal-modal.booking-modal {
+  max-width: 97% !important;
+  background-color: #e5e7eb;
+  backdrop-filter: blur(4px);
+  --tw-backdrop-blur: blur(4px);
 }

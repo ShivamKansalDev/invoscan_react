@@ -6,6 +6,7 @@ import FeatherIcon from "feather-icons-react";
 import MissingReportPopUp from "./MissingReportPopUp";
 import { getMissingReport, deleteMissingReport, resolveMissingReport } from "@/api/missingReport";
 import { toast } from "react-toastify";
+import { FilteredDataTable } from "@/components/FilteredDataTable";
 
 const MissingReport = ()=>{
     const [data, setData] = useState([]);
@@ -15,6 +16,8 @@ const MissingReport = ()=>{
     const [showResolveModal, setShowResolveModal] = useState(false);
     const [selectedReport, setSelectedReport] = useState(null);
     const [selectedAction, setSelectedAction] = useState(null);
+
+    let missingReportTableColumns = ["PackSize", "Description", "Quantity", "UnitPrice", "status"];
     let columns = [
         // {
         //     name: 'Pack Size',
@@ -166,17 +169,20 @@ const MissingReport = ()=>{
     return(
         <>
          <div className="card mb-4">
-            <DataTable
-                title="Missing Report"
-                data={data}
-                columns={columns}
-                progressPending={loading}
-                fixedHeader
-                pagination
-                paginationTotalRows={totalRows}
-                customStyles={customStyles}
-                highlightOnHover
-                pointerOnHover
+            <FilteredDataTable
+                tableColumns={missingReportTableColumns}
+                inputProps={{
+                    title: "Missing Report",
+                    data: data,
+                    columns: columns,
+                    progressPending: loading,
+                    fixedHeader: true,
+                    pagination: true,
+                    paginationTotalRows: totalRows,
+                    customStyles: customStyles,
+                    highlightOnHover: true,
+                    pointerOnHover: true,
+                }}
             />
          </div>
          {(showDeleteModal || showResolveModal) && (

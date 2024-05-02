@@ -1,3 +1,4 @@
+"use client";
 import { login } from "@/api/user";
 import { getCompanyList } from "@/api/company";
 import { createAsyncThunk } from "@reduxjs/toolkit";

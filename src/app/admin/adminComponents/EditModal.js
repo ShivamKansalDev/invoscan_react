@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState } from "react";
 import Modal from "react-responsive-modal";
 import { CustomInput } from "./CustomInput";

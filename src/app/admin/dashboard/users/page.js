@@ -6,6 +6,7 @@ import Modal from "react-responsive-modal";
 import { toast } from 'react-toastify';
 import ConfirmDeleteModal from "../../adminComponents/ConfirmDeleteModal";
 import { CustomInput } from "../../adminComponents/CustomInput";
+import { FilteredDataTable } from "@/components/FilteredDataTable";
 
 const Users = ()=>{
     const [data,setData] = useState([]);
@@ -39,6 +40,7 @@ const Users = ()=>{
         phoneNumber: "",
     });
 
+    let userTableColumns = ["email", "firstName", "lastName", "role", "address"];
     let columns = [
         {
             name: 'Email',
@@ -158,13 +160,14 @@ const Users = ()=>{
             setShowDeleteModal(!showDeleteModal);
             if (response.data) {
                 fetchData();
-                setData("");
+                setData([]);
             }
         }catch(error){
             console.log("!!!! DELETE ERROR: ", error); 
         }
     }
     //  compaones 
+    let companyTableColumns = ["email", "name", "description", "invoiceCounter", "invoiceMonthlyLimit"];
     let companiesColumn = [
         {
             name: 'Email',
@@ -280,17 +283,21 @@ const Users = ()=>{
             <div className="text-end add-user relative">
                 <button className="bg-[#0bc993] text-[#fff] rounded-lg px-4 py-2 font-semibold absolute top-2 -right-0 z-10" onClick={()=>{setUserOpen(true)}}>Add Users</button>
            </div>
-            <DataTable
-                title="Users"
-                data={data}
-                columns={columns}
-                progressPending={loading}
-                fixedHeader
-                pagination
-                paginationTotalRows={totalRows}
-                customStyles={customStyles}
-                highlightOnHover
-                pointerOnHover
+            <FilteredDataTable
+                type={"users"}
+                tableColumns={userTableColumns}
+                inputProps={{
+                    title:"Users",
+                    data: data,
+                    columns: columns,
+                    progressPending: loading,
+                    fixedHeader: true,
+                    pagination: true,
+                    paginationTotalRows: totalRows,
+                    customStyles: customStyles,
+                    highlightOnHover: true,
+                    pointerOnHover: true
+                }}
             />
             <Modal open={openAddUser} classNames={{
                     modal: 'add-users-modal',
@@ -382,17 +389,20 @@ const Users = ()=>{
                             <button className="bg-[#0bc993] text-[#fff] rounded-lg px-4 py-2 font-semibold absolute top-0 -right-0 z-10" onClick={()=>setCompanyOpen(true)}>Add Company</button>
                         </div>
                         <div className="row">
-                            <DataTable
-                                title="Companies"
-                                data={companyList}
-                                columns={companiesColumn}
-                                progressPending={loading}
-                                fixedHeader
-                                pagination
-                                paginationTotalRows={totalRows}
-                                customStyles={customStyles}
-                                highlightOnHover
-                                pointerOnHover
+                            <FilteredDataTable
+                                tableColumns={companyTableColumns}
+                                inputProps={{
+                                    title: "Companies",
+                                    data: companyList,
+                                    columns: companiesColumn,
+                                    progressPending: loading,
+                                    fixedHeader: true,
+                                    pagination: true,
+                                    paginationTotalRows: totalRows,
+                                    customStyles: customStyles,
+                                    highlightOnHover: true,
+                                    pointerOnHover: true,
+                                }}
                             />
                         </div>
                     </div>

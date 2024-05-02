@@ -1,3 +1,4 @@
+"use client";
 import FeatherIcon from "feather-icons-react";
 
 const UploadCSV = ({

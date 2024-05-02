@@ -1,3 +1,4 @@
+"use client";
 import Modal from "react-responsive-modal";
 
 export default function MissingReportPopUp({

@@ -1,9 +1,7 @@
 'use client';
-import DataTable from "react-data-table-component";
 import React, { useState, useEffect } from "react";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
-import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 
 import FeatherIcon from 'feather-icons-react';
@@ -13,6 +11,9 @@ import { deleteStatement, deleteStatementInvoice, getStatementDetails, getStatem
 import { useSelector } from "react-redux";
 import { getSupplierList } from "@/api/invoices";
 import { toast } from "react-toastify";
+import BackArrow from "@/components/BackArrow";
+import { FilteredDataTable } from "@/components/FilteredDataTable";
+import { UploadCSV } from "@/app/admin/adminComponents/UploadCSV";
 
 export default function Statements() {
     const {selectedCompany} = useSelector((state)=>state.user);
@@ -44,7 +45,10 @@ export default function Statements() {
 
     const [deleteId, setDeleteId] = useState(null)
     const [statementId, setStatementId] = useState(null)
+    const [files, setFiles] = useState([]);
+    const [thumbnail, setThumbnail] = useState('');
 
+    let statementTableColumns = ["supplier.name", "CustomerName", "InvoiceDate", "CustomerAddress", "TotalTax"]
     let columns = [
         {
             name: 'Vendor Name',
@@ -55,7 +59,7 @@ export default function Statements() {
             selector: row => row.CustomerName,
         },
         {
-            name: 'Invoice Date',
+            name: 'Statement Month',
             selector: row => row.InvoiceDate,
         },
         {
@@ -86,6 +90,7 @@ export default function Statements() {
             )
         },
     ];
+    let invoiceTableColumns = ["invoiceNumber", "invoiceDate", "amount"];
     let invoiceItemsColumns = [
         {
             name: 'Invoice Number',
@@ -317,10 +322,12 @@ export default function Statements() {
 
     const onCloseSupplierModal = () => {
         setSupplierOpen(false)
-        setSupplier(null)
+        setSupplier(null);
+        setThumbnail('');
+        setFiles([]);
+        setFileName('');
     };
     const onCloseSecondModal = () => setSecondOpen(false);
-    const [files, setFiles] = useState([]);
 
     const onCloseModal = () => setOpen(false);
     const onCloseInvoiceModal = () => setInvoiceOpen(false);
@@ -330,6 +337,36 @@ export default function Statements() {
     useEffect(() => {
         fetchData(1);
     }, []);
+
+    const handleInputChange = (e) => {
+        if (e.target.files.length) {
+            const file = e.target.files[0];
+            setThumbnail(URL.createObjectURL(file));
+            setFileName(file ? file.name: "");
+            setFiles(e.target.files);
+            console.log("@#@#@ ADDED FILES: ", e.target.files);
+        }
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        console.log('handleDragOver');
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        console.log('handleDragOver');
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            setThumbnail(URL.createObjectURL(file));
+            setFileName(file.name);
+            setFiles([file]);
+        }
+    };
 
     return (
         <>
@@ -341,32 +378,38 @@ export default function Statements() {
                     </div>
                 </div>
                 <div className="card-body">
-                    <DataTable
-                        title="Statements"
-                        columns={columns}
-                        data={data}
-                        progressPending={loading}
-                        fixedHeader
-                        pagination
-                        paginationTotalRows={totalRows}
-                        customStyles={customStyles}
-                        highlightOnHover
-                        pointerOnHover
+                    <FilteredDataTable
+                        tableColumns={statementTableColumns}
+                        inputProps={{
+                            title: "Statements",
+                            columns: columns,
+                            data: data,
+                            progressPending: loading,
+                            fixedHeader: true,
+                            pagination: true,
+                            paginationTotalRows: totalRows,
+                            customStyles: customStyles,
+                            highlightOnHover: true,
+                            pointerOnHover: true
+                        }}
                     />
                 </div>
             </div>
             <Modal open={open} onClose={onCloseModal} center>
-                <DataTable
-                    title={`${(invoiceItem.row.CustomerName ? invoiceItem.row.CustomerName : 'NA')} (${totalItemRows})`}
-                    columns={invoiceItemsColumns}
-                    data={invoiceItem.Items}
-                    progressPending={loading}
-                    fixedHeader
-                    pagination
-                    paginationTotalRows={totalItemRows}
-                    customStyles={customStyles}
-                    highlightOnHover
-                    pointerOnHover
+                <FilteredDataTable
+                    tableColumns={invoiceTableColumns}
+                    inputProps={{
+                        title: `${(invoiceItem.row.CustomerName ? invoiceItem.row.CustomerName : 'NA')} (${totalItemRows})`,
+                        columns: invoiceItemsColumns,
+                        data: invoiceItem.Items,
+                        progressPending: loading,
+                        fixedHeader: true,
+                        pagination: true,
+                        paginationTotalRows: totalItemRows,
+                        customStyles: customStyles,
+                        highlightOnHover: true,
+                        pointerOnHover: true
+                    }}
                 />
             </Modal>
             <Modal open={secondOpen} onClose={onCloseSecondModal} center>
@@ -450,26 +493,16 @@ export default function Statements() {
                             <h2 className="card-header">Add Statement</h2>
                             <small>Upload Statement PDF File.</small>
                             <div className="mt-3"><h6 className="card-header" style={{ color: '#0bc993' }}>Supplier: {selectedSupplier?.name} </h6></div>
-                            <div className="card-body mt-3 py-5">
-                                <div className="mb-3 col-md-12 file-upload-wrapper">
-                                    <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
-                                        <input className="form-control" type="file" id="files" name="files[]" onChange={(e) => { setFiles(e.target.files); setFileName(e.target.files[0]?e.target.files[0].name:'') }} multiple hidden />
-                                        <FeatherIcon icon="upload-cloud" className='menu-icon' />
-                                        <p>Browse File to Upload</p>
-                                        {
-                                            fileName ?
-                                                <a>{fileName}</a>
-                                                : null
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="card-body">
-                                <div className="mt-2">
-                                    <button type="button" onClick={() => { setNextAction(false) }} className="btn btn-green-borded me-2">Back</button>
-                                    <button type="button" onClick={() => { saveUploadedItem() }} className="btn btn-green me- width-86">Confirm</button>
-                                </div>
-                            </div>
+                                <UploadCSV
+                                    handleDragOver={handleDragOver}
+                                    handleDragLeave={handleDragLeave}
+                                    handleDrop={handleDrop}
+                                    handleInputChange={handleInputChange}
+                                    saveUploadedItem={saveUploadedItem}
+                                    fileName = {fileName}
+                                    files = {files}
+                                    title=""
+                                />
                         </div>
                 }
             </Modal>

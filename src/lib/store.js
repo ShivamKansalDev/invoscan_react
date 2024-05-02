@@ -1,9 +1,10 @@
+"use client";
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistReducer, persistStore } from 'redux-persist';
-import persistStorage from "redux-persist/lib/storage";
 import createWebStorage from "redux-persist/lib/storage/createWebStorage";
 
-import userSlice, { userActions } from './features/slice/userSlice';
+import { userSlice } from './features/slice/userSlice';
+
 import loadingSlice, { loadingActions } from './features/slice/loading';
 
 const createNoopStorage = () => {
@@ -20,7 +21,7 @@ const createNoopStorage = () => {
   };
 };
 
-const storage = typeof window !== "undefined" ? persistStorage : createNoopStorage();
+const storage = typeof window !== "undefined" ? createWebStorage("local") : createNoopStorage();
 
 // const storage = persistStorage;
 
@@ -33,8 +34,8 @@ const persistConfig = {
 };
 
 const reducer = combineReducers({
-  [userSlice.name]: userSlice.reducer,
-  [loadingSlice.name]: loadingSlice.reducer
+  [userSlice?.name]: userSlice?.reducer,
+  [loadingSlice?.name]: loadingSlice?.reducer
 });
 
 const persistedReducer = persistReducer(persistConfig, reducer);

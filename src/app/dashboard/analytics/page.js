@@ -3,10 +3,12 @@ import DataTable from "react-data-table-component";
 import React, { useState, useEffect } from "react";
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
-import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import FeatherIcon from 'feather-icons-react';
+import { Document, Page ,pdfjs} from 'react-pdf';
+import 'react-pdf/dist/Page/TextLayer.css';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
 
 import {
     Chart as ChartJS,
@@ -22,6 +24,7 @@ import {
 import { Bar } from 'react-chartjs-2';
 import { useSelector } from "react-redux";
 import { getAnalyticsData, getAnalyticsList, getStocksAnalytics } from "@/api/analytics";
+import { FilteredDataTable } from "@/components/FilteredDataTable";
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -33,6 +36,8 @@ ChartJS.register(
     Legend,
     ChartDataLabels
 );
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 export default function Analytics() {
     const {selectedCompany} = useSelector((state)=>state.user);
@@ -52,7 +57,7 @@ export default function Analytics() {
     const [distributionOpen, setDistributionOpen] = useState(false);
     const [currentTab, setCurrentTab] = useState('Pricing');
 
-
+    let productTableColumns = ["product", "averageCostPrice", "averageRetailPrice", "priceMovt", "totalVolume", "totalSpent", "cheapestSupplier", "averageRetailPriceMargin", "csvDtPrice"];
     let columns = [
         {
             name: 'Product',
@@ -113,7 +118,10 @@ export default function Analytics() {
                 <div className="grid-flex">
                     <button
                         className="btn rounded-pill btn-default"
-                        onClick={(e) => showRowData(row)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            showRowData(row)
+                        }}
                     >
                         <FeatherIcon icon="eye" className='menu-icon' />
                     </button>
@@ -121,6 +129,8 @@ export default function Analytics() {
             )
         },
     ];
+
+    let invoiceTableColumns = ["supplier.name", "InvoiceDate", "InvoiceId", "Quantity", "Amount"];
     let invoiceItemColumns = [
         {
             name: 'Vendor Name',
@@ -162,6 +172,7 @@ export default function Analytics() {
             )
         },
     ];
+    let uploadedInvoiceTableColumns = ["Description", "Quantity", "QuantityForReport", "Amount"];
     let uploadedInvoiceItemsColumns = [
         {
             name: '',
@@ -290,6 +301,7 @@ export default function Analytics() {
         try{
             const response = await getAnalyticsData(company?.id, { search: row.pip_code });
             const responseData = response.data?.data;
+            setLoading(false);
             if (Array.isArray(responseData)) {
                 setInvoiceItems({
                     row: row,
@@ -334,6 +346,7 @@ export default function Analytics() {
                 setOpen(true);
             }
         }catch(error){
+            setLoading(false);
             console.log("!!!! ANALYTICS DATA ERROR: ", error)
         }
     }
@@ -346,7 +359,7 @@ export default function Analytics() {
         setLoading(true);
         try{
             const response = await getStocksAnalytics(company?.id,{ search: row.pip_code });
-            const responseData = response.data?.data;
+            const responseData = response.data?.data?.data;
             setLoading(false);
             if (Array.isArray(responseData)) {
                 setUploadedInvoiceItems(responseData[0]);
@@ -374,7 +387,10 @@ export default function Analytics() {
     }, []);
 
     return (
-        <div className="card mb-4">
+        <div 
+            // className={`${open ? 'bg-transparent card mb-4' : 'card mb-4'}`}
+            className="card mb-4"
+        >
             <div className="row">
                 <div className="col-md-9">
                     <h3 className="card-header">Analytics</h3>
@@ -384,17 +400,21 @@ export default function Analytics() {
                 </div>
             </div>
             <div className="">
-                <DataTable
-                    title=""
-                    columns={columns}
-                    data={data}
-                    progressPending={loading}
-                    fixedHeader
-                    pagination
-                    paginationTotalRows={totalRows}
-                    customStyles={customStyles}
-                    highlightOnHover
-                    pointerOnHover
+                <FilteredDataTable
+                    tableColumns={productTableColumns}
+                    inputProps={{
+                        title: "",
+                        columns: columns,
+                        data: data,
+                        progressPending: loading,
+                        fixedHeader: true,
+                        pagination: true,
+                        paginationTotalRows: totalRows,
+                        customStyles: customStyles,
+                        paginationPerPage: 15,
+                        highlightOnHover: true,
+                        pointerOnHover: true
+                    }}
                 />
             </div>
             <Modal open={distributionOpen} classNames={{
@@ -451,50 +471,68 @@ export default function Analytics() {
                     </div>
                 </div>
             </Modal>
-            <Modal open={open} onClose={onCloseModal} center>
-                <div className="mb-4">
-                    <h5 className="card-header">{invoiceItems.row ? invoiceItems.row.product : ''} <small style={{ paddingLeft: '20px' }}>( Pack size - )</small></h5>
-                    <div className="mt-2">
-                        <button type="button" onClick={() => { setCurrentTab('Pricing'); }} className={`btn ${currentTab === 'Pricing' ? 'btn-green' : 'btn-green-borded'} me-2`}>Pricing Details</button>
-                        <button type="button" onClick={() => { setCurrentTab('Invoice'); }} className={`btn ${currentTab === 'Invoice' ? 'btn-green' : 'btn-btn-green-borded'} me-2`}>Invoice Details</button>
+            <Modal open={open} onClose={onCloseModal} center 
+                classNames={{
+                    modal: 'custom-modal'
+                }}
+            >
+                <div className="">
+                    <div className="mb-2 bg-white p-2 rounded-md inline-block">
+                        <button type="button" onClick={() => { setCurrentTab('Pricing'); }} className={`me-2 btn ${currentTab === 'Pricing' ? 'btn-green' : 'btn-green-borded'}`}>Pricing Details</button>
+                        <button type="button" onClick={() => { setCurrentTab('Invoice'); }} className={`btn ${currentTab === 'Invoice' ? 'btn-green' : 'btn-green-borded'}`}>Invoice Details</button>
                     </div>
                     {
                         currentTab === 'Pricing' ?
-                            <div className="card-body">
-                                check
-                                <Bar
-                                    options={{
-                                        responsive: true,
-                                        plugins: {
-                                            legend: {
-                                                position: 'bottom',
+                            <div className="card-body flex justify-start gap-3">
+                                <div className="border w-[25%] border-black flex flex-col rounded-md px-2 bg-white gap-[6px] pt-1">
+                                    <p className="font-bold">{invoiceItems.row ? invoiceItems.row.product : ''}</p>
+                                    <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
+                                        <span className=""><strong>Average Cost Price:</strong> {invoiceItems.row ? invoiceItems.row.averageCostPrice.toFixed(2) : ''}</span>
+                                        <span className=""><strong>Average Retail Price:</strong> {invoiceItems.row ? invoiceItems.row.averageRetailPrice : ''}</span>
+                                        <span className=""><strong>Price Movement:</strong> {invoiceItems.row ? invoiceItems.row.priceMovt : ''}</span>
+                                        <span className=""><strong>Total Movement:</strong> {invoiceItems.row ? invoiceItems.row.totalVolume : ''}</span>
+                                        <span className=""><strong>Total spent:</strong> {invoiceItems.row ? invoiceItems.row.totalSpent.toFixed(2) : ''}</span>
+                                        <span className=""><strong>Cheapest Supplier:</strong> {invoiceItems.row ? invoiceItems.row.cheapestSupplier : ''}</span>
+                                        <span className=""><strong>Retail Margin:</strong> {invoiceItems.row ? invoiceItems.row.averageRetailPriceMargin.toFixed(2) : ''}</span>
+                                        <span className=""><strong>DT Price:</strong> {invoiceItems.row ? invoiceItems.row.csvDtPrice.toFixed(2) : ''}</span>
+                                    </div>
+                                </div>
+                                <div className="size-fit border border-black h-96 w-[75%] rounded-md content-center bg-white">
+                                    <Bar
+                                        options={{
+                                            // indexAxis: 'y',
+                                            responsive: true,
+                                            plugins: {
+                                                legend: {
+                                                    position: 'bottom',
+                                                },
+                                                title: {
+                                                    display: true,
+                                                    text: (invoiceItems.row ? invoiceItems.row.product : ''),
+                                                },
+                                                datalabels: {
+                                                    display: true,
+                                                    color: "black",
+                                                    formatter:(value) => value || '0',
+                                                    anchor: "end",
+                                                    // offset: -20,
+                                                    align: "left",
+                                                    // backgroundColor: 'red'
+                                                },
                                             },
-                                            title: {
-                                                display: true,
-                                                text: (invoiceItems.row ? invoiceItems.row.product : ''),
-                                            },
-                                            datalabels: {
-                                                display: true,
-                                                color: "black",
-                                                formatter:(value) => value || '0',
-                                                anchor: "end",
-                                                // offset: -20,
-                                                align: "left",
-                                                // backgroundColor: 'red'
+                                            datasets: {
+                                                bar: {
+                                                    barThickness: 4,
+                                                    grouped: false,
+                                                }
                                             }
-                                        },
-                                        datasets: {
-                                            bar: {
-                                                barThickness: 4,
-                                                grouped: false,
-                                            }
-                                        }
-                                    }}
-                                    data={{
-                                        labels: chartLabels,
-                                        datasets: chartDataSets,
-                                    }}
-                                />
+                                        }}
+                                        data={{
+                                            labels: chartLabels,
+                                            datasets: chartDataSets,
+                                        }}
+                                    />
+                                </div>
                                 {/* <Line
                                     data={{
                                         labels: chartLabels,
@@ -535,17 +573,20 @@ export default function Analytics() {
                     }
                     {
                         currentTab === 'Invoice' ?
-                            <div className="card-body">
-                                <DataTable
-                                    title=""
-                                    columns={invoiceItemColumns}
-                                    data={invoiceItems.items}
-                                    progressPending={loading}
-                                    fixedHeader
-                                    pagination
-                                    customStyles={customStyles}
-                                    highlightOnHover
-                                    pointerOnHover
+                            <div className="card-body rounded-md">
+                                <FilteredDataTable
+                                    tableColumns={invoiceTableColumns}
+                                    inputProps={{
+                                        title: "",
+                                        columns: invoiceItemColumns,
+                                        data: invoiceItems.items,
+                                        progressPending: loading,
+                                        fixedHeader: true,
+                                        pagination: true,
+                                        customStyles: customStyles,
+                                        highlightOnHover: true,
+                                        pointerOnHover: true
+                                    }}
                                 />
                             </div>
                             : null
@@ -558,21 +599,15 @@ export default function Analytics() {
                 <div className="container-fluid">
                     <div className="row">
                         <div className="col-md-4">
-                            <Carousel
-                                showArrows={true}
-                                showIndicators={true}
-                                infiniteLoop={true}
-                                dynamicHeight={false}
-                                showThumbs={false}
-                            >
-                                {uploadedInvoiceItems.invoiceUrl && uploadedInvoiceItems.invoiceUrl.map((invoiceUrl, key) => (
-                                    <div key={key}>
-                                        <div>
-                                            <img src={invoiceUrl.url} alt="slides" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </Carousel>
+                            {
+                            uploadedInvoiceItems.invoiceUrl && uploadedInvoiceItems.invoiceUrl.map((invoice, key) => {
+                                return(
+                                    <Document key={key} file={invoice.url} className="pdf-section">
+                                        <Page  pageNumber={1}/>
+                                    </Document>
+                                )
+                            })
+                        }
                         </div>
                         <div className="col-md-8">
                             {
@@ -599,18 +634,21 @@ export default function Analytics() {
                                                     <input type="text" readOnly className="form-control" id="SubTotal" name="SubTotal" value={uploadedInvoiceItems.SubTotal} />
                                                 </div>
                                             </div>
-                                            <DataTable
-                                                title={`Delivery products (${uploadedInvoiceItems.Items ? uploadedInvoiceItems.Items.length : 0})`}
-                                                columns={uploadedInvoiceItemsColumns}
-                                                data={uploadedInvoiceItems.Items}
-                                                progressPending={loading}
-                                                fixedHeader
-                                                pagination
-                                                paginationServer
-                                                paginationTotalRows={uploadedInvoiceItems.Items ? uploadedInvoiceItems.Items.length : 0}
-                                                customStyles={customStyles}
-                                                highlightOnHover
-                                                pointerOnHover
+                                            <FilteredDataTable
+                                                tableColumns={uploadedInvoiceTableColumns}
+                                                inputProps={{
+                                                    title: `Delivery products (${uploadedInvoiceItems.Items ? uploadedInvoiceItems.Items.length : 0})`,
+                                                    columns: uploadedInvoiceItemsColumns,
+                                                    data: uploadedInvoiceItems.Items,
+                                                    progressPending: loading,
+                                                    fixedHeader: true,
+                                                    pagination: true,
+                                                    paginationPerPage: 10,
+                                                    paginationTotalRows: uploadedInvoiceItems.Items ? uploadedInvoiceItems.Items.length : 0,
+                                                    customStyles: customStyles,
+                                                    highlightOnHover: true,
+                                                    pointerOnHover: true
+                                                }}
                                             />
                                         </div>
                                     </div>
