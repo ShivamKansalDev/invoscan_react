@@ -12,12 +12,12 @@ const Concession = ()=>{
 
     let columns = [
         {
-            name: 'Pack Size',
-            selector: row => row.packSize,
-        },
-        {
             name: 'Drug',
             selector: row => row.drug,
+        },
+        {
+            name: 'Pack Size',
+            selector: row => row.packSize,
         },
         {
             name: 'Concession Price',

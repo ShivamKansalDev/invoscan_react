@@ -62,7 +62,7 @@ export default function RootLayout({ children }) {
     <div className="layout-wrapper layout-content-navbar">
       <div className="layout-container p-3">
         <div className='layout-left'>
-            <aside id="layout-menu" className="layout-menu menu-vertical menu bg-menu-theme rounded-[10px]" style={{ height: '610px', overflow: 'hidden' }}>
+            <aside id="layout-menu" className="layout-menu menu-vertical menu bg-menu-theme rounded-[10px]" style={{ max: '550px', overflow: 'hidden' }}>
                 <div className="app-brand demo">
                   <Link href="/dashboard" className="app-brand-link">
                     <span className="app-brand-logo dashboard">
