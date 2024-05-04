@@ -75,7 +75,7 @@ const BookingModal = ({
         }} onClose={onCloseModal} center>
             <div className="container-fluid bg-gray-200 my-2">
                 <div className="row bg-gray-200">
-                    <div className="col-md-5">
+                    <div className="col-md-4">
                         {
                             invoiceItems.invoiceUrl && invoiceItems.invoiceUrl.map((invoice, key) => {
                                 return(
@@ -86,7 +86,7 @@ const BookingModal = ({
                             })
                         }
                     </div>
-                    <div className="col-md-7">
+                    <div className="col-md-8">
                         {
                             invoiceItems ?
                                 <div className="card">

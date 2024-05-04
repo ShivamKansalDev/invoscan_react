@@ -89,7 +89,8 @@ export default function Credits() {
     const [note, setStockNote] = useState('');
     const [files, setFiles] = useState([]);
     const [fileName, setFileName] = useState('');
-    const [records, setAllRecords] = useState([]);
+    const [pendingRecords, setPendingRecords] = useState([]);
+    const [completedRecords, setCompletedRecords] = useState([]);
 
     const [currentPage,setCurrentPage] = useState(1);
     //const perPage = 10;
@@ -104,9 +105,13 @@ export default function Credits() {
             const response = await getCreditsList(company.id);
             setLoading(false);
             const data = response.data?.data;
-            if (Array.isArray(data)) {
-                setAllRecords(data);
-                creditActiveTab(currentTab, data)
+            if (Array.isArray(data?.resolvedStockReports)) {
+                setCompletedRecords(data?.resolvedStockReports);
+                setTotalRows(data?.resolvedStockReports?.length)
+            }
+            if (Array.isArray(data?.notResolvedStockReports)) {
+                setPendingRecords(data?.notResolvedStockReports)
+                setTotalRows(data?.notResolvedStockReports?.length)
             }
         }catch(error){
             console.log(error);
@@ -114,17 +119,8 @@ export default function Credits() {
         }
     }
 
-    const creditActiveTab = async (activeTab, records) => {
-        let filter = true;
-        if (activeTab === 'Pending') {
-            filter = false;
-        }
+    const creditActiveTab = async (activeTab) => {
         setCurrentTab(activeTab)
-        let creditItems = records.filter(function (data) {
-            return data.isResolved === filter;
-        });
-        setData(creditItems)
-        setTotalRows(creditItems.length)
     }
 
     const showRowData = (row, key) => {
@@ -153,7 +149,11 @@ export default function Credits() {
             console.log(error);
         }
     }
-    const onCloseModal = () => setOpen(false);
+    const onCloseModal = () => {
+        setOpen(false)
+        setFiles([])
+        setFileName('');
+    };
 
     useEffect(() => {
         fetchData(1);
@@ -170,13 +170,12 @@ export default function Credits() {
     const si = totalRows == 0 ? 0 : (currentPage-1) * perPage + 1;
     const ei = Math.min(currentPage*perPage, totalRows);
 
-
     return (
         <div className="card mb-4">
             <div className="card-body">
                 <div className="mt-2">
-                    <button type="button" onClick={() => { creditActiveTab('Pending', records); }} className={`btn ${currentTab === 'Pending' ? 'btn-green' : 'btn-green-borded'} me-2`}>Unresolved</button>
-                    <button type="button" onClick={() => { creditActiveTab('Completed', records); }} className={`btn ${currentTab === 'Completed' ? 'btn-green' : 'btn-green-borded'} me-2`}>Resolved</button>
+                    <button type="button" onClick={() => { creditActiveTab('Pending'); }} className={`btn ${currentTab === 'Pending' ? 'btn-green' : 'btn-green-borded'} me-2`}>Unresolved</button>
+                    <button type="button" onClick={() => { creditActiveTab('Completed'); }} className={`btn ${currentTab === 'Completed' ? 'btn-green' : 'btn-green-borded'} me-2`}>Resolved</button>
                 </div>
                 {totalRows > 0 && <p className="mt-2 leading-3">Showing entries {si} - {ei} of page {currentPage}</p>
 }
@@ -185,7 +184,7 @@ export default function Credits() {
                     inputProps={{
                         title: `${currentTab} Credits`,
                         columns: columns,
-                        data: data,
+                        data: (currentTab === "Pending") ? pendingRecords : completedRecords,
                         progressPending: loading,
                         fixedHeader: true,
                         pagination: true,

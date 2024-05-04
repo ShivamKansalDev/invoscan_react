@@ -95,3 +95,33 @@ html, body {
   --tw-backdrop-blur: blur(4px);
 }
 
+.files-multiple-uploader{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.file-upload-wrapper .wrapper-file-uploader {
+  height: 137px;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 5px;
+  border: 2px dashed #16e9ad;
+  color: #16e9ad;
+  padding: 8px;
+  overflow: auto;
+}
+.file-uploader{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 137px;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 5px;
+  border: 2px dashed #16e9ad;
+  color: #16e9ad;
+  padding: 8px;
+  overflow: auto;
+}

@@ -2,7 +2,7 @@ import { API } from "@/Request";
 
 export const getCreditsList = (companyId) => {
     return API.request({
-        url: `stock-report/${companyId}`,
+        url: `stock-report/group-by-action-taken/${companyId}`,
         method: "GET"
     })
 };
