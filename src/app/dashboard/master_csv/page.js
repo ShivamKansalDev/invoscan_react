@@ -1,6 +1,5 @@
 "use client"
 import { useState } from "react";
-import FeatherIcon from "feather-icons-react";
 import { FilteredDataTable } from "@/components/FilteredDataTable";
 import { useSelector } from "react-redux";
 
@@ -35,30 +34,30 @@ const MasterCsv = ()=> {
             name: 'Price',
             selector: row => row.price,
         },
-        {
-            name: 'Actions',
-            cell: row => (
-                <div className="grid-flex">
-                    <button
-                        onClick={(e) => {
-                            // setSelectedProduct(row);
-                            // setShowEditModal(!showEditModal);
-                            // console.log("@@@@ ROW: ", row);
-                        }}
-                    >
-                        <FeatherIcon icon="edit-3" className='menu-icon' />
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            // setSelectedProduct(row);
-                            // setShowDeleteModal(!showDeleteModal)
-                        }}
-                    >
-                        <i className='bx bx-trash menu-icon menu-icon-red'></i>
-                    </button>
-                </div>
-            )
-        },
+        // {
+        //     name: 'Actions',
+        //     cell: row => (
+        //         <div className="grid-flex">
+        //             <button
+        //                 onClick={(e) => {
+        //                     // setSelectedProduct(row);
+        //                     // setShowEditModal(!showEditModal);
+        //                     // console.log("@@@@ ROW: ", row);
+        //                 }}
+        //             >
+        //                 <FeatherIcon icon="edit-3" className='menu-icon' />
+        //             </button>
+        //             <button
+        //                 onClick={(e) => {
+        //                     // setSelectedProduct(row);
+        //                     // setShowDeleteModal(!showDeleteModal)
+        //                 }}
+        //             >
+        //                 <i className='bx bx-trash menu-icon menu-icon-red'></i>
+        //             </button>
+        //         </div>
+        //     )
+        // },
     ]
     let customStyles = {
         headRow: {

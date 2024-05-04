@@ -18,12 +18,11 @@ import { ProductDetailsModal } from "@/components/ProductDetailsModal";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 export default function Bookings() {
-    const { userDetails, selectedCompany } = useSelector((state) => state.user);
+    const {selectedCompany } = useSelector((state) => state.user);
 
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [totalRows, setTotalRows] = useState(0)
-    const [results, setResults] = useState(100)
     const [open, setOpen] = useState(false);
     const [supplierOpen, setSupplierOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -34,6 +33,7 @@ export default function Bookings() {
     const [invoiceItems, setInvoiceItems] = useState({
         Items: []
     });
+    const [thumbnail, setThumbnail] = useState('');
     const [invoiceData, setInvoiceData] = useState({
         PackSize: '',
         Description: '',
@@ -55,6 +55,11 @@ export default function Bookings() {
     const [showCompanyModal, setShowCompanyModal] = useState(false);
     
     const [actionButtonType, setActionButtonType] = useState('update');
+    const [files, setFiles] = useState([]);
+
+    const [startDate, setStartDate] = useState(moment().startOf('year').toDate());
+    const [endDate, setEndDate] = useState(moment().endOf('year').toDate());
+    const [supplierId, setSupplierId] = useState('');
 
     let invoiceTableColumns = ["supplier.name", "InvoiceDate", "InvoiceId", "SubTotal"];
     let columns = [
@@ -413,7 +418,6 @@ export default function Bookings() {
         setLoading(true)
         try{
             const url = `stock/pending/${companyDetails.id}?from=${moment(startDate).format('YYYY-MM-DD')}&to=${moment(endDate).format('YYYY-MM-DD')}${supplierId ? '&supplier=' + supplierId : ''}`;
-            console.log("#### FETCH DATA: ", url);
             const response = await getPendingInvoices(url);
             const rcvdData = response.data?.data;
             setLoading(false);
@@ -443,13 +447,11 @@ export default function Bookings() {
         for (let index = 0; index < files.length; index++) {
             formData.append('files[]', files[index])
         }
-        console.log("@#@ ADD ATTACHMENT: ", files);
         let companyDetails = selectedCompany;
         if(companyDetails?.id){
             try{
                 const response = await uploadInvoice(`form/analyze/${companyDetails.id}?supplierId=${selectedSupplier.id}&type=${actionType == 'bulk' ? 'invoice' : actionType}`, formData);
                 const data = response.data;
-                console.log("&&&& INVOICE UPLOAD: ", data);
                 if (!data?.error) {
                     showRowData(data?.data);
                     setSupplierOpen(false);
@@ -482,6 +484,7 @@ export default function Bookings() {
     };
     const onCloseSupplierModal = () => { 
         setConfirmOpen(true);
+        setFiles([]);
     };
     const onCloseConfirmModal = () => {
         setConfirmOpen(false);
@@ -493,12 +496,6 @@ export default function Bookings() {
     const onClosespDeleteModal = () => {
         setDeleteSpOpen(false)
     };
-    
-    const [files, setFiles] = useState([]);
-
-    const [startDate, setStartDate] = useState(moment().startOf('year').toDate());
-    const [endDate, setEndDate] = useState(moment().endOf('year').toDate());
-    const [supplierId, setSupplierId] = useState('');
 
     useEffect(() => {
         if((selectedCompany !== null) && (Object.keys(selectedCompany).length > 0)){
@@ -507,24 +504,29 @@ export default function Bookings() {
         }
     }, [selectedCompany]);
 
-    // let lockedItems = invoiceItems && invoiceItems.Items.filter((Item) => Item.lock === true)
-
-
-
-    // upload
-        
-        
-
-    const [thumbnail, setThumbnail] = useState('');
-
-    const handleInputChange = (e) => {
+    const handleInputChangeStatment = (e) => {
         if (e.target.files.length) {
             const file = e.target.files[0];
-            setThumbnail(URL.createObjectURL(file));
             setFileName(file ? file.name: "");
             setFiles(e.target.files);
         }
     };
+    // upload
+    const handleInputChange = (e) => {
+        if (e.target.files.length) {
+            const selectedFiles = e.target.files;
+            const keyNames = Object.keys(selectedFiles);
+            let addFiles = [];
+            keyNames.forEach((key) => {
+                addFiles.push(selectedFiles[key])
+            })
+            setFiles(addFiles);
+        }
+    };
+    const removeFiles = (deleteId)=>{
+        const updateData = files?.filter((item, index) => index !== deleteId);
+            setFiles(updateData);
+    }
 
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -540,7 +542,6 @@ export default function Bookings() {
         e.preventDefault();
         const file = e.dataTransfer.files[0];
         if (file) {
-            setThumbnail(URL.createObjectURL(file));
             setFileName(file.name);
             setFiles([file]);
         }
@@ -655,7 +656,7 @@ export default function Bookings() {
                                                 return (
                                                     <div key={index}>
                                                         <div id={(selectedSupplier?.id === item?.id) ? "bgColor" : "" } className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" strokeLinejoin="round" className="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="feather feather-check-circle" color="rgba(11, 201, 147, 1)" pointerEvents="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                                                             <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
                                                         </div>
                                                     </div>
@@ -665,7 +666,7 @@ export default function Bookings() {
                                                 <div key={index}>
                                                      <div  onClick={() => setSupplier(item)} className="d-flex form-check form-radio-check mb-2 py-2" key={index}>
                                                         <div>
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" strokeLinejoin="round" className="feather feather-circle" color="rgba(11, 201, 147, 1)" pointer-events="none"><circle cx="12" cy="12" r="10"></circle></svg>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="feather feather-circle" color="rgba(11, 201, 147, 1)" pointerEvents="none"><circle cx="12" cy="12" r="10"></circle></svg>
                                                         </div>
                                                         <label className="form-check-label" htmlFor={`flexSwitchCheckChecked-${index}`}>{item.name}</label>
                                                     </div>
@@ -681,23 +682,6 @@ export default function Bookings() {
                         </div>
                         :
                         <div className=" mb-4">
-                            {/* <div className="m-3 drop-zone"
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}>
-                        {thumbnail ? (
-                            <div className="drop-zone__thumb"
-                                style={{ backgroundImage: `url('${thumbnail}')` }}
-                                data-label={thumbnail.name}>
-                            </div>
-                        ) : (
-                            <>
-                                <FeatherIcon icon="upload-cloud" className='menu-icon' />
-                                <span className="drop-zone__prompt">Browse File to Upload</span>
-                            </>
-                        )}
-            <input type="file" name="file" className="drop-zone__input" onChange={handleInputChange} />
-        </div> */}
                             {
                                 actionType == 'invoice' ?
                                     <>
@@ -724,59 +708,44 @@ export default function Bookings() {
 
                             {
                                 actionType == 'bulk' ?
-                                    // <div className="card-body mt-3 py-5">
-                                    //     <div className="mb-3 col-md-12 file-upload-wrapper">
-                                    //         <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
-                                    //             <input className="form-control" type="file" id="files" name="files[]" onChange={(e) => { setFiles(e.target.files); setFileName(e.target.files[0]?e.target.files[0].name:'') }} multiple hidden />
-                                    //             <FeatherIcon icon="upload-cloud" className='menu-icon' />
-                                    //             <p>Browse File to Upload</p>
-                                    //             {
-                                    //                 fileName ?
-                                    //                     <a>{fileName}</a>
-                                    //                     : null
-                                    //             }
-                                    //         </div>
-                                    //     </div>
-                                    // </div>
                                     <div className="card-body mt-3 py-5">
-                                    <div className="mb-3 col-md-12 file-upload-wrapper"
-                                        onDragOver={handleDragOver}
-                                        onDragLeave={handleDragLeave}
-                                        onDrop={handleDrop}>
-                                        <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
-                                            <input className="form-control" type="file" id="files" name="files[]" onChange={handleInputChange} hidden />
-                                            <FeatherIcon icon="upload-cloud" className='menu-icon' />
-                                            <p>Browse File to Upload</p>
-                                            {
-                                                fileName ?
-                                                    <a>{fileName}</a>
-                                                    : null
-                                            }
+                                        <div className="mb-3 col-md-12 file-upload-wrapper"
+                                            onDragOver={handleDragOver}
+                                            onDragLeave={handleDragLeave}
+                                            onDrop={handleDrop}>
+                                            <div className={`${(files.length > 0)? "wrapper-file-uploader" : "file-uploader"}`}>
+                                                 {files.length > 0 ?  (
+                                                    files.map((file, index) => {
+                                                        return (
+                                                            <>
+                                                               <div className="files-multiple-uploader mb-2 mx-2" key={index}>
+                                                                    <span>{`${index + 1}. ${file?.name}`}</span>
+                                                                    <a style={{color:'#630a0a'}} onClick={()=> removeFiles(index)}>Remove file</a>
+                                                                </div>
+                                                            </>
+                                                        )
+                                                    })
+                                                 )
+                                                  :
+                                                    <>
+                                                    <div onClick={() => { document.querySelector("#files").click() }} className="d-flex justify-content-center align-items-center flex-column">
+                                                        <input className="form-control"  type="file" id="files" name="files[]" onChange={handleInputChange}  multiple hidden />
+                                                        <FeatherIcon icon="upload-cloud" className='menu-icon' />
+                                                        <p>Browse File to Upload</p> 
+                                                    </div>
+                                                  </>
+                                                }
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                                     :
-                                    // <div className="card-body mt-3 py-5">
-                                    //     <div className="mb-3 col-md-12 file-upload-wrapper">
-                                    //         <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
-                                    //             <input className="form-control" type="file" id="files" name="files[]" onChange={(e) => { setFiles(e.target.files); setFileName(e.target.files[0]?e.target.files[0].name:'') }} hidden />
-                                    //             <FeatherIcon icon="upload-cloud" className='menu-icon' />
-                                    //             <p>Browse File to Upload</p>
-                                    //             {
-                                    //                 fileName ?
-                                    //                     <a>{fileName}</a>
-                                    //                     : null
-                                    //             }
-                                    //         </div>
-                                    //     </div>
-                                    // </div>
                                       <div className="card-body mt-3 py-5">
                                         <div className="mb-3 col-md-12 file-upload-wrapper"
                                             onDragOver={handleDragOver}
                                             onDragLeave={handleDragLeave}
                                             onDrop={handleDrop}>
                                             <div className="wrapper-uploader" onClick={() => { document.querySelector("#files").click() }}>
-                                                <input className="form-control" type="file" id="files" name="files[]" onChange={handleInputChange} hidden />
+                                                <input className="form-control" type="file" id="files" name="files[]" onChange={handleInputChangeStatment} hidden />
                                                 <div className="d-flex flex-col justify-center space-y-0">
                                                     <div className="d-flex justify-center">
                                                         <FeatherIcon icon="upload-cloud" className='menu-icon' />
