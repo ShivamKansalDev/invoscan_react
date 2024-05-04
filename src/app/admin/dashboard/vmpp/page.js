@@ -62,6 +62,7 @@ const Vmpp = () => {
             handleInputChange={handleInputChange}
             saveUploadedItem={saveUploadedItem}
             fileName = {fileName}
+            files={files}
         />
     )
 }
