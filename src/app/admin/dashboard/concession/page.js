@@ -62,16 +62,15 @@ const Concession = ()=>{
             setLoading(true);
             try {
                 const response = await concessionList();
-                const data = response.data;
+                setLoading(false);
+                const data = response.data?.data;
                 setData(data);
-                setTotalRows(data.length)
+                setTotalRows(data.count)
             } catch (error) {
                 console.error('Error fetching data:', error);
                 setData([]);
                 setTotalRows(0);
-            } finally {
-                setLoading(false);
-            }
+            } 
         };
         fetchData();
     }, []);
