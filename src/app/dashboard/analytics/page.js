@@ -1,12 +1,11 @@
 'use client';
-import DataTable from "react-data-table-component";
 import React, { useState, useEffect } from "react";
-import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
-import "react-responsive-carousel/lib/styles/carousel.min.css";
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import FeatherIcon from 'feather-icons-react';
 import { Document, Page ,pdfjs} from 'react-pdf';
+import 'react-responsive-modal/styles.css';
+import "react-responsive-carousel/lib/styles/carousel.min.css";
 import 'react-pdf/dist/Page/TextLayer.css';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 
@@ -153,7 +152,7 @@ export default function Analytics() {
             cell: row => (
                 <div className="text-light-green">£{parseFloat(row.Amount).toFixed(2)}</div>
             )
-        },
+        }, 
         {
             name: 'Actions',
             cell: row => (

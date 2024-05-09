@@ -168,7 +168,7 @@ export default function Credits() {
     }
 
     const si = totalRows == 0 ? 0 : (currentPage-1) * perPage + 1;
-    const ei = Math.min(currentPage*perPage, totalRows);
+    const ei = Math.min(currentPage*perPage, (currentTab === "Pending") ? pendingRecords.length : completedRecords.length);
 
     return (
         <div className="card mb-4">

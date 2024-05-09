@@ -3,14 +3,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
-import { userLogin } from "@/lib/features/thunk/user";
+import { login } from "@/api/user";
 
 const CustomForm = ({
     type = ""
 })=>{
     const router = useRouter();
-    const { isAuthenticated, selectedCompany } = useSelector((state) => state.user);
+    const { selectedCompany } = useSelector((state) => state.user);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -18,23 +19,30 @@ const CustomForm = ({
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if(isAuthenticated){
-            if(type === "admin"){
-                router.push('/admin/dashboard/users');
-            }else{
-                router.push('/dashboard/bookings');
-            }
-        }
-    }, [isAuthenticated])
-
-    useEffect(() => {
         console.log("^^^ RESET REDUX: ", selectedCompany)
     }, [selectedCompany])
 
     const doLogin = async (e) => {
         e.preventDefault();
-        console.log("#### LOGIN: ", email, password);
-        dispatch(userLogin({email, password}));
+        // console.log("#### LOGIN: ", email, password);
+        try{
+            const { userActions } = require("../lib/features/slice/userSlice");
+            const { storage } = require("../lib/store");
+            const response = await login({email, password});
+            let data = response.data?.data;
+            dispatch(userActions.setAuthentication(true));
+            storage.setItem('token', data?.accessToken);
+            data = JSON.stringify(data);
+            dispatch(userActions.setUserDetails(data))
+            toast.success('Logged in successfully.');
+            if(type === "admin"){
+                router.push('/admin/dashboard/users');
+            }else{
+                router.push('/dashboard/bookings');
+            }
+        }catch(error){
+            console.log("!!!! LOGIN ERROR: ", error);
+        }
       } 
 
     return(
