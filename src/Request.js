@@ -1,7 +1,6 @@
 "use client";
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import storage from 'redux-persist/lib/storage';
 
 export const baseUrl = 'http://18.130.0.242:4000/api/';
 
@@ -22,6 +21,7 @@ function hide() {
 
 API.interceptors.request.use(
     async(config) => {
+        const { storage } = require("./lib/store");
         show();
         const accessToken = await storage.getItem("token");
         if(accessToken && config?.url !== "auth/login"){
@@ -43,8 +43,7 @@ API.interceptors.response.use(
         return response;
     },
     async(error) => {
-        const { makeStore } = require("../src/lib/store");
-        const { logout } = require("../src/lib/features/thunk/logout");
+        const { makeStore, storage } = require("../src/lib/store");
         const { userActions } = require("../src/lib/features/slice/userSlice");
         // interceptLoading(false);
         hide()
@@ -55,21 +54,21 @@ API.interceptors.response.use(
         }else if(error?.message){
             toast.error(error?.message)
         }
-        if((status === 401) || (status === 451)){
+        if((status === 401) || (status === 403) || (status === 451)){
             const store = makeStore();
-            store.dispatch(userActions.resetAuthentication());
-            if(config?.url !== 'auth/login'){
-                if(window?.location?.pathname){
-                    const path = window.location.pathname;
-                    if(path.includes("/admin/dashboard")){
-                        window.location.replace("/admin");
-                    }else{
-                        window.location.replace("/");
-                    }
+            await storage.removeItem("token")
+            if(window?.location?.pathname){
+                const path = window.location.pathname;
+                if(path.includes("/admin")){
+                    window.location.replace("/admin");
+                }else{
+                    window.location.replace("/");
                 }
-                toast.warning("Session expired");
-                store.dispatch(logout());
             }
+            if(config?.url !== 'auth/login'){
+                toast.warning("Session expired");
+            }
+            store.dispatch(userActions.setAuthentication(false));
         }
     },
     (error) => {

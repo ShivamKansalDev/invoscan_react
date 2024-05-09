@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';;
 import 'react-responsive-modal/styles.css';
 import "../../assets/vendor/css/pages/page-account-settings.css";
 import { userActions } from '@/lib/features/slice/userSlice';
+import { storage } from '@/lib/store';
 
 export default function RootLayout({ children }) {
   const router = useRouter();
@@ -29,16 +30,20 @@ export default function RootLayout({ children }) {
 
   useEffect(() => {
     if(reset){
-      router.push("/");
-      toast.success('Logout successfully.');
-      dispatch(userActions.resetAuthentication());
+      dispatch(userActions.setAuthentication(false));
       setReset(false);
     }
   }, [reset]);
 
   useEffect(() => {
-    if(!isAuthenticated){
-      dispatch(logout());
+    if(isAuthenticated === null){
+      router.push("/");
+      toast.success('Logout successfully.');
+      storage.removeItem("token").then(() => {
+        console.log("storage clear");
+      }).catch((error) => {
+        console.log("storage error: ", error);
+      })
     }
   }, [isAuthenticated])
 

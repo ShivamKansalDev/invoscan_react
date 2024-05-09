@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 import { userCompanyList, userLogin } from "../thunk/user";
 // import storage from 'redux-persist/lib/storage';
-import storage from "@/lib/store";
+import {storage} from "@/lib/store";
 import { logout } from "../thunk/logout";
 
 const initialState = {
@@ -18,11 +18,14 @@ export const userSlice = createSlice({
     name: 'user',
     initialState,
     reducers: {
-        resetAuthentication: (state, action) => {
-            return {
-                ...state,
-                isAuthenticated: null
+        setAuthentication: (state, action) => {
+            if(action?.payload){
+                return {
+                    ...state,
+                    isAuthenticated: true
+                }
             }
+            return Object.assign(state, initialState);
         },
         setUserDetails: (state, action) => {
             return {

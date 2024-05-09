@@ -45,7 +45,7 @@ function CustomDashboard({
             }
         }
         toast.error('Logout successfully.');
-        dispatch(userActions.resetAuthentication());
+        dispatch(userActions.setAuthentication(false));
         setReset(false);
     }
   }, [reset])

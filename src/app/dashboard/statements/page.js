@@ -6,12 +6,10 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 
 import FeatherIcon from 'feather-icons-react';
 import { deleteStatement, deleteStatementInvoice, getStatementDetails, getStatementList, markCompleteStatementInvoice, uploadStatement } from "@/api/statement";
-// import storage from 'redux-persist/lib/storage';
 
 import { useSelector } from "react-redux";
 import { getSupplierList } from "@/api/invoices";
 import { toast } from "react-toastify";
-import BackArrow from "@/components/BackArrow";
 import { FilteredDataTable } from "@/components/FilteredDataTable";
 import { UploadCSV } from "@/app/admin/adminComponents/UploadCSV";
 

@@ -4,8 +4,9 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { logout } from '../../../lib/features/thunk/logout';
+// import { logout } from '../../../lib/features/thunk/logout';
 import { userActions } from '@/lib/features/slice/userSlice';
+import {storage} from '@/lib/store';
 
 export default function Settings() {
     const router = useRouter();
@@ -14,16 +15,16 @@ export default function Settings() {
 
     const [currentUser, setCurrentUser] = useState({});
 
-    const logoutUser = (e) => {
+    const logoutUser = async(e) => {
         e.preventDefault();
-        router.push("/");
         toast.error('Logout successfully.');
-        dispatch(userActions.resetAuthentication());
+        dispatch(userActions.setAuthentication(false));
     }
 
     useEffect(() => {
         if(!isAuthenticated){
-          dispatch(logout());
+            router.push("/");
+            storage.removeItem("token");
         }
       }, [isAuthenticated])
 

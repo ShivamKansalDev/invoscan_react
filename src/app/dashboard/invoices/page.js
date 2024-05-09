@@ -424,9 +424,9 @@ export default function Invoices() {
         let details = JSON.parse(userDetails);
         if((details !== null) || (details !== undefined)){
             setUser(details?.user);
-            fetchData('Pending');
+            fetchData(currentTab);
         }
-    }, []);
+    }, [selectedCompany]);
 
     useEffect(() => {
         if(invoiceItems){

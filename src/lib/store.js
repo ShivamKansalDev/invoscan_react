@@ -21,11 +21,9 @@ const createNoopStorage = () => {
   };
 };
 
-const storage = typeof window !== "undefined" ? createWebStorage("local") : createNoopStorage();
+export const storage = typeof window !== "undefined" ? createWebStorage("local") : createNoopStorage();
 
 // const storage = persistStorage;
-
-export default storage;
 
 const persistConfig = {
   key: "root",
