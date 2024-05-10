@@ -13,6 +13,7 @@
     "axios": "^1.6.7",
     "chart.js": "^4.4.2",
     "chartjs-plugin-datalabels": "^2.2.0",
+    "date-fns": "^3.6.0",
     "feather-icons-react": "^0.7.0",
     "lodash": "^4.17.21",
     "moment": "^2.30.1",

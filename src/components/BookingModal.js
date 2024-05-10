@@ -106,9 +106,10 @@ const BookingModal = ({
                                                 <label htmlFor="InvoiceDate" className="form-label">Invoice date</label>
                                                 {/* <input className="form-control" type="date" id="InvoiceDate" name="InvoiceDate" onChange={(e)=>{setInvoiceItems({...invoiceItems, InvoiceDate: e.target.value})}} value={invoiceItems.InvoiceDate} /> */}
                                                 <DatePicker 
-                                                    dateFormat="MM/dd/yyyy" 
+                                                    selected={moment(invoiceItems?.InvoiceDate, "DD/MM/YYYY").toDate()}
+                                                    dateFormat="dd/MM/yyyy"
+                                                    placeholderText="DD/MM/YYYY"
                                                     readOnly={invoiceItems?.isDelivered}
-                                                    selected={invoiceItems.InvoiceDate}
                                                     className="form-control"
                                                     onChange={(date) => {
                                                         setInvoiceItems({...invoiceItems, InvoiceDate: date})
