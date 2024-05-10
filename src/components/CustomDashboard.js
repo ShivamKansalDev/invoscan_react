@@ -18,7 +18,6 @@ function CustomDashboard({
 }) {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { isAuthenticated } = useSelector((state) => state.user);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [company, setCompany] = useState({});
   const [companyList, setCompanyList] = useState([]);
@@ -45,16 +44,10 @@ function CustomDashboard({
             }
         }
         toast.error('Logout successfully.');
-        dispatch(userActions.setAuthentication(false));
+        dispatch(userActions.setAuthentication());
         setReset(false);
     }
   }, [reset])
-
-  useEffect(() => {
-    if(!isAuthenticated){
-      dispatch(logout());
-    }
-  }, [isAuthenticated])
   
   const onCloseModal = () => {
     setOpen(false);

@@ -68,7 +68,7 @@ API.interceptors.response.use(
             if(config?.url !== 'auth/login'){
                 toast.warning("Session expired");
             }
-            store.dispatch(userActions.setAuthentication(false));
+            store.dispatch(userActions.setAuthentication());
         }
     },
     (error) => {

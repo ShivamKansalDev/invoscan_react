@@ -8,17 +8,19 @@ import moment from "moment";
 import FeatherIcon from 'feather-icons-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { SelectCompany } from "@/components/SelectCompany";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { deleteInvoice, getPendingInvoices, getSupplierList, markCompleteInvoice, uploadInvoice } from "@/api/invoices";
 import { toast } from "react-toastify";
 import BackArrow from "@/components/BackArrow";
 import BookingModal from "@/components/BookingModal";
 import { FilteredDataTable } from "@/components/FilteredDataTable";
 import { ProductDetailsModal } from "@/components/ProductDetailsModal";
+import { userCompanyList } from "@/lib/features/thunk/user";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 export default function Bookings() {
-    const {selectedCompany } = useSelector((state) => state.user);
+    const dispatch = useDispatch();
+    const { userDetails, selectedCompany, companyList } = useSelector((state) => state.user);
 
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
@@ -401,7 +403,6 @@ export default function Bookings() {
     const deleteCurrentInvoice = async () => {
         try{
             const response = await deleteInvoice(deleteId);
-            // fetchData();
             const updateData = data?.filter((item) => item?.id !== deleteId);
             setData(updateData);
             onCloseDeleteModal();
@@ -413,6 +414,7 @@ export default function Bookings() {
     const fetchData = async page => {
         let companyDetails = selectedCompany;
         if(!companyDetails?.id) {
+            getCompanyList();
             return;
         }
         setLoading(true)
@@ -557,7 +559,21 @@ export default function Bookings() {
             setSupplierOpen(true); 
             setActionType(type);
         }else{
-            setShowCompanyModal(true);
+            getCompanyList();
+        }
+    }
+
+    useEffect(() => {
+        if(Array.isArray(companyList) && (companyList.length > 0)){
+            // setShowCompanyModal(true);
+        }
+      }, [companyList])
+
+    const getCompanyList = () => {
+        const details = JSON.parse(userDetails);
+        const user = details?.user;
+        if (user?.id) {
+          dispatch(userCompanyList(user?.id));
         }
     }
 
@@ -568,7 +584,7 @@ export default function Bookings() {
                     <h5>Book in a brand new delivery</h5>
                     <div className="mt-2">
                         <button type="button" onClick={() => checkSelectedCompany("invoice")} className={`btn btn-green me-2`}>Add Invoice</button>
-                        <button type="button" onClick={() => checkSelectedCompany("bulk")} className={`btn btn-green me-2`}>Bulk Invoices</button>
+                        {/* <button type="button" onClick={() => checkSelectedCompany("bulk")} className={`btn btn-green me-2`}>Bulk Invoices</button> */}
                         <button type="button" onClick={() => checkSelectedCompany("statement")} className={`btn btn-green me-2`}>Add Statement</button>
                     </div>
                 </div>

@@ -17,12 +17,8 @@ function SelectCompany({
   const { setSelectedCompany } = userActions;
 
   useEffect(() => {
-    if(open){
-      const details = JSON.parse(userDetails);
-      const user = details?.user;
-      if (user?.id) {
-        dispatch(userCompanyList(user?.id));
-      }
+    if(!open){
+      dispatch(userActions.resetCompanyList())
     }
   }, [open]);
 

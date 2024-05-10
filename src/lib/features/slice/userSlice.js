@@ -8,7 +8,6 @@ import {storage} from "@/lib/store";
 import { logout } from "../thunk/logout";
 
 const initialState = {
-    isAuthenticated: null,
     userDetails: null,
     companyList: [],
     selectedCompany: null
@@ -19,12 +18,6 @@ export const userSlice = createSlice({
     initialState,
     reducers: {
         setAuthentication: (state, action) => {
-            if(action?.payload){
-                return {
-                    ...state,
-                    isAuthenticated: true
-                }
-            }
             return Object.assign(state, initialState);
         },
         setUserDetails: (state, action) => {
@@ -38,6 +31,12 @@ export const userSlice = createSlice({
                 ...state,
                 selectedCompany: action.payload
             }
+        },
+        resetCompanyList: (state, action) => {
+            return {
+                ...state,
+                companyList: []
+            }
         }
     },
     extraReducers: (builder) => {
@@ -46,7 +45,6 @@ export const userSlice = createSlice({
         }).addCase(userLogin.fulfilled, (state, action) => {
             const data = action.payload?.data;
             state.userDetails = JSON.stringify(data);
-            state.isAuthenticated = true;
             toast.success('Logged in successfully.');
             storage.setItem('token', data.accessToken);
         }).addCase(userLogin.rejected, (state, action) => {

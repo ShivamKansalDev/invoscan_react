@@ -30,7 +30,6 @@ const CustomForm = ({
             const { storage } = require("../lib/store");
             const response = await login({email, password});
             let data = response.data?.data;
-            dispatch(userActions.setAuthentication(true));
             storage.setItem('token', data?.accessToken);
             data = JSON.stringify(data);
             dispatch(userActions.setUserDetails(data))

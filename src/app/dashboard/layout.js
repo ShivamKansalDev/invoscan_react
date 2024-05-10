@@ -12,45 +12,41 @@ import 'react-responsive-modal/styles.css';
 import "../../assets/vendor/css/pages/page-account-settings.css";
 import { userActions } from '@/lib/features/slice/userSlice';
 import { storage } from '@/lib/store';
+import { userCompanyList } from '@/lib/features/thunk/user';
 
 export default function RootLayout({ children }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [reset, setReset] = useState(false);
 
-  const { userDetails, selectedCompany, isAuthenticated } = useSelector((state) => state.user);
+  const { selectedCompany, userDetails, companyList } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if(Array.isArray(companyList) && (companyList.length > 0)){
+      setOpen(true);
+    }
+  }, [companyList])
 
   useEffect(() => {
     const path = window?.location?.pathname;
     if(!selectedCompany && !reset && (!path.includes("/dashboard/settings"))){
-      setOpen(true);
+      getCompanyList();
     }
   }, [])
 
   useEffect(() => {
-    if(reset){
-      dispatch(userActions.setAuthentication(false));
-      setReset(false);
-    }
-  }, [reset]);
-
-  useEffect(() => {
-    if(isAuthenticated === null){
+    async function exit(){
       router.push("/");
       toast.success('Logout successfully.');
-      storage.removeItem("token").then(() => {
-        console.log("storage clear");
-      }).catch((error) => {
-        console.log("storage error: ", error);
-      })
+      await storage.removeItem("token");
+      dispatch(userActions.setAuthentication())
+      setReset(false);
     }
-  }, [isAuthenticated])
-
-  const openModalPopup = () => {
-    // fetchCurrentCompanies(currentUser.id);
-    setOpen(true);
-  }
+    if(reset){
+      exit();
+    }
+  }, [reset]);
 
   const logoutUser = (e) => {
     // window.location.replace("/");
@@ -61,6 +57,16 @@ export default function RootLayout({ children }) {
   const onCloseModal = () => {
     setOpen(false);
   };
+
+  const getCompanyList = () => {
+    // e.preventDefault();
+    const details = JSON.parse(userDetails);
+    const user = details?.user;
+    if (user?.id) {
+      dispatch(userCompanyList(user?.id));
+    }
+  }
+
   const pathname = usePathname()
 
   return (
@@ -141,7 +147,7 @@ export default function RootLayout({ children }) {
                   </li>
 
                   <li className="menu-item">
-                    <Link  href={''} onClick={(e) => { openModalPopup() }} className="menu-link">
+                    <Link  href={''} onClick={(e) => getCompanyList()} className="menu-link">
                       <FeatherIcon icon="briefcase" className='menu-icon' />
                       <div data-i18n="Dashboards">{selectedCompany?.name || "Select company"}</div>
                     </Link>

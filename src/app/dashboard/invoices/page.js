@@ -9,16 +9,18 @@ import moment from "moment";
 import FeatherIcon from 'feather-icons-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { SelectCompany } from "@/components/SelectCompany";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { userActions } from "@/lib/features/slice/userSlice";
 import { deleteInvoice, getPendingInvoices, markCompleteInvoice } from "@/api/invoices";
 import { toast } from "react-toastify";
 import BookingModal from "@/components/BookingModal";
 import { FilteredDataTable } from "@/components/FilteredDataTable";
 import { ProductDetailsModal } from "@/components/ProductDetailsModal";
+import { userCompanyList } from "@/lib/features/thunk/user";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
  
 export default function Invoices() {
+    const dispatch = useDispatch();
     const {userDetails, selectedCompany, companyList} = useSelector((state) => state.user);
     const { setSelectedCompany } =  userActions;
     const [data, setData] = useState([])
@@ -217,6 +219,14 @@ export default function Invoices() {
         },
     };
 
+    const getCompanyList = () => {
+        const details = JSON.parse(userDetails);
+        const user = details?.user;
+        if (user?.id) {
+          dispatch(userCompanyList(user?.id));
+        }
+    }
+
     useEffect(() => {
         if(Object.keys(deleteSPId).length > 0){
             setDeleteSpOpen(true);
@@ -390,11 +400,17 @@ export default function Invoices() {
         }
     }
 
+    useEffect(() => {
+        if(Array.isArray(companyList) && (companyList.length > 0)){
+            // setShowCompanyModal(true);
+        }
+      }, [companyList])
+
     const fetchData = async (currentTab) => {
         let companyDetails = selectedCompany;
         // console.log("@@@@ INVOICES: ", companyDetails);
         if(!companyDetails?.id) {
-            setShowCompanyModal(true);
+            getCompanyList();
             return;
         }
         setLoading(true);

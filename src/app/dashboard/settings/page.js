@@ -11,22 +11,17 @@ import {storage} from '@/lib/store';
 export default function Settings() {
     const router = useRouter();
     const dispatch = useDispatch();
-    const { userDetails, isAuthenticated } = useSelector((state) => state.user);
+    const { userDetails } = useSelector((state) => state.user);
 
     const [currentUser, setCurrentUser] = useState({});
 
     const logoutUser = async(e) => {
         e.preventDefault();
         toast.error('Logout successfully.');
-        dispatch(userActions.setAuthentication(false));
+        router.push("/");
+        storage.removeItem("token");
+        dispatch(userActions.setAuthentication());
     }
-
-    useEffect(() => {
-        if(!isAuthenticated){
-            router.push("/");
-            storage.removeItem("token");
-        }
-      }, [isAuthenticated])
 
     useLayoutEffect(() => {
         const details = JSON.parse(userDetails);
